@@ -1,0 +1,22 @@
+{
+  "action_id": "BRAIN-N002",
+  "title": "Build executable Brain security core and runtime self-test",
+  "status": "READY",
+  "scope": [
+    "message envelope",
+    "corridor registry",
+    "capability authority",
+    "nonce replay protection",
+    "lineage verification",
+    "append-only audit",
+    "fail-closed policy"
+  ],
+  "constraints": [
+    "promotion must remain DENY",
+    "no secrets in logs or evidence",
+    "no XSMB canonical-data mutation",
+    "no Layer 1 business logic"
+  ],
+  "verification": "runtime self-test required before foundation completion",
+  "render": "do not connect until the Brain local/runtime contract is executable and self-tested"
+}
