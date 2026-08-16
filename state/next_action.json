@@ -1,36 +1,31 @@
 {
-  "action_id": "BRAIN-N013",
-  "title": "Execute the render-safe bounded runner in the deployed execution boundary and capture runtime evidence",
+  "action_id": "BRAIN-N015",
+  "title": "Integrate compact runtime evidence into the durable foundation evidence path and expose metadata only",
   "status": "READY",
   "phase": "FOUNDATION",
-  "previous": "BRAIN-N012 implemented render_safe_runner.py with 320MB conservative guard under 512MB platform ceiling",
+  "previous": "BRAIN-N014 implemented the compact runtime evidence writer and durable evidence boundary specification",
   "scope": [
-    "run one real-source fixture only",
-    "verify source SHA before parsing",
-    "execute FULL_27 validation",
-    "derive TAIL_27 from FULL_27",
-    "construct one-day shard and compact evidence",
-    "exercise quorum-deny",
-    "capture peak memory",
-    "capture CPU/time",
-    "capture corridor result",
-    "verify no history concatenation",
-    "persist runtime evidence",
-    "if guard breached route to external worker and record DENY"
+    "wire runtime evidence into the persistent evidence path",
+    "store only compact metadata and hashes",
+    "expose verification metadata through foundation endpoint",
+    "verify restart-safe state",
+    "verify no bulk payload enters Brain/UI",
+    "verify 320MB guard and 512MB hard ceiling remain enforced",
+    "record runtime evidence hash and lineage"
   ],
   "constraints": [
     "chat remains communication interface only",
     "Render Free 512MB / 1 CPU hard boundary",
     "320MB conservative guard",
-    "no full workbook loading in Brain/UI",
-    "no historical aggregation",
+    "no historical aggregation in Brain/UI",
     "no fabricated evidence",
     "FULL_27 is source truth",
     "TAIL_27 is derived only",
     "source_count=1 remains non-canonical",
     "promotion remains DENY",
     "Layer 1 remains LOCKED",
-    "staircase remains LOCKED"
+    "staircase remains LOCKED",
+    "bulk source payloads never enter compact evidence"
   ],
-  "completion_gate": "deployed runtime evidence proves bounded execution remains below guard and quorum-deny remains fail-closed"
+  "completion_gate": "durable evidence survives service restart and verification endpoint exposes metadata without bulk data"
 }
