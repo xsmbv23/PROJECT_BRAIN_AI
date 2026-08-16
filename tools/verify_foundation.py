@@ -15,6 +15,7 @@ from core.durable_state import persist_audit_head, restore_audit_head
 from core.foundation_gate import run_foundation_gate
 from core.foundation_hardening import AuditChain, GovernanceDeny
 from core.inner_latch import InnerLatch, InnerLatchPolicy, InnerLatchState
+from core.security_chain import evaluate_entry_request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -86,14 +87,28 @@ def inner_latch_round_trip() -> None:
     assert latch.state == InnerLatchState.RELEASED
 
 
+def unified_security_chain_round_trip() -> None:
+    lock = RoomLock("OWNER_ROOM", 3, "CAP_A", "KEY_A", ("HALL_A",), ("OWNER_ROOM",), ((2, 3),))
+    latch = InnerLatch(InnerLatchPolicy("OWNER_ROOM", 3, True, ("OWNER_PRESENT",)))
+    decision = evaluate_entry_request(
+        lock=lock, latch=latch, corridor_id="HALL_A", sensor_id="SENSOR_A",
+        source_room="HALL_A", destination_room="OWNER_ROOM",
+        source_layer=2, destination_layer=3, capability="CAP_A", key_fingerprint="KEY_A",
+    )
+    assert decision.external_authorized is True
+    assert decision.entry_authorized is False
+    assert decision.reason == "INNER_LATCH_SECURED"
+    assert latch.state == InnerLatchState.RINGING
+
+
 def main() -> int:
     tracemalloc.start(); started = time.monotonic()
     suite = unittest.defaultTestLoader.discover(str(ROOT / "tests"), pattern="test_*.py")
     result = unittest.TextTestRunner(verbosity=1).run(suite)
-    source_scan(); adapter_import_scan(); durable_round_trip(); room_lock_round_trip(); corridor_sensor_round_trip(); inner_latch_round_trip()
+    source_scan(); adapter_import_scan(); durable_round_trip(); room_lock_round_trip(); corridor_sensor_round_trip(); inner_latch_round_trip(); unified_security_chain_round_trip()
     gate = run_foundation_gate()
     _, peak = tracemalloc.get_traced_memory(); tracemalloc.stop()
-    report = {"tests_ok": result.wasSuccessful(), "gate": gate["status"], "source_scan": "PASS", "adapter_import_scan": "PASS", "durable_round_trip": "PASS", "room_lock": "PASS", "corridor_sensor": "PASS", "inner_latch": "PASS", "tracemalloc_peak_bytes": peak, "elapsed_seconds": round(time.monotonic()-started, 4)}
+    report = {"tests_ok": result.wasSuccessful(), "gate": gate["status"], "source_scan": "PASS", "adapter_import_scan": "PASS", "durable_round_trip": "PASS", "room_lock": "PASS", "corridor_sensor": "PASS", "inner_latch": "PASS", "security_chain": "PASS", "tracemalloc_peak_bytes": peak, "elapsed_seconds": round(time.monotonic()-started, 4)}
     print(report)
     return 0 if result.wasSuccessful() and gate["status"] == "PASS" else 1
 
