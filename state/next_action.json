@@ -1,17 +1,18 @@
 {
-  "action_id": "BRAIN-N015",
-  "title": "Integrate compact runtime evidence into the durable foundation evidence path and expose metadata only",
+  "action_id": "BRAIN-N016",
+  "title": "Implement and verify an actual durable evidence sink with restart-safe read-back",
   "status": "READY",
   "phase": "FOUNDATION",
-  "previous": "BRAIN-N014 implemented the compact runtime evidence writer and durable evidence boundary specification",
+  "previous": "BRAIN-N015 established the compact deterministic evidence envelope and execution-boundary contract",
   "scope": [
-    "wire runtime evidence into the persistent evidence path",
-    "store only compact metadata and hashes",
-    "expose verification metadata through foundation endpoint",
-    "verify restart-safe state",
-    "verify no bulk payload enters Brain/UI",
-    "verify 320MB guard and 512MB hard ceiling remain enforced",
-    "record runtime evidence hash and lineage"
+    "select an existing persistent evidence authority without creating a second source of truth",
+    "write one compact evidence envelope",
+    "read it back after restart/redeploy",
+    "recompute and compare evidence SHA",
+    "verify source/fixture/FULL_27/TAIL_27/manifest lineage",
+    "verify Brain receives metadata only",
+    "capture runtime resource evidence",
+    "record PASS or DENY explicitly"
   ],
   "constraints": [
     "chat remains communication interface only",
@@ -25,7 +26,7 @@
     "promotion remains DENY",
     "Layer 1 remains LOCKED",
     "staircase remains LOCKED",
-    "bulk source payloads never enter compact evidence"
+    "never create a competing evidence authority"
   ],
-  "completion_gate": "durable evidence survives service restart and verification endpoint exposes metadata without bulk data"
+  "completion_gate": "evidence written to an existing durable authority survives restart/redeploy and its SHA/lineage can be verified without loading bulk data"
 }
