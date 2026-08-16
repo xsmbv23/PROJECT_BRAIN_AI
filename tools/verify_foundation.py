@@ -9,6 +9,7 @@ import tracemalloc
 import unittest
 
 from core.corridor_lock import RoomLock, authorize_room
+from core.corridor_sensor import sense_corridor_presence
 from core.durable_audit import seal_head
 from core.durable_state import persist_audit_head, restore_audit_head
 from core.foundation_gate import run_foundation_gate
@@ -58,14 +59,23 @@ def room_lock_round_trip() -> None:
     raise AssertionError("unlisted layer edge must deny")
 
 
+def corridor_sensor_round_trip() -> None:
+    signal = sense_corridor_presence(corridor_id="HALL_A", sensor_id="SENSOR_A", source_room="HALL_X", destination_room="ROOM_A", authorized=False)
+    assert signal.light_on is True
+    assert signal.level == "WARNING"
+    assert signal.event == "UNAUTHORIZED_CORRIDOR_APPROACH"
+    # Sensor output is telemetry only. It has no capability/key and therefore
+    # cannot be substituted for authorize_room().
+
+
 def main() -> int:
     tracemalloc.start(); started = time.monotonic()
     suite = unittest.defaultTestLoader.discover(str(ROOT / "tests"), pattern="test_*.py")
     result = unittest.TextTestRunner(verbosity=1).run(suite)
-    source_scan(); adapter_import_scan(); durable_round_trip(); room_lock_round_trip()
+    source_scan(); adapter_import_scan(); durable_round_trip(); room_lock_round_trip(); corridor_sensor_round_trip()
     gate = run_foundation_gate()
     _, peak = tracemalloc.get_traced_memory(); tracemalloc.stop()
-    report = {"tests_ok": result.wasSuccessful(), "gate": gate["status"], "source_scan": "PASS", "adapter_import_scan": "PASS", "durable_round_trip": "PASS", "room_lock": "PASS", "tracemalloc_peak_bytes": peak, "elapsed_seconds": round(time.monotonic()-started, 4)}
+    report = {"tests_ok": result.wasSuccessful(), "gate": gate["status"], "source_scan": "PASS", "adapter_import_scan": "PASS", "durable_round_trip": "PASS", "room_lock": "PASS", "corridor_sensor": "PASS", "tracemalloc_peak_bytes": peak, "elapsed_seconds": round(time.monotonic()-started, 4)}
     print(report)
     return 0 if result.wasSuccessful() and gate["status"] == "PASS" else 1
 
