@@ -11,6 +11,7 @@ import time
 import tracemalloc
 import unittest
 
+from core.corridor_lock import RoomLock, authorize_room
 from core.credential_guard import assert_no_credentials
 from core.durable_audit import seal_head
 from core.durable_state import persist_audit_head, restore_audit_head
@@ -55,6 +56,18 @@ def durable_round_trip() -> None:
     assert restored.envelope.audit_head == env.audit_head
 
 
+def room_lock_round_trip() -> None:
+    room_a = RoomLock("ROOM_A", 0, "CAP_A", "KEY_A", ("HALL_A",), ("ROOM_A",))
+    authorize_room(room_a, presented_capability="CAP_A", key_fingerprint="KEY_A",
+                   source_room="HALL_A", destination_room="ROOM_A", source_layer=0, destination_layer=0)
+    try:
+        authorize_room(room_a, presented_capability="CAP_A", key_fingerprint="KEY_A",
+                       source_room="HALL_A", destination_room="ROOM_A", source_layer=1, destination_layer=0)
+    except GovernanceDeny:
+        return
+    raise AssertionError("cross-layer access must deny")
+
+
 def main() -> int:
     tracemalloc.start()
     started = time.monotonic()
@@ -63,6 +76,7 @@ def main() -> int:
     source_scan()
     adapter_import_scan()
     durable_round_trip()
+    room_lock_round_trip()
     gate = run_foundation_gate()
     current, peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
@@ -73,6 +87,7 @@ def main() -> int:
         "source_scan": "PASS",
         "adapter_import_scan": "PASS",
         "durable_round_trip": "PASS",
+        "room_lock": "PASS",
         "tracemalloc_peak_bytes": peak,
         "elapsed_seconds": round(elapsed, 4),
     }
