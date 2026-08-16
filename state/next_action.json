@@ -1,44 +1,32 @@
 {
-  "action_id": "BRAIN-N011",
-  "title": "Execute bounded real-source fixture chain and capture fail-closed runtime evidence",
+  "action_id": "BRAIN-N012",
+  "title": "Make bounded verification reproducible in the existing Render-safe execution boundary",
   "status": "READY",
   "phase": "FOUNDATION",
-  "fixture": "xsmb-quant/fixtures/2026-08-12/full27_fixture.json",
+  "completed_previous": "BRAIN-N011 local bounded runtime executed; source SHA, FULL_27, TAIL_27 and quorum-deny verified.",
   "scope": [
-    "parse exactly one bounded fixture",
-    "verify source SHA and fixture SHA",
-    "validate 27 FULL_PRIZE tokens and semantic lengths",
-    "derive TAIL_27 only from FULL_27",
-    "construct one-day shard",
-    "construct evidence envelope",
-    "verify manifest lineage",
-    "exercise quorum < 2 deny path",
-    "capture runtime memory/CPU evidence",
-    "verify no historical dataset concatenation"
+    "move the bounded verifier into the existing Build Plane / Render-safe boundary",
+    "keep input to one fixture/day shard only",
+    "stream bytes rather than concatenate history",
+    "enforce explicit memory ceiling below Render Free 512MB",
+    "capture peak memory and CPU evidence",
+    "capture corridor result",
+    "persist compact evidence only",
+    "keep source_count=1 non-canonical",
+    "keep promotion DENY"
   ],
   "constraints": [
-    "fixture is verification-only",
-    "source_count=1 must remain non-canonical",
-    "promotion remains DENY",
+    "chat remains communication interface only",
+    "Render Free 512MB and 1 CPU are hard limits",
+    "no historical dataset aggregation",
+    "no full workbook loading in Brain/UI",
+    "unknown memory footprint routes external or DENY",
+    "no fabricated source/quorum",
+    "FULL_27 is source truth",
+    "TAIL_27 is derived only",
     "Layer 1 remains LOCKED",
     "staircase remains LOCKED",
-    "Render Free 512MB hard boundary",
-    "no full workbook loading in Brain/UI",
-    "no fabricated source or quorum",
-    "no reverse TAIL_27 reconstruction",
-    "all failures fail closed"
+    "promotion remains DENY"
   ],
-  "required_runtime_evidence": [
-    "source_sha_verified",
-    "fixture_sha_verified",
-    "full27_validation_result",
-    "tail27_derivation_result",
-    "manifest_result",
-    "quorum_deny_result",
-    "evidence_sha256",
-    "peak_memory_mb",
-    "cpu_seconds_or_equivalent",
-    "corridor_result"
-  ],
-  "completion_gate": "bounded runtime evidence captured and quorum-deny path verified without exceeding resource boundary"
+  "completion_gate": "Render-safe runtime evidence captured without crossing memory/CPU guard; otherwise DENY and route to external worker"
 }
