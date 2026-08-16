@@ -1,35 +1,40 @@
 {
-  "action_id": "BRAIN-N009",
-  "title": "Verify the smallest bounded XSMB fixture chain end-to-end without historical loading",
+  "action_id": "BRAIN-N010",
+  "title": "Establish a deterministic bounded fixture from an explicitly identified source artifact, then execute the chain",
   "status": "READY",
   "phase": "FOUNDATION",
+  "reason": "No committed bounded fixture exists yet; do not fabricate one or claim runtime evidence.",
   "scope": [
-    "locate existing bounded fixture",
-    "verify fixture source hash",
-    "verify FULL_27 structure",
-    "verify provenance and quorum decision",
-    "derive TAIL_27 without reverse reconstruction",
-    "produce one day shard",
-    "produce manifest lineage",
-    "produce compact evidence",
-    "verify Brain corridor and fail-closed branches",
+    "identify an existing real source artifact suitable for verification",
+    "record source identity and SHA before parsing",
+    "create verification-only fixture preserving provenance",
+    "validate FULL_27 structure",
+    "record provenance/quorum result",
+    "derive TAIL_27 only from validated FULL_27",
+    "create one-day shard",
+    "create manifest lineage",
+    "create compact evidence",
+    "execute Brain corridor checks",
     "capture runtime evidence"
   ],
   "constraints": [
     "chat remains communication interface only",
     "promotion remains DENY",
     "Layer 1 remains LOCKED",
+    "staircase remains LOCKED",
     "Render Free 512MB is a hard boundary",
-    "unknown memory footprint routes external or DENY",
-    "no full historical dataset in Brain RAM",
+    "no fabricated production observations",
+    "no legacy Tail27 relabeled as FULL_27",
+    "no reverse reconstruction",
+    "no historical dataset loading into Brain RAM",
     "no full workbook parsing in Brain/UI",
-    "no canonical mutation from Brain",
-    "TAIL_27 cannot reconstruct FULL_27",
-    "legacy Tail27 cannot become FULL_27",
-    "every crash remains resumable and DENY/PENDING"
+    "unknown memory footprint routes external or DENY",
+    "all failures remain resumable and DENY/PENDING"
   ],
   "required_artifacts": [
-    "fixture_input_sha256",
+    "source_identity",
+    "source_sha256",
+    "fixture_sha256",
     "full27_sha256",
     "tail27_sha256",
     "day_shard_sha256",
@@ -37,5 +42,5 @@
     "evidence_sha256",
     "corridor_runtime_result"
   ],
-  "completion_gate": "bounded runtime evidence must pass before S5/S6 staircase consideration"
+  "completion_gate": "runtime evidence from an explicitly identified source must pass before S5/S6 staircase consideration"
 }
