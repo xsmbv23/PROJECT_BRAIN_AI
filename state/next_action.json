@@ -1,32 +1,36 @@
 {
-  "action_id": "BRAIN-N012",
-  "title": "Make bounded verification reproducible in the existing Render-safe execution boundary",
+  "action_id": "BRAIN-N013",
+  "title": "Execute the render-safe bounded runner in the deployed execution boundary and capture runtime evidence",
   "status": "READY",
   "phase": "FOUNDATION",
-  "completed_previous": "BRAIN-N011 local bounded runtime executed; source SHA, FULL_27, TAIL_27 and quorum-deny verified.",
+  "previous": "BRAIN-N012 implemented render_safe_runner.py with 320MB conservative guard under 512MB platform ceiling",
   "scope": [
-    "move the bounded verifier into the existing Build Plane / Render-safe boundary",
-    "keep input to one fixture/day shard only",
-    "stream bytes rather than concatenate history",
-    "enforce explicit memory ceiling below Render Free 512MB",
-    "capture peak memory and CPU evidence",
+    "run one real-source fixture only",
+    "verify source SHA before parsing",
+    "execute FULL_27 validation",
+    "derive TAIL_27 from FULL_27",
+    "construct one-day shard and compact evidence",
+    "exercise quorum-deny",
+    "capture peak memory",
+    "capture CPU/time",
     "capture corridor result",
-    "persist compact evidence only",
-    "keep source_count=1 non-canonical",
-    "keep promotion DENY"
+    "verify no history concatenation",
+    "persist runtime evidence",
+    "if guard breached route to external worker and record DENY"
   ],
   "constraints": [
     "chat remains communication interface only",
-    "Render Free 512MB and 1 CPU are hard limits",
-    "no historical dataset aggregation",
+    "Render Free 512MB / 1 CPU hard boundary",
+    "320MB conservative guard",
     "no full workbook loading in Brain/UI",
-    "unknown memory footprint routes external or DENY",
-    "no fabricated source/quorum",
+    "no historical aggregation",
+    "no fabricated evidence",
     "FULL_27 is source truth",
     "TAIL_27 is derived only",
+    "source_count=1 remains non-canonical",
+    "promotion remains DENY",
     "Layer 1 remains LOCKED",
-    "staircase remains LOCKED",
-    "promotion remains DENY"
+    "staircase remains LOCKED"
   ],
-  "completion_gate": "Render-safe runtime evidence captured without crossing memory/CPU guard; otherwise DENY and route to external worker"
+  "completion_gate": "deployed runtime evidence proves bounded execution remains below guard and quorum-deny remains fail-closed"
 }
