@@ -1,7 +1,7 @@
 {
   "project_id": "XSMB_FORENSIC",
   "repository": "xsmbv23/Project_Brain_AI",
-  "foundation_state": "RUNTIME_EVIDENCE_BOUNDARY_READY",
+  "foundation_state": "DURABLE_EVIDENCE_SINK_ADAPTER_READY_RUNTIME_WIRING_PENDING",
   "brain_role": "GOVERNANCE_CONTROL_PLANE",
   "chat_role": "COMMUNICATION_INTERFACE_ONLY",
   "persistent_memory_authority": "REPOSITORY_AND_PERSISTENT_EVIDENCE",
@@ -22,9 +22,12 @@
   "tail27_derivation": "VALIDATED_OFF_FULL27",
   "render_safe_runner": "DEPLOYED_RUNTIME_PENDING_EVIDENCE_PERSISTENCE",
   "runtime_evidence_writer": "IMPLEMENTED",
+  "durable_evidence_sink": "IMPLEMENTED_DATABASE_URL_REQUIRED",
+  "persistent_db_authority": "dpg-da07g0ou01pc738i3ldg-a",
+  "persistent_db_status": "AVAILABLE_CONNECTOR_SSL_INTEGRATION_PENDING",
   "promotion": "DENY",
   "layer_1": "LOCKED",
   "staircase": "LOCKED",
-  "last_action_id": "BRAIN-N014",
-  "next_action_id": "BRAIN-N015"
+  "last_action_id": "BRAIN-N016",
+  "next_action_id": "BRAIN-N017"
 }
