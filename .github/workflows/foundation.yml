@@ -20,3 +20,5 @@ jobs:
           python-version: '3.12'
       - name: Run deterministic foundation verifier
         run: python tools/verify_foundation.py
+      - name: Run focused two-key protected-room verifier
+        run: python tools/verify_access_path.py
