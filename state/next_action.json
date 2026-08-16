@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N046",
-  "title":"Run Brain governance tests and cross-plane privilege-escalation verification",
+  "action_id":"BRAIN-N047",
+  "title":"Execute integrated foundation verifier and capture reproducible evidence",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N045 bound every Brain admission to a scoped, expiring CapabilityLease with corridor, nonce, expiry, operation and destination-layer checks",
-  "scope":["run BrainRole tests","run access-path tests","run unified security-chain tests","run full foundation verifier","test lease replay/expiry/operation-limit/source/destination scope","verify Brain cannot bypass room key or inner release","capture deterministic execution evidence and memory peak","reconcile CI evidence"],
+  "previous":"BRAIN-N046 integrated Brain governance privilege checks into the full foundation verifier",
+  "scope":["execute tools/verify_foundation.sh at current HEAD","capture exit code and compact report","verify BrainRole + access_path + security_chain + durability + source isolation together","capture tracemalloc peak","capture current commit SHA","inspect GitHub Actions evidence","if failure repair immediately; if pass create closure-readiness package"],
   "constraints":["Brain governance plane only","chat is interface only","Data owns source truth","Engine owns calculations","corridor key != room key != inner release","CapabilityLease != room key != final authority","protected room requires bell/request and authorized occupant release","sensor is observation only","Brain PASS means ADMISSIBLE_FOR_NEXT_GATE only","no master key/bypass","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime dataset-free","FULL_27 source truth","TAIL_27 derived only","no fabricated PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","state/action logs are successor authority","Brain core does not directly own credentials"],
-  "completion_gate":"all cross-plane and security tests pass; no privilege escalation path; reproducible execution evidence recorded; peak < 320MB; then closure-readiness audit"
+  "completion_gate":"integrated verifier exits 0; all gates PASS; peak < 320MB; commit/provenance evidence recorded; then closure-readiness audit"
 }
