@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N020",
-  "title":"Resolve Render-native database linkage safely and execute one compact evidence roundtrip",
+  "action_id":"BRAIN-N021",
+  "title":"Implement executable Brain core hardening: policy pinning, capability leases, quarantine and tamper-evident audit",
   "status":"READY",
-  "phase":"FOUNDATION",
-  "previous":"BRAIN-N019 confirmed latest Render deployment LIVE but produced no verified durability roundtrip evidence",
-  "scope":["resolve linkage using platform-native secret wiring only","reuse existing Postgres dpg-da07g0ou01pc738i3ldg-a","never expose DATABASE_URL","execute one compact evidence persist/read-back","recompute evidence SHA","verify lineage","record explicit PASS or DENY"],
-  "constraints":["chat remains communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","no historical aggregation in Brain/UI","no fabricated evidence","FULL_27 is source truth","TAIL_27 is derived only","source_count=1 remains non-canonical","promotion remains DENY","Layer 1 remains LOCKED","staircase remains LOCKED","one durable evidence authority only","never commit or expose credentials"],
-  "completion_gate":"one compact evidence envelope survives persist/read-back through the existing durable authority with matching SHA and lineage; otherwise explicit DENY/PENDING"
+  "phase":"FOUNDATION_HARDENING",
+  "previous":"BRAIN-N020 assessed the Brain core and determined replacement is unnecessary; hardening is required before Layer 1",
+  "scope":["policy/version pinning","short-lived capability leases","quarantine terminal state","corridor/capability circuit breakers","schema major-version fail-closed","tamper-evident audit event chain","auditable recovery state","resource governor integration"],
+  "constraints":["chat remains communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","no historical aggregation in Brain/UI","no fabricated evidence","FULL_27 is source truth","TAIL_27 is derived only","source_count=1 remains non-canonical","promotion remains DENY","Layer 1 remains LOCKED","staircase remains LOCKED","one durable evidence authority only","never expose or commit credentials","no core replacement unless a runtime gate proves it necessary"],
+  "completion_gate":"hardening controls execute fail-closed, remain compact, survive restart through durable state, and do not introduce circular authority"
 }
