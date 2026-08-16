@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N043",
-  "title":"Run full foundation verifier plus focused two-key protected-room verifier and capture provenance",
+  "action_id":"BRAIN-N044",
+  "title":"Investigate CI zero-run condition and establish independent reproducible verifier evidence",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N042 added focused deterministic verification for corridor key + room key + protected-room inner release",
-  "scope":["run tools/verify_foundation.sh","run tools/verify_access_path.py","capture both exit codes and compact outputs","capture latest commit SHA and source-tree fingerprint","capture memory peak from full verifier","inspect CI workflow evidence","if all pass prepare closure-readiness audit; otherwise repair and repeat"],
-  "constraints":["corridor key and room key are distinct","protected room requires bell/request and authorized inside release","sensor never grants authority","room authorization never bypasses inner latch","wrong layer edge denies before latch activation","no master key or bypass","chat remains interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime dataset-free","FULL_27 source truth","TAIL_27 derived only","compact evidence only","never fabricate PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","persistent state/action logs are successor authority","Brain core does not directly own credentials"],
-  "completion_gate":"both verifiers exit 0, full security/durability/source-isolation gates PASS, peak < 320MB, provenance recorded; then closure-readiness audit"
+  "previous":"BRAIN-N043 wired both full and focused security verifiers into CI; workflow lookup still returned zero runs",
+  "scope":["inspect repository/workflow state and commit topology","determine whether Actions is disabled, workflow is not registered, or trigger is otherwise unavailable","do not modify security semantics to solve CI","establish controlled local/container-safe execution path","capture verifier exit codes and compact outputs","capture tracemalloc peak","record provenance against exact commit","only then perform closure-readiness audit"],
+  "constraints":["corridor key != room key != inner release","protected room requires bell/request and authorized occupant release","sensor is observation only","wrong directional edge denies before latch activation","no master key/bypass","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime dataset-free","FULL_27 source truth","TAIL_27 derived only","no fabricated PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","state/action logs are successor authority","Brain core does not directly own credentials"],
+  "completion_gate":"CI discrepancy explained or independently bounded; both verifiers reproducibly exit 0 with compact provenance and peak < 320MB; then closure-readiness audit"
 }
