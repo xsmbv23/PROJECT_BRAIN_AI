@@ -14,6 +14,7 @@ from core.durable_audit import seal_head
 from core.durable_state import persist_audit_head, restore_audit_head
 from core.foundation_gate import run_foundation_gate
 from core.foundation_hardening import AuditChain, GovernanceDeny
+from core.inner_latch import InnerLatch, InnerLatchPolicy, InnerLatchState
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -64,18 +65,35 @@ def corridor_sensor_round_trip() -> None:
     assert signal.light_on is True
     assert signal.level == "WARNING"
     assert signal.event == "UNAUTHORIZED_CORRIDOR_APPROACH"
-    # Sensor output is telemetry only. It has no capability/key and therefore
-    # cannot be substituted for authorize_room().
+
+
+def inner_latch_round_trip() -> None:
+    latch = InnerLatch(InnerLatchPolicy(
+        room_id="OWNER_ROOM", security_level=3,
+        requires_inner_release=True,
+        authorized_occupant_capabilities=("OWNER_PRESENT",),
+    ))
+    latch.request_entry(room_id="OWNER_ROOM", external_authorized=True)
+    assert latch.state == InnerLatchState.RINGING
+    try:
+        latch.assert_entry_released()
+    except GovernanceDeny:
+        pass
+    else:
+        raise AssertionError("high-security room must remain latched after ringing")
+    latch.release_from_inside(occupant_capability="OWNER_PRESENT")
+    latch.assert_entry_released()
+    assert latch.state == InnerLatchState.RELEASED
 
 
 def main() -> int:
     tracemalloc.start(); started = time.monotonic()
     suite = unittest.defaultTestLoader.discover(str(ROOT / "tests"), pattern="test_*.py")
     result = unittest.TextTestRunner(verbosity=1).run(suite)
-    source_scan(); adapter_import_scan(); durable_round_trip(); room_lock_round_trip(); corridor_sensor_round_trip()
+    source_scan(); adapter_import_scan(); durable_round_trip(); room_lock_round_trip(); corridor_sensor_round_trip(); inner_latch_round_trip()
     gate = run_foundation_gate()
     _, peak = tracemalloc.get_traced_memory(); tracemalloc.stop()
-    report = {"tests_ok": result.wasSuccessful(), "gate": gate["status"], "source_scan": "PASS", "adapter_import_scan": "PASS", "durable_round_trip": "PASS", "room_lock": "PASS", "corridor_sensor": "PASS", "tracemalloc_peak_bytes": peak, "elapsed_seconds": round(time.monotonic()-started, 4)}
+    report = {"tests_ok": result.wasSuccessful(), "gate": gate["status"], "source_scan": "PASS", "adapter_import_scan": "PASS", "durable_round_trip": "PASS", "room_lock": "PASS", "corridor_sensor": "PASS", "inner_latch": "PASS", "tracemalloc_peak_bytes": peak, "elapsed_seconds": round(time.monotonic()-started, 4)}
     print(report)
     return 0 if result.wasSuccessful() and gate["status"] == "PASS" else 1
 
