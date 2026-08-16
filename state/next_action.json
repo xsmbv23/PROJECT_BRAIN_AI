@@ -1,10 +1,10 @@
 {
   "action_id":"BRAIN-N022",
-  "title":"Runtime-test Brain hardening primitives and verify audit-chain continuity",
+  "title":"Execute bounded Brain hardening runtime gate and record measured memory envelope",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N021 implemented compact fail-closed policy pinning, capability leases, quarantine, circuit breaker, schema-major validation and audit hash chain",
-  "scope":["execute bounded unit tests","exercise fail-closed cases","verify audit-chain linkage","integrate with runtime gate without bulk data","measure memory envelope","record explicit PASS or DENY"],
-  "constraints":["chat remains communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","no historical aggregation in Brain/UI","no fabricated evidence","FULL_27 is source truth","TAIL_27 is derived only","source_count=1 remains non-canonical","promotion remains DENY","Layer 1 remains LOCKED","staircase remains LOCKED","one durable evidence authority only","never expose or commit credentials","runtime verification required before completion"],
-  "completion_gate":"tests and bounded runtime gate prove fail-closed behavior, audit continuity and memory safety; failures remain DENY"
+  "previous":"BRAIN-N022 added core/foundation_gate.py; execution and resource measurement remain pending",
+  "scope":["run bounded gate","run fail-closed unit tests","verify audit-chain continuity","capture memory before/after/peak","record explicit PASS or DENY","preserve quarantine semantics"],
+  "constraints":["chat remains communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","no historical aggregation in Brain/UI","no fabricated evidence","FULL_27 is source truth","TAIL_27 is derived only","source_count=1 remains non-canonical","promotion remains DENY","Layer 1 remains LOCKED","staircase remains LOCKED","one durable evidence authority only","never expose or commit credentials"],
+  "completion_gate":"bounded runtime gate and tests pass with measured peak memory below 320MB; otherwise DENY and diagnose"
 }
