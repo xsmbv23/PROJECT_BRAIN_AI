@@ -1,31 +1,41 @@
 {
-  "action_id": "BRAIN-N004",
-  "title": "Verify Brain runtime boundary, then map Data Foundation corridors before Layer 1",
+  "action_id": "BRAIN-N006",
+  "title": "Execute bounded XSMB fixture through Data Foundation and Brain evidence corridor",
   "status": "READY",
   "phase": "FOUNDATION",
   "scope": [
-    "Render current service/commit verification",
-    "health and governance endpoint verification",
-    "persistent memory continuity test",
-    "XSMB data/build corridor registration",
-    "FULL_PRIZE provenance path",
-    "LEGACY_TAIL27 preservation path",
-    "canonical 27-tail derivation",
+    "bounded XSMB fixture",
+    "raw source preservation",
+    "source SHA",
+    "FULL_27 structural validation",
+    "provenance",
+    "quorum/conflict decision",
+    "TAIL_27 derivation",
+    "day shard",
+    "manifest lineage",
     "compact evidence envelope",
-    "shard/manifest lineage",
-    "OOM-safe read projection boundary"
+    "Brain corridor security verification",
+    "runtime evidence capture"
   ],
   "constraints": [
     "chat remains communication interface only",
     "promotion remains DENY",
     "Layer 1 remains LOCKED",
-    "no XSMB canonical-data mutation from Brain",
-    "no legacy-to-full-prize fake provenance",
-    "no silent manifest rebuild",
-    "no future-data leakage",
-    "no full historical dataset ingestion into Brain",
-    "no secrets in logs/evidence"
+    "Brain cannot mutate canonical XSMB truth",
+    "TAIL_27 cannot reconstruct FULL_27",
+    "legacy Tail27 cannot become FULL_27",
+    "no full historical dataset in Brain RAM",
+    "no secrets in evidence/logs",
+    "every failure branch ends DENY or CONFLICT"
   ],
-  "verification": "runtime evidence required at every boundary",
-  "completion_gate": "foundation sealed only after persistent-state continuity + data lineage + Render runtime are verified"
+  "required_artifacts": [
+    "fixture input hash",
+    "canonical FULL_27 hash",
+    "derived TAIL_27 hash",
+    "shard hash",
+    "manifest/root hash",
+    "evidence envelope hash",
+    "corridor verification result"
+  ],
+  "completion_gate": "runtime evidence chain must pass before foundation can approach staircase S5/S6"
 }
