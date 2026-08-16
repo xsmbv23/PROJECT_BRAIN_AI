@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N039",
-  "title":"Produce reproducible verifier evidence and reconcile CI execution",
+  "action_id":"BRAIN-N040",
+  "title":"Execute unified security-chain verifier and produce compact reproducible evidence",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N038 found zero GitHub workflow runs for the verifier commit, so PASS cannot be claimed",
-  "scope":["execute tools/verify_foundation.sh in a controlled runtime","capture exact stdout/stderr and exit code","capture commit SHA and compact source-tree fingerprint","capture tracemalloc peak","reconcile why GitHub Actions produced zero runs","record evidence durably without credentials or large datasets","only after verified PASS proceed to closure audit"],
-  "constraints":["never fabricate CI evidence","sensor is observation only","observation != authentication != request authorization != entry authorization != inner release","one unique lock/key per room","explicit directional layer edges","no master key or bypass","chat is interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","compact evidence only","FULL_27 source truth","TAIL_27 derived only","promotion DENY","Layer 1 LOCKED","staircase LOCKED","one durable evidence authority","never expose or commit credentials","Brain core must not directly own database/network credentials"],
-  "completion_gate":"reproducible verifier exits 0, all security/durability gates PASS, peak < 320MB, and CI discrepancy is understood; then closure audit"
+  "previous":"BRAIN-N039 formalized ordered security-chain composition: sensor observation -> room authorization -> inner release -> entry",
+  "scope":["run full tools/verify_foundation.sh","verify security_chain tests are discovered","capture exit code/stdout/memory","investigate CI zero-run condition","record compact evidence","if PASS begin closure audit; if FAIL repair immediately"],
+  "constraints":["sensor never grants access","room key/capability never bypasses inner latch","inner release requires active request and authorized occupant","directional layer edges are explicit","one unique lock/key per room","no master key or bypass","chat is communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","no large datasets in Brain runtime","FULL_27 source truth","TAIL_27 derived only","no fabricated evidence","promotion DENY","Layer 1 LOCKED","staircase LOCKED","persistent state/action logs authoritative for successor Bots","Brain core does not directly own credentials"],
+  "completion_gate":"unified verifier exits 0; security chain, durability, source isolation and memory all PASS; evidence is compact and reproducible"
 }
