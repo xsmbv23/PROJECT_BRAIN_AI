@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N038",
-  "title":"Execute complete layered security-chain verification",
+  "action_id":"BRAIN-N039",
+  "title":"Produce reproducible verifier evidence and reconcile CI execution",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N037 extended the deterministic verifier with passive corridor sensor and inner-latch security",
-  "scope":["run complete verifier","verify sensor telemetry cannot authorize","verify room key/capability isolation","verify directional layer edges","verify high-security inner latch request and occupant release","verify durable continuity","capture CI and memory evidence","repair any failure before closure"],
-  "constraints":["observation is not authentication","authentication is not authorization","request-entry authorization is not entry authorization","inner release is independent for protected rooms","one unique lock/key per room","explicit directional layer edges only","no master key","no bypass path","chat remains communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","FULL_27 source truth","TAIL_27 derived only","no fabricated evidence","promotion DENY until closure audit","Layer 1 LOCKED","staircase LOCKED","one durable evidence authority","never expose or commit credentials","Brain core must not directly own database/network credentials"],
-  "completion_gate":"all deterministic security and durability checks PASS with memory below 320MB; only then prepare Foundation Closure Audit"
+  "previous":"BRAIN-N038 found zero GitHub workflow runs for the verifier commit, so PASS cannot be claimed",
+  "scope":["execute tools/verify_foundation.sh in a controlled runtime","capture exact stdout/stderr and exit code","capture commit SHA and compact source-tree fingerprint","capture tracemalloc peak","reconcile why GitHub Actions produced zero runs","record evidence durably without credentials or large datasets","only after verified PASS proceed to closure audit"],
+  "constraints":["never fabricate CI evidence","sensor is observation only","observation != authentication != request authorization != entry authorization != inner release","one unique lock/key per room","explicit directional layer edges","no master key or bypass","chat is interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","compact evidence only","FULL_27 source truth","TAIL_27 derived only","promotion DENY","Layer 1 LOCKED","staircase LOCKED","one durable evidence authority","never expose or commit credentials","Brain core must not directly own database/network credentials"],
+  "completion_gate":"reproducible verifier exits 0, all security/durability gates PASS, peak < 320MB, and CI discrepancy is understood; then closure audit"
 }
