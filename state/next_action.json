@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N035",
-  "title":"Resolve CI result and perform Foundation Closure Audit only after deterministic verifier evidence",
+  "action_id":"BRAIN-N037",
+  "title":"Execute foundation verifier with passive corridor sensor and resolve CI evidence",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N034 wired CI to the single deterministic verifier and recorded CI as pending",
-  "scope":["retrieve workflow result for commit 99ce6c6e2894d70f2059c2248e24933e6df03880","inspect failed job logs if any","record measured peak memory","if PASS perform closure audit and immutable architecture map; if FAIL repair and rerun"],
-  "constraints":["one unique lock/key per room","explicit directional layer edges only","no master key","no implicit corridor access","chat remains communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","no historical aggregation in Brain/UI","no fabricated evidence","FULL_27 is source truth","TAIL_27 is derived only","source_count=1 remains non-canonical","promotion remains DENY until closure audit","Layer 1 remains LOCKED","staircase remains LOCKED","one durable evidence authority only","never expose or commit credentials","Brain core must not directly own database/network credentials"],
-  "completion_gate":"CI verifier is PASS with measured memory below 320MB; otherwise repair and rerun. Even PASS does not auto-open Layer 1."
+  "previous":"BRAIN-N036 added a passive corridor warning sensor that can illuminate and warn but has zero authorization authority",
+  "scope":["run full deterministic verifier","resolve CI evidence","capture peak memory","inspect failures and repair if required","prepare closure audit only if all gates pass"],
+  "constraints":["sensor is observation only","sensor signal never equals capability","one unique lock/key per room","explicit directional layer edges only","no master key","no implicit corridor access","chat remains communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","no historical aggregation in Brain/UI","no fabricated evidence","FULL_27 is source truth","TAIL_27 is derived only","source_count=1 remains non-canonical","promotion remains DENY until closure audit","Layer 1 remains LOCKED","staircase remains LOCKED","one durable evidence authority only","never expose or commit credentials","Brain core must not directly own database/network credentials"],
+  "completion_gate":"verifier and CI PASS with measured memory below 320MB; otherwise repair and rerun. Never auto-open Layer 1."
 }
