@@ -1,22 +1,31 @@
 {
-  "action_id": "BRAIN-N002",
-  "title": "Build executable Brain security core and runtime self-test",
+  "action_id": "BRAIN-N004",
+  "title": "Verify Brain runtime boundary, then map Data Foundation corridors before Layer 1",
   "status": "READY",
+  "phase": "FOUNDATION",
   "scope": [
-    "message envelope",
-    "corridor registry",
-    "capability authority",
-    "nonce replay protection",
-    "lineage verification",
-    "append-only audit",
-    "fail-closed policy"
+    "Render current service/commit verification",
+    "health and governance endpoint verification",
+    "persistent memory continuity test",
+    "XSMB data/build corridor registration",
+    "FULL_PRIZE provenance path",
+    "LEGACY_TAIL27 preservation path",
+    "canonical 27-tail derivation",
+    "compact evidence envelope",
+    "shard/manifest lineage",
+    "OOM-safe read projection boundary"
   ],
   "constraints": [
-    "promotion must remain DENY",
-    "no secrets in logs or evidence",
-    "no XSMB canonical-data mutation",
-    "no Layer 1 business logic"
+    "chat remains communication interface only",
+    "promotion remains DENY",
+    "Layer 1 remains LOCKED",
+    "no XSMB canonical-data mutation from Brain",
+    "no legacy-to-full-prize fake provenance",
+    "no silent manifest rebuild",
+    "no future-data leakage",
+    "no full historical dataset ingestion into Brain",
+    "no secrets in logs/evidence"
   ],
-  "verification": "runtime self-test required before foundation completion",
-  "render": "do not connect until the Brain local/runtime contract is executable and self-tested"
+  "verification": "runtime evidence required at every boundary",
+  "completion_gate": "foundation sealed only after persistent-state continuity + data lineage + Render runtime are verified"
 }
