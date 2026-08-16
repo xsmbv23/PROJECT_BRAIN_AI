@@ -19,4 +19,4 @@ jobs:
         with:
           python-version: '3.12'
       - name: Run security self-test
-        run: python verification/selftest.py
+        run: python -m verification.selftest
