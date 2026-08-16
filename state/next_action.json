@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N048",
-  "title":"Diagnose execution-evidence path and establish reproducible local-executor protocol",
+  "action_id":"BRAIN-N049",
+  "title":"Execute canonical foundation protocol and capture reproducible evidence",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N047 found no observable GitHub workflow run/status for the latest foundation commit; result is UNKNOWN, never PASS",
-  "scope":["inspect workflow registration and repository metadata","verify workflow file remains valid and on main","inspect available GitHub Actions evidence paths","do not modify Brain/security core while diagnosing evidence infrastructure","define exact local executor command, expected outputs, commit fingerprint and memory evidence format","record evidence protocol for successor Bots"],
+  "previous":"BRAIN-N048 established the successor-Bot execution-evidence contract because GitHub workflow configuration alone is not execution evidence",
+  "scope":["execute canonical foundation verifier","execute focused access-path verifier","capture commit SHA and source fingerprint","capture exact commands, exit codes and compact outputs","capture tracemalloc peak","if runtime execution is unavailable record UNKNOWN rather than PASS","if failure repair immediately and append action log","if all evidence passes begin closure-readiness audit"],
   "constraints":["UNKNOWN is not PASS","Brain governance plane only","chat is interface only","Data owns source truth","Engine owns calculations","corridor key != room key != inner release","CapabilityLease != room key != final authority","protected room requires bell/request and authorized occupant release","sensor is observation only","Brain PASS means ADMISSIBLE_FOR_NEXT_GATE only","no master key/bypass","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime dataset-free","FULL_27 source truth","TAIL_27 derived only","no fabricated PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","state/action logs are successor authority","Brain core does not directly own credentials"],
-  "completion_gate":"evidence path explained and reproducible executor protocol recorded; only then resume closure audit"
+  "completion_gate":"reproducible execution evidence exists for current commit; all required gates PASS; peak < 320MiB; provenance complete; then closure-readiness audit"
 }
