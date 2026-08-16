@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N021",
-  "title":"Implement executable Brain core hardening: policy pinning, capability leases, quarantine and tamper-evident audit",
+  "action_id":"BRAIN-N022",
+  "title":"Runtime-test Brain hardening primitives and verify audit-chain continuity",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N020 assessed the Brain core and determined replacement is unnecessary; hardening is required before Layer 1",
-  "scope":["policy/version pinning","short-lived capability leases","quarantine terminal state","corridor/capability circuit breakers","schema major-version fail-closed","tamper-evident audit event chain","auditable recovery state","resource governor integration"],
-  "constraints":["chat remains communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","no historical aggregation in Brain/UI","no fabricated evidence","FULL_27 is source truth","TAIL_27 is derived only","source_count=1 remains non-canonical","promotion remains DENY","Layer 1 remains LOCKED","staircase remains LOCKED","one durable evidence authority only","never expose or commit credentials","no core replacement unless a runtime gate proves it necessary"],
-  "completion_gate":"hardening controls execute fail-closed, remain compact, survive restart through durable state, and do not introduce circular authority"
+  "previous":"BRAIN-N021 implemented compact fail-closed policy pinning, capability leases, quarantine, circuit breaker, schema-major validation and audit hash chain",
+  "scope":["execute bounded unit tests","exercise fail-closed cases","verify audit-chain linkage","integrate with runtime gate without bulk data","measure memory envelope","record explicit PASS or DENY"],
+  "constraints":["chat remains communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","no historical aggregation in Brain/UI","no fabricated evidence","FULL_27 is source truth","TAIL_27 is derived only","source_count=1 remains non-canonical","promotion remains DENY","Layer 1 remains LOCKED","staircase remains LOCKED","one durable evidence authority only","never expose or commit credentials","runtime verification required before completion"],
+  "completion_gate":"tests and bounded runtime gate prove fail-closed behavior, audit continuity and memory safety; failures remain DENY"
 }
