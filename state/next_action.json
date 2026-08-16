@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N029",
-  "title":"Execute deterministic foundation verifier and prepare closure audit",
+  "action_id":"BRAIN-N032",
+  "title":"Execute complete deterministic verifier including per-room lock isolation",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N028 implemented the single deterministic stdlib-only verification runner",
-  "scope":["execute tools/verify_foundation.py","capture test/gate/scan/adapter/round-trip evidence","capture peak memory","record PASS or DENY","if clean prepare foundation closure audit without opening Layer 1"],
-  "constraints":["chat remains communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","no historical aggregation in Brain/UI","no fabricated evidence","FULL_27 is source truth","TAIL_27 is derived only","source_count=1 remains non-canonical","promotion remains DENY","Layer 1 remains LOCKED","staircase remains LOCKED","one durable evidence authority only","never expose or commit credentials","Brain core must not directly own database/network credentials","credential guard is hygiene only"],
-  "completion_gate":"deterministic verifier executes successfully, structural and durable-state checks pass, and measured peak memory remains below 320MB"
+  "previous":"BRAIN-N031 integrated one-lock-per-room and explicit layer/corridor authorization into the verifier",
+  "scope":["execute full foundation verifier","capture all test/gate/credential/adapter/durable/room-lock evidence","capture peak memory","record PASS or DENY","if all gates pass build Foundation Closure Audit and immutable architectural map"],
+  "constraints":["each room has a unique lock and key fingerprint","capability is room-specific and layer-specific","no master key in Brain core","corridor source and destination are explicit","layer jumps deny","chat remains communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","no historical aggregation in Brain/UI","no fabricated evidence","FULL_27 is source truth","TAIL_27 is derived only","source_count=1 remains non-canonical","promotion remains DENY until closure audit","Layer 1 remains LOCKED","staircase remains LOCKED","one durable evidence authority only","never expose or commit credentials","Brain core must not directly own database/network credentials"],
+  "completion_gate":"all deterministic tests and structural gates pass and measured peak memory remains below 320MB; only then prepare closure audit, never auto-open Layer 1"
 }
