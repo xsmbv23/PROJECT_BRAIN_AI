@@ -1,10 +1,2 @@
-{
-  "action_id":"BRAIN-N022",
-  "title":"Execute bounded Brain hardening runtime gate and record measured memory envelope",
-  "status":"READY",
-  "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N022 added core/foundation_gate.py; execution and resource measurement remain pending",
-  "scope":["run bounded gate","run fail-closed unit tests","verify audit-chain continuity","capture memory before/after/peak","record explicit PASS or DENY","preserve quarantine semantics"],
-  "constraints":["chat remains communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","no historical aggregation in Brain/UI","no fabricated evidence","FULL_27 is source truth","TAIL_27 is derived only","source_count=1 remains non-canonical","promotion remains DENY","Layer 1 remains LOCKED","staircase remains LOCKED","one durable evidence authority only","never expose or commit credentials"],
-  "completion_gate":"bounded runtime gate and tests pass with measured peak memory below 320MB; otherwise DENY and diagnose"
+{"action_id":"BRAIN-N025","title":"Implement durable audit-head envelope and restart-safe restore verification","status":"READY","phase":"FOUNDATION_HARDENING","previous":"BRAIN-N024 bounded runtime verification PASS; max RSS 111596 KB; durable audit continuity remains unproven","scope":["define compact audit-head envelope","bind audit head to policy/schema/brain-state versions","persist only metadata/reference, never bulk data","restore after simulated restart","verify restored hash before accepting state","record explicit PASS or DENY"],"constraints":["chat remains communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","no historical aggregation in Brain/UI","no fabricated evidence","FULL_27 is source truth","TAIL_27 is derived only","source_count=1 remains non-canonical","promotion remains DENY","Layer 1 remains LOCKED","staircase remains LOCKED","one durable evidence authority only","never expose or commit credentials","in-memory audit chain is not persistent memory"],"completion_gate":"audit head survives simulated restart through compact durable evidence and restored hash is verified; otherwise DENY"
 }
