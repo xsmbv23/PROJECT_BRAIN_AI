@@ -1,18 +1,20 @@
 {
-  "action_id": "BRAIN-N016",
-  "title": "Implement and verify an actual durable evidence sink with restart-safe read-back",
+  "action_id": "BRAIN-N017",
+  "title": "Wire the existing Render Postgres into the xsmb-quant runtime without exposing credentials, then prove restart-safe evidence persistence",
   "status": "READY",
   "phase": "FOUNDATION",
-  "previous": "BRAIN-N015 established the compact deterministic evidence envelope and execution-boundary contract",
+  "previous": "BRAIN-N016 implemented the durable Postgres evidence sink adapter and confirmed the existing Render database is available",
   "scope": [
-    "select an existing persistent evidence authority without creating a second source of truth",
-    "write one compact evidence envelope",
-    "read it back after restart/redeploy",
-    "recompute and compare evidence SHA",
-    "verify source/fixture/FULL_27/TAIL_27/manifest lineage",
-    "verify Brain receives metadata only",
-    "capture runtime resource evidence",
-    "record PASS or DENY explicitly"
+    "use existing database dpg-da07g0ou01pc738i3ldg-a as the sole durable evidence authority",
+    "inject DATABASE_URL through Render-native linkage/secret mechanism",
+    "do not place database credentials in Git",
+    "run one compact evidence write",
+    "redeploy/restart service",
+    "read back by evidence SHA",
+    "recompute evidence SHA",
+    "verify lineage and promotion decision",
+    "capture resource metrics",
+    "record PASS or DENY"
   ],
   "constraints": [
     "chat remains communication interface only",
@@ -26,7 +28,8 @@
     "promotion remains DENY",
     "Layer 1 remains LOCKED",
     "staircase remains LOCKED",
-    "never create a competing evidence authority"
+    "one durable evidence authority only",
+    "never commit credentials"
   ],
-  "completion_gate": "evidence written to an existing durable authority survives restart/redeploy and its SHA/lineage can be verified without loading bulk data"
+  "completion_gate": "runtime can write a compact evidence envelope to the existing Render Postgres, survive redeploy, read it back, and verify the same evidence SHA without bulk data"
 }
