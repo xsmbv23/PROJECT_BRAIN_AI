@@ -25,10 +25,10 @@
   "durable_evidence_sink": "IMPLEMENTED_DATABASE_URL_REQUIRED",
   "persistent_db_authority": "dpg-da07g0ou01pc738i3ldg-a",
   "persistent_db_status": "AVAILABLE_CONNECTOR_SSL_INTEGRATION_PENDING",
-  "runtime_gate_status": "DEPLOYMENT_AND_RESOURCE_PASS_DURABILITY_PENDING",
+  "runtime_gate_status": "DEPLOYMENT_PASS_DURABILITY_PENDING",
+  "last_action_id": "BRAIN-N018",
+  "next_action_id": "BRAIN-N019",
   "promotion": "DENY",
   "layer_1": "LOCKED",
-  "staircase": "LOCKED",
-  "last_action_id": "BRAIN-N017",
-  "next_action_id": "BRAIN-N018"
+  "staircase": "LOCKED"
 }
