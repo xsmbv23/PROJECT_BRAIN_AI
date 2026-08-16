@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N027",
-  "title":"Execute durable-state tests and verify production adapter boundary",
+  "action_id":"BRAIN-N028",
+  "title":"Run complete foundation verification, credential scan, adapter inspection and memory evidence",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N026 added the DurableStateStore abstraction and restart-safe persistence boundary",
-  "scope":["run full stdlib foundation tests","execute durable-state simulated restart","tamper/missing-state DENY tests","verify no credentials in Brain source","inspect runtime adapter boundary","measure memory envelope","record PASS or DENY"],
-  "constraints":["chat remains communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","no historical aggregation in Brain/UI","no fabricated evidence","FULL_27 is source truth","TAIL_27 is derived only","source_count=1 remains non-canonical","promotion remains DENY","Layer 1 remains LOCKED","staircase remains LOCKED","one durable evidence authority only","never expose or commit credentials","Brain core must not directly own database/network credentials"],
-  "completion_gate":"durable-state boundary passes simulated restart and fail-closed tests, memory remains below 320MB, and production adapter is proven to be an external runtime concern"
+  "previous":"BRAIN-N027 added a fail-closed credential exposure guard and recorded the external runtime adapter boundary",
+  "scope":["run complete stdlib tests","scan repository source/config for credential exposure","inspect Brain imports for direct database/network ownership","verify durable-state adapter boundary","measure bounded peak memory","record explicit PASS or DENY"],
+  "constraints":["chat remains communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","no historical aggregation in Brain/UI","no fabricated evidence","FULL_27 is source truth","TAIL_27 is derived only","source_count=1 remains non-canonical","promotion remains DENY","Layer 1 remains LOCKED","staircase remains LOCKED","one durable evidence authority only","never expose or commit credentials","Brain core must not directly own database/network credentials","credential guard is hygiene only and never replaces external secret management"],
+  "completion_gate":"all foundation tests pass, no credential exposure is detected, Brain core remains adapter-isolated, and measured bounded peak memory remains below 320MB"
 }
