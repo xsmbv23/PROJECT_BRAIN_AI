@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N028",
-  "title":"Run complete foundation verification, credential scan, adapter inspection and memory evidence",
+  "action_id":"BRAIN-N029",
+  "title":"Execute deterministic foundation verifier and prepare closure audit",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N027 added a fail-closed credential exposure guard and recorded the external runtime adapter boundary",
-  "scope":["run complete stdlib tests","scan repository source/config for credential exposure","inspect Brain imports for direct database/network ownership","verify durable-state adapter boundary","measure bounded peak memory","record explicit PASS or DENY"],
-  "constraints":["chat remains communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","no historical aggregation in Brain/UI","no fabricated evidence","FULL_27 is source truth","TAIL_27 is derived only","source_count=1 remains non-canonical","promotion remains DENY","Layer 1 remains LOCKED","staircase remains LOCKED","one durable evidence authority only","never expose or commit credentials","Brain core must not directly own database/network credentials","credential guard is hygiene only and never replaces external secret management"],
-  "completion_gate":"all foundation tests pass, no credential exposure is detected, Brain core remains adapter-isolated, and measured bounded peak memory remains below 320MB"
+  "previous":"BRAIN-N028 implemented the single deterministic stdlib-only verification runner",
+  "scope":["execute tools/verify_foundation.py","capture test/gate/scan/adapter/round-trip evidence","capture peak memory","record PASS or DENY","if clean prepare foundation closure audit without opening Layer 1"],
+  "constraints":["chat remains communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","no historical aggregation in Brain/UI","no fabricated evidence","FULL_27 is source truth","TAIL_27 is derived only","source_count=1 remains non-canonical","promotion remains DENY","Layer 1 remains LOCKED","staircase remains LOCKED","one durable evidence authority only","never expose or commit credentials","Brain core must not directly own database/network credentials","credential guard is hygiene only"],
+  "completion_gate":"deterministic verifier executes successfully, structural and durable-state checks pass, and measured peak memory remains below 320MB"
 }
