@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N050",
-  "title":"Verify persistent current-state and next-action pointers cannot drift before closure readiness",
+  "action_id":"BRAIN-N051",
+  "title":"Acquire real runtime evidence for current HEAD with anti-drift gate included",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N049 execution remained UNKNOWN because the current agent runtime had no repository network access and GitHub exposed no workflow run; N049 also discovered current_state.json was stale at N034/N035",
-  "scope":["run tools/check_state_consistency.py","verify current_state.next_action_id equals next_action.action_id","verify promotion/layer/staircase remain locked","verify ci_status is explicit and non-fabricated","wire state-consistency verifier into foundation workflow without introducing heavy runtime dependencies","record action/evidence/commit","then return to canonical execution evidence gate"],
+  "previous":"BRAIN-N050 added a machine-checkable state anti-drift gate and wired it before the security verifiers in foundation CI",
+  "scope":["execute current HEAD verifier outside the blocked agent network boundary","capture exact commit SHA, commands, executor, timestamps, exit codes, compact output and memory peak","confirm check_state_consistency runs before security verification","inspect GitHub Actions result for current HEAD","if runtime remains unavailable record UNKNOWN and preserve DENY","if all runtime evidence passes begin closure-readiness audit"],
   "constraints":["UNKNOWN is not PASS","Brain governance plane only","chat is interface only","Data owns source truth","Engine owns calculations","corridor key != room key != inner release","CapabilityLease != room key != final authority","protected room requires bell/request and authorized occupant release","sensor is observation only","Brain PASS means ADMISSIBLE_FOR_NEXT_GATE only","no master key/bypass","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime dataset-free","FULL_27 source truth","TAIL_27 derived only","no fabricated PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","state/action logs are successor authority","Brain core does not directly own credentials"],
-  "completion_gate":"state consistency verifier passes on current HEAD; workflow includes anti-drift check; persistent pointers synchronized; then return to runtime evidence acquisition"
+  "completion_gate":"current HEAD has reproducible runtime evidence; anti-drift gate PASS; all foundation gates PASS; peak < 320MiB; provenance complete"
 }
