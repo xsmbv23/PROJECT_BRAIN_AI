@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N041",
-  "title":"Reconcile CI and execute unified verifier evidence after security-chain integration",
+  "action_id":"BRAIN-N042",
+  "title":"Verify two-key access path and protected-room inner release as one system boundary",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N040 integrated the ordered security chain into the deterministic verifier",
-  "scope":["inspect workflow runs for latest verifier commit","if run exists inspect job result/logs","capture verifier exit status and peak memory","if no run, document CI trigger discrepancy and rely only on independently reproduced evidence","then run closure-readiness audit without opening Layer 1"],
-  "constraints":["never claim PASS without execution evidence","sensor is observation only","room lock is request authorization only","inner latch is final protected-room release","wrong layer edge denies before latch request","one unique lock/key per room","no master key/bypass","chat is interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime remains dataset-free","FULL_27 source truth","TAIL_27 derived only","compact evidence only","promotion DENY","Layer 1 LOCKED","staircase LOCKED","persistent state/action logs are successor authority","Brain core does not directly own credentials"],
-  "completion_gate":"latest verifier commit has reproducible PASS and memory < 320MB; then closure-readiness audit. CI may remain informational if external execution evidence is independently reproducible and provenance is recorded."
+  "previous":"BRAIN-N041 added explicit corridor-key + room-key separation and protected-room bell/inner-release gate",
+  "scope":["execute full test discovery","verify access_path and security_chain together","verify wrong corridor key denies","verify wrong room key denies","verify both keys only authorize request for protected room","verify no direct entry before inside release","capture memory and execution evidence","reconcile CI trigger status"],
+  "constraints":["corridor key and room key are always distinct","no master key or bypass","sensor remains observational","room lock verifies request path","protected room requires active bell/request and authorized inside release","wrong layer edge denies before latch activation","chat is communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime remains dataset-free","FULL_27 source truth","TAIL_27 derived only","compact durable evidence","never fabricate PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","state/action logs are successor authority","Brain core does not directly own credentials"],
+  "completion_gate":"all access-path and security-chain tests pass; reproducible execution evidence exists; memory peak < 320MB; then closure-readiness audit"
 }
