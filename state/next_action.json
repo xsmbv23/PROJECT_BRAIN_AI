@@ -1,41 +1,41 @@
 {
-  "action_id": "BRAIN-N006",
-  "title": "Execute bounded XSMB fixture through Data Foundation and Brain evidence corridor",
+  "action_id": "BRAIN-N009",
+  "title": "Verify the smallest bounded XSMB fixture chain end-to-end without historical loading",
   "status": "READY",
   "phase": "FOUNDATION",
   "scope": [
-    "bounded XSMB fixture",
-    "raw source preservation",
-    "source SHA",
-    "FULL_27 structural validation",
-    "provenance",
-    "quorum/conflict decision",
-    "TAIL_27 derivation",
-    "day shard",
-    "manifest lineage",
-    "compact evidence envelope",
-    "Brain corridor security verification",
-    "runtime evidence capture"
+    "locate existing bounded fixture",
+    "verify fixture source hash",
+    "verify FULL_27 structure",
+    "verify provenance and quorum decision",
+    "derive TAIL_27 without reverse reconstruction",
+    "produce one day shard",
+    "produce manifest lineage",
+    "produce compact evidence",
+    "verify Brain corridor and fail-closed branches",
+    "capture runtime evidence"
   ],
   "constraints": [
     "chat remains communication interface only",
     "promotion remains DENY",
     "Layer 1 remains LOCKED",
-    "Brain cannot mutate canonical XSMB truth",
+    "Render Free 512MB is a hard boundary",
+    "unknown memory footprint routes external or DENY",
+    "no full historical dataset in Brain RAM",
+    "no full workbook parsing in Brain/UI",
+    "no canonical mutation from Brain",
     "TAIL_27 cannot reconstruct FULL_27",
     "legacy Tail27 cannot become FULL_27",
-    "no full historical dataset in Brain RAM",
-    "no secrets in evidence/logs",
-    "every failure branch ends DENY or CONFLICT"
+    "every crash remains resumable and DENY/PENDING"
   ],
   "required_artifacts": [
-    "fixture input hash",
-    "canonical FULL_27 hash",
-    "derived TAIL_27 hash",
-    "shard hash",
-    "manifest/root hash",
-    "evidence envelope hash",
-    "corridor verification result"
+    "fixture_input_sha256",
+    "full27_sha256",
+    "tail27_sha256",
+    "day_shard_sha256",
+    "manifest_root_sha256",
+    "evidence_sha256",
+    "corridor_runtime_result"
   ],
-  "completion_gate": "runtime evidence chain must pass before foundation can approach staircase S5/S6"
+  "completion_gate": "bounded runtime evidence must pass before S5/S6 staircase consideration"
 }
