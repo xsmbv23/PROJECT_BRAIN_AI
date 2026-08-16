@@ -1,7 +1,7 @@
-"""Fail-closed per-room lock model.
+"""Fail-closed per-room lock and corridor authorization.
 
-Every Brain room has an independent lock/capability. Possessing one key never
-implies access to another room. Parent/child layer direction is explicit.
+Every room has its own capability/key. Layer transitions are explicit edges;
+a key never grants an implicit jump to another layer or room.
 """
 from __future__ import annotations
 
@@ -17,6 +17,7 @@ class RoomLock:
     key_fingerprint: str
     allowed_from: tuple[str, ...]
     allowed_to: tuple[str, ...]
+    allowed_layer_edges: tuple[tuple[int, int], ...] = ()
 
 
 def authorize_room(lock: RoomLock, *, presented_capability: str,
@@ -31,7 +32,7 @@ def authorize_room(lock: RoomLock, *, presented_capability: str,
         raise GovernanceDeny("CORRIDOR_SOURCE_DENY")
     if destination_room not in lock.allowed_to:
         raise GovernanceDeny("CORRIDOR_DESTINATION_DENY")
-    if source_layer != lock.layer:
-        raise GovernanceDeny("SOURCE_LAYER_DENY")
+    if (source_layer, destination_layer) not in lock.allowed_layer_edges:
+        raise GovernanceDeny("LAYER_EDGE_DENY")
     if destination_layer != lock.layer:
         raise GovernanceDeny("DESTINATION_LAYER_DENY")
