@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N044",
-  "title":"Investigate CI zero-run condition and establish independent reproducible verifier evidence",
+  "action_id":"BRAIN-N045",
+  "title":"Verify Brain governance plane integrates with the two-key protected-room security boundary without granting downstream authority",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N043 wired both full and focused security verifiers into CI; workflow lookup still returned zero runs",
-  "scope":["inspect repository/workflow state and commit topology","determine whether Actions is disabled, workflow is not registered, or trigger is otherwise unavailable","do not modify security semantics to solve CI","establish controlled local/container-safe execution path","capture verifier exit codes and compact outputs","capture tracemalloc peak","record provenance against exact commit","only then perform closure-readiness audit"],
-  "constraints":["corridor key != room key != inner release","protected room requires bell/request and authorized occupant release","sensor is observation only","wrong directional edge denies before latch activation","no master key/bypass","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime dataset-free","FULL_27 source truth","TAIL_27 derived only","no fabricated PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","state/action logs are successor authority","Brain core does not directly own credentials"],
-  "completion_gate":"CI discrepancy explained or independently bounded; both verifiers reproducibly exit 0 with compact provenance and peak < 320MB; then closure-readiness audit"
+  "previous":"BRAIN-N044 formalized Brain as governance/control plane and explicitly prohibited Brain from owning data, calculations, credentials, UI, or downstream final authority",
+  "scope":["run BrainRole unit tests","verify policy/schema/capability gates","verify Brain admits only to next gate","verify Brain cannot self-service as destination","integrate governance admission concept with access-path/security-chain tests without collapsing boundaries","capture compact provenance and memory evidence","then reconcile CI/local execution evidence"],
+  "constraints":["Brain is governance plane only","chat is interface only","Data plane owns source truth","Engine plane owns calculations","corridor key != room key != inner release","protected room requires bell/request and authorized occupant release","sensor is observation only","Brain PASS means ADMISSIBLE_FOR_NEXT_GATE only","Brain cannot manufacture ENTRY/TRADE/DATA_TRUSTED/CALCULATION_VALID","no master key/bypass","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime dataset-free","FULL_27 source truth","TAIL_27 derived only","no fabricated PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","state/action logs are successor authority","Brain core does not directly own credentials"],
+  "completion_gate":"BrainRole tests pass; cross-plane boundary tests pass; no privilege escalation path exists; compact provenance recorded; then closure-readiness audit"
 }
