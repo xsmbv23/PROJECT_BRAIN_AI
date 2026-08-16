@@ -1,7 +1,7 @@
 {
   "project_id": "XSMB_FORENSIC",
   "repository": "xsmbv23/Project_Brain_AI",
-  "foundation_state": "REAL_SOURCE_FIXTURE_ESTABLISHED_QUORUM_DENY",
+  "foundation_state": "RENDER_SAFE_BOUNDED_RUNNER_READY_RUNTIME_PENDING",
   "brain_role": "GOVERNANCE_CONTROL_PLANE",
   "chat_role": "COMMUNICATION_INTERFACE_ONLY",
   "persistent_memory_authority": "REPOSITORY_AND_PERSISTENT_EVIDENCE",
@@ -12,6 +12,7 @@
   "evidence_policy": "COMPACT_ENVELOPE_ONLY",
   "source_truth_policy": "FULL_PRIZE_OR_EXPLICIT_LEGACY_TAIL27",
   "render_policy": "512MB_FREE_HARD_BOUNDARY",
+  "render_safety_guard_mb": 320,
   "render_brain_observed_memory": "~26-29MB sampled",
   "render_xsmb_observed_memory": "~13-16MB sampled",
   "render_runtime": "LIVE",
@@ -19,9 +20,10 @@
   "fixture_quorum": "1_OF_2_REQUIRED_DENY",
   "full27_structure": "VALIDATED",
   "tail27_derivation": "VALIDATED_OFF_FULL27",
+  "render_safe_runner": "IMPLEMENTED_RUNTIME_PENDING",
   "promotion": "DENY",
   "layer_1": "LOCKED",
   "staircase": "LOCKED",
-  "last_action_id": "BRAIN-N010",
-  "next_action_id": "BRAIN-N011"
+  "last_action_id": "BRAIN-N012",
+  "next_action_id": "BRAIN-N013"
 }
