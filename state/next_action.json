@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N042",
-  "title":"Verify two-key access path and protected-room inner release as one system boundary",
+  "action_id":"BRAIN-N043",
+  "title":"Run full foundation verifier plus focused two-key protected-room verifier and capture provenance",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N041 added explicit corridor-key + room-key separation and protected-room bell/inner-release gate",
-  "scope":["execute full test discovery","verify access_path and security_chain together","verify wrong corridor key denies","verify wrong room key denies","verify both keys only authorize request for protected room","verify no direct entry before inside release","capture memory and execution evidence","reconcile CI trigger status"],
-  "constraints":["corridor key and room key are always distinct","no master key or bypass","sensor remains observational","room lock verifies request path","protected room requires active bell/request and authorized inside release","wrong layer edge denies before latch activation","chat is communication interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime remains dataset-free","FULL_27 source truth","TAIL_27 derived only","compact durable evidence","never fabricate PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","state/action logs are successor authority","Brain core does not directly own credentials"],
-  "completion_gate":"all access-path and security-chain tests pass; reproducible execution evidence exists; memory peak < 320MB; then closure-readiness audit"
+  "previous":"BRAIN-N042 added focused deterministic verification for corridor key + room key + protected-room inner release",
+  "scope":["run tools/verify_foundation.sh","run tools/verify_access_path.py","capture both exit codes and compact outputs","capture latest commit SHA and source-tree fingerprint","capture memory peak from full verifier","inspect CI workflow evidence","if all pass prepare closure-readiness audit; otherwise repair and repeat"],
+  "constraints":["corridor key and room key are distinct","protected room requires bell/request and authorized inside release","sensor never grants authority","room authorization never bypasses inner latch","wrong layer edge denies before latch activation","no master key or bypass","chat remains interface only","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime dataset-free","FULL_27 source truth","TAIL_27 derived only","compact evidence only","never fabricate PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","persistent state/action logs are successor authority","Brain core does not directly own credentials"],
+  "completion_gate":"both verifiers exit 0, full security/durability/source-isolation gates PASS, peak < 320MB, provenance recorded; then closure-readiness audit"
 }
