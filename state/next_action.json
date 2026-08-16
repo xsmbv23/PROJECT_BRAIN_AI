@@ -1,17 +1,17 @@
 {
-  "action_id": "BRAIN-N018",
-  "title": "Establish verified Render-native linkage from xsmb-quant to the existing Postgres evidence authority",
+  "action_id": "BRAIN-N019",
+  "title": "Inspect the live durability gate and execute round-trip only when the existing DB linkage is actually present",
   "status": "READY",
   "phase": "FOUNDATION",
-  "previous": "BRAIN-N017 implemented durable roundtrip verification but runtime DB linkage remains blocked",
+  "previous": "BRAIN-N018 hardened the live Render gate so missing or invalid DB linkage becomes DENY/PENDING without crashing the service",
   "scope": [
-    "inspect Render-native linkage options",
-    "reuse existing Postgres dpg-da07g0ou01pc738i3ldg-a",
-    "avoid a competing evidence authority",
-    "avoid exposing or committing credentials",
-    "execute compact evidence persist/read-back",
-    "recompute evidence SHA after read-back",
-    "record explicit PASS or DENY",
+    "wait for and inspect latest live deployment",
+    "inspect metadata-only durability state",
+    "verify DATABASE_URL presence without revealing its value",
+    "if linkage exists, run one compact evidence persist/read-back roundtrip",
+    "if linkage is absent, record DENY/PENDING and do not mutate secrets blindly",
+    "recompute evidence SHA and lineage when roundtrip runs",
+    "capture resource evidence",
     "persist action log and current state"
   ],
   "constraints": [
@@ -26,8 +26,8 @@
     "promotion remains DENY",
     "Layer 1 remains LOCKED",
     "staircase remains LOCKED",
-    "never create a competing evidence authority",
-    "never put DATABASE_URL or credentials into Git"
+    "one durable evidence authority only",
+    "never commit or expose credentials"
   ],
-  "completion_gate": "Render-native database linkage is verified and one compact evidence envelope survives persist/read-back with matching evidence SHA"
+  "completion_gate": "live service reports explicit durability state; if linked, roundtrip survives deployment and SHA/lineage match; otherwise explicit DENY/PENDING is persisted"
 }
