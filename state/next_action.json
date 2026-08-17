@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N056",
-  "title":"Redeploy scanner-boundary repair and capture first complete boot-gate result",
+  "action_id":"BRAIN-N057",
+  "title":"Redeploy narrow detector-boundary repair and capture complete foundation evidence",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N055 reached 46/46 tests PASS but boot gate denied because source_scan flagged intentional credential guard fixtures; scanner boundary was repaired",
-  "scope":["deploy current HEAD","verify state consistency","verify all tests and foundation round trips","verify source scan and adapter isolation","verify protected-room access chain","capture boot gate PASS/FAIL envelope","capture exact Render deployment commit","capture memory metrics","persist evidence and next action"],
+  "previous":"BRAIN-N056 reached 46/46 tests PASS but source scan correctly identified that the credential detector itself contains intentional forbidden signatures; only detector implementation and tests were excluded",
+  "scope":["deploy current HEAD","verify anti-drift PASS","verify 46+ tests PASS","verify source scan PASS","verify adapter isolation PASS","verify durable audit/state PASS","verify Brain governance PASS","verify corridor/room/inner-latch chain PASS","capture boot-gate PASS envelope","capture exact Render commit","capture service memory metrics","persist closure evidence if and only if all gates pass"],
   "constraints":["UNKNOWN is not PASS","Brain governance plane only","chat is interface only","Data owns source truth","Engine owns calculations","corridor key != room key != inner release","CapabilityLease != room key != final authority","protected room requires bell/request and authorized occupant release","sensor is observation only","Brain PASS means ADMISSIBLE_FOR_NEXT_GATE only","no master key/bypass","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime dataset-free","FULL_27 source truth","TAIL_27 derived only","no fabricated PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","state/action logs are successor authority","Brain core does not directly own credentials"],
-  "completion_gate":"exact current HEAD live; boot gate PASS; all subprocesses exit 0; memory below 320MiB; provenance complete"
+  "completion_gate":"exact current HEAD live; boot gate PASS; all foundation/security gates PASS; memory below 320MiB; provenance complete"
 }
