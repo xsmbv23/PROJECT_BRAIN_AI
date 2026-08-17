@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N051",
-  "title":"Acquire real runtime evidence for current HEAD with anti-drift gate included",
+  "action_id":"BRAIN-N052",
+  "title":"Deploy current HEAD to Render and capture boot-gate evidence",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N050 added a machine-checkable state anti-drift gate and wired it before the security verifiers in foundation CI",
-  "scope":["execute current HEAD verifier outside the blocked agent network boundary","capture exact commit SHA, commands, executor, timestamps, exit codes, compact output and memory peak","confirm check_state_consistency runs before security verification","inspect GitHub Actions result for current HEAD","if runtime remains unavailable record UNKNOWN and preserve DENY","if all runtime evidence passes begin closure-readiness audit"],
+  "previous":"BRAIN-N051 added a boot-time, subprocess-isolated foundation gate so Render can provide real execution evidence before Brain binds its HTTP port",
+  "scope":["deploy current HEAD to Render service project-brain-ai","verify deployment commit matches GitHub HEAD","inspect boot logs for runtime_boot_gate PASS or DENY","capture verifier exit codes and output tails","capture deployment health and memory metrics without loading datasets","if gate fails repair immediately","if gate passes record closure-readiness evidence package"],
   "constraints":["UNKNOWN is not PASS","Brain governance plane only","chat is interface only","Data owns source truth","Engine owns calculations","corridor key != room key != inner release","CapabilityLease != room key != final authority","protected room requires bell/request and authorized occupant release","sensor is observation only","Brain PASS means ADMISSIBLE_FOR_NEXT_GATE only","no master key/bypass","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime dataset-free","FULL_27 source truth","TAIL_27 derived only","no fabricated PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","state/action logs are successor authority","Brain core does not directly own credentials"],
-  "completion_gate":"current HEAD has reproducible runtime evidence; anti-drift gate PASS; all foundation gates PASS; peak < 320MiB; provenance complete"
+  "completion_gate":"Render deploy is live on exact current commit; boot gate emits PASS; all three verifiers exit 0; memory remains below 320MiB guard; evidence is persisted"
 }
