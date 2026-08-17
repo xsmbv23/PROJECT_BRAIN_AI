@@ -2,11 +2,11 @@
 
 ## Purpose
 
-This document is a successor-authoritative doctrine for every future Brain AI instance. It prevents a successor from confusing resource existence, authorization, transport security, evidence integrity, and promotion.
+This document is a successor-authoritative doctrine for every future Brain AI instance. It prevents a successor from confusing resource existence, authorization, transport security, evidence integrity, promotion, and external-world events.
 
-## Core rule
+## One chain, not multiple Forensic systems
 
-A PASS at one gate is **only a prerequisite for evaluating the next gate**. It is never permission to infer or inherit PASS at a deeper gate.
+Database admission states are NOT independent forensic systems. They are ordered gates in one `FORENSIC_DATABASE_ADMISSION_CHAIN`.
 
 ```text
 DB_EXISTENCE
@@ -24,6 +24,8 @@ DB_ROUND_TRIP
 PROMOTION
 ```
 
+A PASS at one gate is **only a prerequisite for evaluating the next gate**. It is never permission to infer or inherit PASS at a deeper gate.
+
 ## Gate meanings
 
 ### 1. DB_EXISTENCE
@@ -32,14 +34,7 @@ Question: does the database resource actually exist and report an acceptable ser
 
 `DB_EXISTS = PASS` means only that the room exists.
 
-It does NOT mean:
-
-- the service has credentials;
-- the service can connect;
-- TLS is valid;
-- evidence can be written;
-- evidence can be read back;
-- promotion is allowed.
+It does NOT mean credentials exist, the service can connect, TLS is valid, evidence can be written, evidence can be read back, or promotion is allowed.
 
 ### 2. DB_BINDING
 
@@ -134,11 +129,40 @@ not:
 PASS(Gate_n) -> inherit(PASS)
 ```
 
+## External-world boundary — immutable
+
+Some progress depends on an event that only an external actor or external system can truthfully create.
+
+Examples include:
+
+- a human pressing GitHub `Run workflow`;
+- an external dispatch event;
+- a credential being provisioned by Render;
+- an approval performed outside Brain;
+- a real upstream service returning a receipt.
+
+When such an event is missing:
+
+```text
+SYSTEM READY
+    |
+    v
+WAIT_EXTERNAL_EVENT
+    |
+    +-- event absent --> STOP
+    |
+    +-- real event --> continue verification
+```
+
+A successor MUST NOT manufacture the event with a fake receipt, mock workflow result, synthetic DB success, fabricated credential, self-written external-action claim, or an automatic workaround whose only purpose is to bypass the boundary.
+
+If reality has not produced the event, the correct state is `WAIT_EXTERNAL_EVENT`.
+
+This rule is stronger than ordinary test discipline: **the system is forbidden to turn an unobserved external event into an observed fact.**
+
 ## Continuous evidence doctrine
 
 The system must produce valid evidence even while admission fails.
-
-N005 and successors must treat the pipeline as:
 
 ```text
 COLLECT(real)
@@ -158,9 +182,19 @@ Permanent invariant:
 
 A readiness value of `0.92` is not a PASS.
 
-## Drift invariant
+## Forensic immutability
 
-If a raw evidence item changes after being recorded:
+A later observation may refine state, but must never rewrite history to pretend an earlier gate passed.
+
+```text
+OBSERVATION_N
+   |
+   +--> immutable action log
+   +--> machine-readable state
+   +--> successor next_action
+```
+
+If raw evidence changes after recording:
 
 ```text
 DRIFT_DETECTED
@@ -170,13 +204,6 @@ DRIFT_DETECTED
 ```
 
 Never overwrite historical raw evidence.
-
-Example:
-
-```text
-data_buffer/2026-08-12/v1/
-data_buffer/2026-08-12/v2/
-```
 
 ## Admission attempt invariant
 
@@ -215,17 +242,7 @@ hard boundary = 512 MiB
 operational guard = 320 MiB
 ```
 
-Every continuous cycle must remain bounded. The continuous evidence loop is **not** an infinite uncontrolled process.
-
-Each cycle must have:
-
-- bounded input;
-- bounded memory;
-- bounded execution time;
-- bounded evidence output;
-- explicit sleep/termination condition.
-
-Memory evidence should include compact RSS/peak observations and buffer disk usage without loading the complete dataset into RAM.
+Every continuous cycle must remain bounded: input, memory, execution time, evidence output, and sleep/termination conditions.
 
 ## Brain role
 
@@ -268,4 +285,4 @@ resource exists
 
 ## Successor instruction
 
-Read this doctrine before modifying any foundation gate. If a proposed optimization makes a deeper PASS inferable from a shallower PASS, rejects evidence because it is DENY instead of preserving it, overwrites raw evidence, or uses readiness as admission, reject the change.
+Read this doctrine before modifying any foundation gate. If a proposed optimization makes a deeper PASS inferable from a shallower PASS, rejects evidence because it is DENY instead of preserving it, overwrites raw evidence, uses readiness as admission, or fabricates an external-world event, reject the change.
