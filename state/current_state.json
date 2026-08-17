@@ -20,12 +20,14 @@
   "anti_loop_rule":"NO_DUPLICATE_FSM;NO_COSMETIC_HARDENING_LOOP;EACH_CHANGE_MUST_CLOSE_INVARIANT_OR_PRODUCE_MISSING_EVIDENCE",
   "invariant_usefulness_rule":"EVERY_INVARIANT_MUST_REDUCE_UNCERTAINTY_OF_A_SPECIFIC_NAMED_GATE_AND_BE_TESTABLE_BY_EVIDENCE",
   "dry_run_semantics":"SHADOW_ONLY;NON_EVIDENTIAL;ZERO_PROMOTION_AUTHORITY;ZERO_ADMISSION_AUTHORITY;ZERO_EXECUTION_AUTHORITY;ZERO_COLLECTOR_AUTHORITY",
-  "hard_boundaries":"BUFFER!=ENGINE_INPUT;PARTIAL!=TRUTH;COLLECTION!=ADMISSION;SIMULATION!=EVIDENCE;READINESS!=AUTHORITY;DB_EXISTENCE!=DB_AUTHORIZATION",
+  "hard_boundaries":"BUFFER!=ENGINE_INPUT;PARTIAL!=TRUTH;COLLECTION!=ADMISSION;SIMULATION!=EVIDENCE;READINESS!=AUTHORITY;DB_EXISTENCE!=DB_AUTHORIZATION;STRUCTURALLY_VALID!=DOMAIN_TRUE;ROUNDTRIP_VALID!=DOMAIN_UNDERSTANDING",
   "observation_laws":"SYSTEM_DOES_NOT_CREATE_TRUTH;SYSTEM_ONLY_ADMITS_EVIDENCE;SYSTEM_DOES_NOT_INFER_DOMAIN_FROM_SINGLE_EVIDENCE",
   "single_observation_law":"SINGLE_RECEIPT_IS_NOT_DOMAIN_UNDERSTANDING",
+  "validity_semantic_law":"VALID_IS_NOT_TRUE;USE_STRUCTURALLY_VALID_OR_ROUNDTRIP_VALID_FOR_NEW_CODE",
   "canonicalization_law":"NO_CANONICAL_FROM_SINGLE_OBSERVATION",
   "receipt_policy":"RECEIPT_1_CLASSIFY_STORE_RAW_AND_RECEIPT_STOP",
-  "receipt_classification":"VALID|PARTIAL|CONFLICT|DRIFT",
+  "receipt_classification_new":"ROUNDTRIP_VALID|STRUCTURALLY_VALID|PARTIAL|CONFLICT|DRIFT_DETECTED",
+  "receipt_classification_legacy":"VALID_IS_HISTORICAL_COMPATIBILITY_ONLY_AND_HAS_NO_IMPLIED_DOMAIN_TRUTH",
   "canonical_quorum":"RECEIPTS_COUNT_LT_2=>CANONICAL_UNREACHED;PREFERRED_MINIMUM_LT_3=>CANONICAL_UNREACHED",
   "canonicalization_sequence":"CLASSIFY->STORE_RAW_RECEIPT->STABILITY_CHECK->VARIANCE_CHECK->DRIFT_PATTERN->CANONICAL_CONTRACT",
   "first_receipt_purpose":"TEST_SYSTEM_AGAINST_REALITY_NOT_DEFINE_REALITY",
@@ -33,7 +35,7 @@
   "promotion":"DENY",
   "layer_1":"READY_SEPARATE_QUANT_ENGINE",
   "staircase":"LOCKED",
-  "last_action_id":"FOUNDATION-N008-OBSERVATION-LAW",
+  "last_action_id":"FOUNDATION-N009-VALID-NOT-TRUE",
   "last_action_repo":"xsmbv23/Project_Brain_AI",
   "next_action_id":"QUANT-N007",
   "n003_invariant_state":"IMPLEMENTED_NOT_PROVEN",
@@ -57,5 +59,5 @@
   "n003_dry_run":"shadow_only_non_evidential_zero_authority",
   "n003_drift_guard":"raw_hash_change_for_existing_date=>DRIFT_DETECTED=>DENY",
   "n003_snapshot_pointer":"pointer_only_to_immutable_canonical_version",
-  "state_integrity_note":"Foundation observation law frozen: first real receipt is evidence for testing the system against reality, never a schema definition. Canonicalization requires multiple observations and stability/drift examination. Next implementation remains QUANT-N007 in Quant_Engine; no parser/schema work is authorized merely because receipt_1 exists."
+  "state_integrity_note":"Foundation semantic law frozen: an unqualified VALID receipt is not domain truth. New code must use STRUCTURALLY_VALID or ROUNDTRIP_VALID with narrow proven meaning. Receipt_1 remains classify/store/stop. Canonicalization requires multiple observations plus stability, variance, drift, and conflict gates. Next implementation remains QUANT-N007 in Quant_Engine."
 }
