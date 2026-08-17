@@ -1,0 +1,64 @@
+name: reality-n011-runtime-receipt
+
+on:
+  workflow_dispatch:
+
+jobs:
+  runtime-receipt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Capture source transport receipt without parsing
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='https://ketqua16.net/'
+          out="${RUNNER_TEMP}/source.raw"
+          meta="${RUNNER_TEMP}/receipt.txt"
+
+          set +e
+          curl --fail-with-body --location --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --output "$out" --write-out '%{http_code}\n' "$url" > "${RUNNER_TEMP}/status.txt" 2> "${RUNNER_TEMP}/curl.err"
+          rc=$?
+          set -e
+
+          if [ -f "$out" ]; then
+            bytes=$(wc -c < "$out" | tr -d ' ')
+            sha256=$(sha256sum "$out" | awk '{print $1}')
+          else
+            bytes=0
+            sha256='NOT_CAPTURED'
+          fi
+
+          http_status=$(tail -n 1 "${RUNNER_TEMP}/status.txt" 2>/dev/null || true)
+          [ -n "$http_status" ] || http_status='NOT_OBSERVED'
+
+          cat > "$meta" <<EOF
+          {
+            "receipt_id": "GHA_N011",
+            "source_url": "$url",
+            "execution_runtime": "github_actions",
+            "transport_exit_code": $rc,
+            "http_status": "$http_status",
+            "raw_bytes": $bytes,
+            "raw_sha256": "$sha256",
+            "parse_performed": false,
+            "normalization_performed": false,
+            "mapping_performed": false,
+            "domain_truth": "UNREACHED",
+            "promotion": "DENY"
+          }
+          EOF
+
+          cat "$meta"
+          if [ "$rc" -ne 0 ]; then
+            cat "${RUNNER_TEMP}/curl.err" >&2 || true
+          fi
+
+      - name: Upload compact receipt artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: reality-n011-runtime-receipt
+          path: ${{ runner.temp }}/receipt.txt
+          if-no-files-found: error
