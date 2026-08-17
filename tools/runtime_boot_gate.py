@@ -1,7 +1,8 @@
-"""Run the lightweight foundation verifiers before Brain serves traffic.
+"""Run lightweight foundation verifiers before Brain serves traffic.
 
-This is deliberately metadata-only and subprocess-isolated. A failing or
-unobservable verifier prevents the Brain HTTP process from becoming live.
+All checks are metadata-only and subprocess-isolated. The database binding probe
+is informational and never logs or exposes credentials; durable DB promotion
+remains a separate explicit gate.
 """
 from __future__ import annotations
 
@@ -20,6 +21,13 @@ COMMANDS = (
     ("foundation", "tools/verify_foundation.py"),
     ("access_path", "tools/verify_access_path.py"),
 )
+
+
+def database_binding_evidence() -> dict[str, object]:
+    from tools.binding_probe import classify_database_binding
+    result = classify_database_binding()
+    # Deliberately return only classification. Never include the URL itself.
+    return result
 
 
 def main() -> int:
@@ -56,6 +64,7 @@ def main() -> int:
                 print(json.dumps({"runtime_boot_gate": "DENY", "failed": "FOUNDATION_MEMORY_GUARD", "results": results}, ensure_ascii=False), flush=True)
                 return 1
 
+    results.append({"name": "database_binding_probe", "exit_code": 0, "evidence": database_binding_evidence()})
     print(json.dumps({
         "runtime_boot_gate": "PASS",
         "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
