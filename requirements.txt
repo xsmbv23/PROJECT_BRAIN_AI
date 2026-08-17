@@ -1,1 +1,3 @@
-# Foundation runtime intentionally has no third-party dependencies.
+# Foundation runtime remains dataset-free.
+# psycopg is used only by the compact metadata evidence sink; it never loads bulk source data.
+psycopg[binary]>=3.2,<4
