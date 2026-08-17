@@ -23,9 +23,13 @@ COMMANDS = (
 def main() -> int:
     started = time.time()
     results = []
+    env = os.environ.copy()
+    existing_pythonpath = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = str(ROOT) + (os.pathsep + existing_pythonpath if existing_pythonpath else "")
+
     for name, relpath in COMMANDS:
         cmd = [sys.executable, str(ROOT / relpath)]
-        proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, timeout=120)
+        proc = subprocess.run(cmd, cwd=ROOT, env=env, capture_output=True, text=True, timeout=120)
         results.append({
             "name": name,
             "exit_code": proc.returncode,
