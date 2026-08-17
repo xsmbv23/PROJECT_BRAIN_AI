@@ -4,6 +4,22 @@
 
 A successor Bot must not treat a test specification as proof. N003-PROOF is a controlled break-and-prove protocol for Layer 1 Room 01.
 
+## Critical failure class
+
+A system can be perfectly reproducible and still be useless:
+
+```text
+CONSISTENTLY_WRONG_PIPELINE
+```
+
+Therefore:
+
+```text
+FORENSIC INTEGRITY != CAUSAL RESPONSIVENESS != MODEL CORRECTNESS
+```
+
+A green replay/hash receipt never licenses a correctness claim.
+
 ## Mandatory doctrine
 
 ```text
@@ -49,14 +65,16 @@ Run real mutations:
 7. Filesystem branch attack: uncontrolled external state must not alter the path invisibly.
 8. Dead pipeline: meaningful inputs must not collapse to unexplained constants.
 9. Anti-hardcode: prove the input is causally consumed.
+10. Feature information: accepted meaningful variation must not collapse into a fabricated constant feature vector; use variance/unique semantic states as evidence, not as a claim of statistical quality.
+11. Execution graph: semantic trace hash is not assumed to fully represent topology; future evidence should include ordered semantic operations, branch decisions, feature usage map and dependency identities.
 
 ## Failure semantics
 
 Any unexpected mutation result is a finding, not a reason to loosen the invariant.
 
 ```text
-TEST FAIL -> FIX SYSTEM -> RE-RUN PROOF
-TEST PASS -> STILL NOT TRUSTED
+TEST FAIL -> FINDING -> FIX SYSTEM -> RE-RUN PROOF
+TEST PASS -> EVIDENCE RECORDED
 ALL PROOF PASS -> REPRODUCIBILITY/EXECUTION INTEGRITY PROVEN
 ```
 
