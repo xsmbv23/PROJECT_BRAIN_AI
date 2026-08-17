@@ -1,0 +1,56 @@
+name: reality-receipt-2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/real_world_collector.py'
+      - '.github/workflows/reality-receipt-2.yml'
+      - 'state/next_action.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact collector
+        uses: actions/checkout@v4
+
+      - name: Capture raw response with canonical collector
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/runtime2
+          FORENSIC_ARTIFACT_DIR="$PWD/evidence/runtime2" python tools/real_world_collector.py | tee evidence/runtime2/receipt_2.json
+
+      - name: Validate receipt shape without parsing source data
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('evidence/runtime2/receipt_2.json')
+          obj = json.loads(p.read_text())
+          assert obj['collector'] == 'KETQUA16'
+          assert obj['status'] == 'PASS'
+          r = obj['receipt']
+          required = {'source','final_url','observed_at_utc','http_status','content_type','raw_bytes','sha256','artifact_path'}
+          assert required.issubset(r)
+          assert r['source'] == 'https://ketqua16.net/'
+          assert r['parse_performed'] is False
+          assert r['normalization_performed'] is False
+          assert r['classification_performed'] is False
+          assert len(r['sha256']) == 64
+          assert int(r['raw_bytes']) > 0
+          print(json.dumps({'receipt_2_transport_validation':'PASS','raw_bytes':r['raw_bytes'],'sha256':r['sha256']}, ensure_ascii=False))
+          PY
+
+      - name: Upload raw artifact and compact receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: forensic-receipt-2
+          path: evidence/runtime2/
+          if-no-files-found: error
+          retention-days: 7
