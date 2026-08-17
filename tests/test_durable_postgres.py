@@ -1,6 +1,6 @@
 import unittest
 
-from core.durable_postgres import DurableEvidenceDeny, _require_tls_database_url
+from tools.durable_postgres import DurableEvidenceDeny, _require_tls_database_url
 
 
 class DurablePostgresTests(unittest.TestCase):
