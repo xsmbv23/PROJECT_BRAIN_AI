@@ -18,8 +18,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install bounded runtime dependency
+        run: python -m pip install --disable-pip-version-check 'psycopg[binary]>=3.2,<4'
       - name: Check persistent state anti-drift
         run: python tools/check_state_consistency.py
+      - name: Check durable evidence TLS fail-closed rules
+        run: python -m unittest tests/test_durable_postgres.py -v
       - name: Run integrated deterministic foundation verifier
         run: python tools/verify_foundation.py
       - name: Run focused two-key protected-room verifier
