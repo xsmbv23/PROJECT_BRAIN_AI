@@ -1,4 +1,4 @@
-"""Validate the immutable, credential-free Render database binding contract."""
+"""Validate the immutable, credential-free Render database admission contract."""
 from __future__ import annotations
 
 import json
@@ -6,6 +6,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "contracts" / "render_database_binding.json"
+
+GATES = ("DB_EXISTENCE", "DB_BINDING", "DB_TLS_ADMISSION", "DB_ROUND_TRIP", "PROMOTION")
 
 
 def verify() -> dict[str, object]:
@@ -26,7 +28,16 @@ def verify() -> dict[str, object]:
         raise AssertionError("PostgreSQL scheme contract mismatch")
     if data.get("round_trip_payload_policy") != "NO_SOURCE_DATA_NO_CREDENTIALS_NO_BULK_DATA":
         raise AssertionError("round-trip payload policy mismatch")
-    return {"status": "PASS", "contract_id": data["contract_id"]}
+    if data.get("oom_guard_bytes") != 335544320:
+        raise AssertionError("OOM guard contract mismatch")
+    return {
+        "status": "PASS",
+        "contract_id": data["contract_id"],
+        "ordered_gates": list(GATES),
+        "rule": "PASS_AT_GATE_IS_PREREQUISITE_ONLY; NEVER_INFER_DEEPER_PASS",
+        "unknown_is_not_pass": True,
+        "promotion_requires": ["BOUND_TLS", "COMPACT_WRITE_READ", "SHA256_MATCH"],
+    }
 
 
 if __name__ == "__main__":
