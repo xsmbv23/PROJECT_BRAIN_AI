@@ -5,6 +5,7 @@ unobservable verifier prevents the Brain HTTP process from becoming live.
 """
 from __future__ import annotations
 
+import ast
 import json
 import os
 import subprocess
@@ -13,6 +14,7 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+MEMORY_GUARD_BYTES = 320 * 1024 * 1024
 COMMANDS = (
     ("state_consistency", "tools/check_state_consistency.py"),
     ("foundation", "tools/verify_foundation.py"),
@@ -30,19 +32,34 @@ def main() -> int:
     for name, relpath in COMMANDS:
         cmd = [sys.executable, str(ROOT / relpath)]
         proc = subprocess.run(cmd, cwd=ROOT, env=env, capture_output=True, text=True, timeout=120)
-        results.append({
+        result = {
             "name": name,
             "exit_code": proc.returncode,
             "stdout_tail": proc.stdout[-4000:],
             "stderr_tail": proc.stderr[-2000:],
-        })
+        }
+        results.append(result)
         if proc.returncode != 0:
             print(json.dumps({"runtime_boot_gate": "DENY", "failed": name, "results": results}, ensure_ascii=False), flush=True)
             return 1
 
+        if name == "foundation":
+            try:
+                report = ast.literal_eval(proc.stdout.strip().splitlines()[-1])
+                peak = int(report["tracemalloc_peak_bytes"])
+            except (ValueError, SyntaxError, KeyError, IndexError, TypeError):
+                print(json.dumps({"runtime_boot_gate": "DENY", "failed": "foundation_memory_evidence_missing", "results": results}, ensure_ascii=False), flush=True)
+                return 1
+            result["tracemalloc_peak_bytes"] = peak
+            result["memory_guard_bytes"] = MEMORY_GUARD_BYTES
+            if peak >= MEMORY_GUARD_BYTES:
+                print(json.dumps({"runtime_boot_gate": "DENY", "failed": "FOUNDATION_MEMORY_GUARD", "results": results}, ensure_ascii=False), flush=True)
+                return 1
+
     print(json.dumps({
         "runtime_boot_gate": "PASS",
         "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
+        "memory_guard_bytes": MEMORY_GUARD_BYTES,
         "elapsed_seconds": round(time.time() - started, 4),
         "results": results,
     }, ensure_ascii=False), flush=True)
