@@ -1,0 +1,13 @@
+{
+  "contract_id": "DEPLOYMENT_IDENTITY_ADMISSION_V1",
+  "canonical_ref": "xsmbv23/Project_Brain_AI:main",
+  "required_relation": "canonical_commit == runtime_commit",
+  "canonical_commit_source": "independent_GitHub_observation",
+  "runtime_commit_source": "Render_deployment_identity",
+  "stale_runtime": "DENY",
+  "missing_identity": "DENY",
+  "functional_tests_do_not_override_drift": true,
+  "credential_policy": "NO_CREDENTIALS",
+  "promotion": "DENY_UNLESS_EXACT_CURRENT_COMMIT",
+  "oom_guard_bytes": 335544320
+}
