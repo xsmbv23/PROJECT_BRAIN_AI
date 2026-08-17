@@ -22,11 +22,12 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 def source_scan() -> None:
-    # The verifier and tests intentionally contain detector patterns; runtime source does not.
+    # Detector implementation and adversarial tests intentionally contain signatures.
     banned = re.compile(r"(?i)(postgres(?:ql)?://|redis://|-----BEGIN .*PRIVATE KEY-----)")
     verifier_path = pathlib.Path(__file__).resolve()
+    detector_path = ROOT / "core" / "credential_guard.py"
     for path in ROOT.rglob("*"):
-        if not path.is_file() or path == verifier_path or ".git" in path.parts or "tests" in path.parts or path.suffix in {".pyc", ".png", ".jpg", ".zip"}:
+        if not path.is_file() or path in {verifier_path, detector_path} or ".git" in path.parts or "tests" in path.parts or path.suffix in {".pyc", ".png", ".jpg", ".zip"}:
             continue
         if banned.search(path.read_text(encoding="utf-8", errors="ignore")):
             raise AssertionError(f"credential-like material detected: {path}")
