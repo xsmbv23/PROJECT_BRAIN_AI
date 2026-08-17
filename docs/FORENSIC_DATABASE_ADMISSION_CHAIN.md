@@ -65,6 +65,37 @@ These are observations about different security/admission questions, not contrad
 - `DB_ROUND_TRIP`: proves a real compact metadata envelope was written, read back, and SHA-256 verified as identical. The payload must contain no credentials and no bulk/source data.
 - `PROMOTION`: may pass only after all required preceding gates have independently produced their evidence.
 
+## State interaction rule
+
+These gates form a **single monotonic admission chain**, not a collection of independent booleans.
+
+A gate may emit evidence that enables evaluation of the next gate, but it may never mutate or promote the state of a later gate by inference.
+
+```text
+Earlier PASS = prerequisite
+Later PASS   = separately observed fact
+
+PASS inheritance by inference = FORBIDDEN
+```
+
+The chain is therefore compositional:
+
+```text
+DB_EXISTENCE PASS
+    -> permits DB_BINDING evaluation
+
+DB_BINDING PASS
+    -> permits DB_TLS_ADMISSION evaluation
+
+DB_TLS_ADMISSION BOUND_TLS
+    -> permits DB_ROUND_TRIP evaluation
+
+DB_ROUND_TRIP MATCH
+    -> permits PROMOTION evaluation
+```
+
+A failure/unknown at any stage terminates admission and does not contaminate earlier observations.
+
 ## Door/key analogy
 
 - `DB_EXISTENCE`: the room exists.
