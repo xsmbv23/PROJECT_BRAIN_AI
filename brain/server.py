@@ -3,10 +3,12 @@ import json
 import os
 
 from brain import __version__
+from tools.binding_probe import classify_database_binding
 
 
 class Handler(BaseHTTPRequestHandler):
     def _send_payload(self):
+        binding = classify_database_binding()
         payload = {
             "project": "XSMB_FORENSIC",
             "component": "PROJECT_BRAIN_AI",
@@ -18,6 +20,8 @@ class Handler(BaseHTTPRequestHandler):
             "mutation": "DENY",
             "evidence": "COMPACT_ENVELOPE_ONLY",
             "render": "READONLY_HEALTH_BOUNDARY",
+            "database_binding": binding["status"],
+            "database_tls": binding["tls"],
         }
         body = json.dumps(payload, ensure_ascii=False).encode()
         self.send_response(200)
