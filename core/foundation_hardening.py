@@ -99,27 +99,45 @@ class AuditEvent:
     event_id: str
     event_type: str
     policy_version: str
-    payload: dict[str, Any]
     timestamp: float
-    prev_hash: str
+    previous_hash: str
+    payload: dict[str, Any]
     event_hash: str
 
 
 class AuditChain:
     def __init__(self) -> None:
-        self.events: list[AuditEvent] = []
-
-    def append(self, *, event_id: str, event_type: str, policy_version: str,
-               payload: dict[str, Any], timestamp: float) -> AuditEvent:
-        prev = self.events[-1].event_hash if self.events else "GENESIS"
-        material = _canonical({"event_id": event_id, "event_type": event_type,
-                               "policy_version": policy_version, "payload": payload,
-                               "timestamp": timestamp, "prev_hash": prev})
-        digest = hashlib.sha256(material).hexdigest()
-        event = AuditEvent(event_id, event_type, policy_version, payload, timestamp, prev, digest)
-        self.events.append(event)
-        return event
+        self._last_hash = "GENESIS"
 
     @property
-    def head(self) -> str:
-        return self.events[-1].event_hash if self.events else "GENESIS"
+    def last_hash(self) -> str:
+        return self._last_hash
+
+    def append(self, *, event_id: str, event_type: str, policy_version: str,
+               payload: dict[str, Any], timestamp: float | None = None) -> AuditEvent:
+        ts = time.time() if timestamp is None else timestamp
+        body = {
+            "event_id": event_id,
+            "event_type": event_type,
+            "policy_version": policy_version,
+            "timestamp": ts,
+            "previous_hash": self._last_hash,
+            "payload": payload,
+        }
+        event_hash = hashlib.sha256(_canonical(body)).hexdigest()
+        event = AuditEvent(event_id, event_type, policy_version, ts, self._last_hash, payload, event_hash)
+        self._last_hash = event_hash
+        return event
+
+
+def validate_schema_major(*, received: str, expected: str) -> None:
+    def major(v: str) -> str:
+        return v.split(".", 1)[0].lstrip("v")
+    if major(received) != major(expected):
+        raise GovernanceDeny("SCHEMA_MAJOR_MISMATCH")
+
+
+def quarantine(reason: str) -> dict[str, str]:
+    if not reason.strip():
+        raise ValueError("quarantine reason required")
+    return {"state": "QUARANTINED", "reason": reason[:256]}
