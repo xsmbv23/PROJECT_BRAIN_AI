@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N053",
-  "title":"Redeploy repaired state verifier and complete runtime foundation gate sequence",
+  "action_id":"BRAIN-N054",
+  "title":"Redeploy module-path repair and capture complete runtime foundation evidence",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N052 obtained real Render runtime evidence: boot gate executed and correctly DENIED service startup because check_state_consistency had an invalid double JSON decode; verifier was repaired",
-  "scope":["deploy repaired current HEAD to Render","verify state consistency PASS","verify integrated foundation PASS","verify protected-room access PASS","capture boot gate compact JSON","capture exact deployment commit","capture memory metrics","persist evidence","if any gate fails repair immediately; never convert failure to PASS"],
+  "previous":"BRAIN-N053 proved Render execution again: anti-drift passed, foundation verifier reached runtime, then failed on subprocess import path; PYTHONPATH repair was applied",
+  "scope":["deploy current HEAD","verify all three boot-gate subprocesses exit 0","capture compact JSON envelope","capture exact Render commit and deployment status","capture memory metrics for service","persist evidence and next action","if any gate fails repair immediately; never weaken gate"],
   "constraints":["UNKNOWN is not PASS","Brain governance plane only","chat is interface only","Data owns source truth","Engine owns calculations","corridor key != room key != inner release","CapabilityLease != room key != final authority","protected room requires bell/request and authorized occupant release","sensor is observation only","Brain PASS means ADMISSIBLE_FOR_NEXT_GATE only","no master key/bypass","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime dataset-free","FULL_27 source truth","TAIL_27 derived only","no fabricated PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","state/action logs are successor authority","Brain core does not directly own credentials"],
-  "completion_gate":"repaired HEAD is live on Render; all boot-gate subprocesses exit 0; compact evidence says PASS; memory evidence remains below 320MiB guard"
+  "completion_gate":"Render current HEAD live; state consistency, foundation, access-path all PASS; boot envelope PASS; memory below 320MiB; provenance complete"
 }
