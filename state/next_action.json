@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N058",
-  "title":"Deploy boot-evidence and memory-guard hardening and capture explicit PASS envelope",
+  "action_id":"BRAIN-N059",
+  "title":"Deploy exact-current-commit fingerprint and verify durable closure evidence path",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N057 produced first live runtime evidence and memory measurements below guard; explicit boot JSON was still missing from logs, so evidence flushing and a hard verifier memory gate were added",
-  "scope":["deploy current HEAD","verify boot gate PASS is explicitly visible in Render logs","capture foundation tracemalloc peak and enforced 320MiB guard","capture exact Render commit/deploy status","capture live service status","capture current memory metrics","persist evidence","only then begin closure-readiness audit"],
+  "previous":"BRAIN-N058 established explicit boot-gate PASS on the deployed code path and memory evidence below guard; exact descendant commit fingerprint and durable evidence linkage remain to be closed",
+  "scope":["deploy current HEAD","verify FOUNDATION_BOOT_GATE_PASS commit matches Render deployment commit","capture boot gate PASS JSON and parent fingerprint","capture Render memory metrics","inspect durable evidence sink readiness","verify action/state ledger synchronization","persist closure-readiness evidence only if all are green"],
   "constraints":["UNKNOWN is not PASS","Brain governance plane only","chat is interface only","Data owns source truth","Engine owns calculations","corridor key != room key != inner release","CapabilityLease != room key != final authority","protected room requires bell/request and authorized occupant release","sensor is observation only","Brain PASS means ADMISSIBLE_FOR_NEXT_GATE only","no master key/bypass","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime dataset-free","FULL_27 source truth","TAIL_27 derived only","no fabricated PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","state/action logs are successor authority","Brain core does not directly own credentials"],
-  "completion_gate":"explicit boot PASS envelope; all subprocesses exit 0; foundation tracemalloc peak < 320MiB; Render memory safely below 512MiB; exact commit live; provenance complete"
+  "completion_gate":"exact current HEAD live; parent fingerprint matches deployment commit; boot PASS; memory below 320MiB verifier guard and safely below 512MiB; durable evidence sink verified"
 }
