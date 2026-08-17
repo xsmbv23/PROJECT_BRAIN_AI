@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N059",
-  "title":"Deploy exact-current-commit fingerprint and verify durable closure evidence path",
+  "action_id":"BRAIN-N060",
+  "title":"Harden and verify the production durable-evidence adapter with explicit TLS",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N058 established explicit boot-gate PASS on the deployed code path and memory evidence below guard; exact descendant commit fingerprint and durable evidence linkage remain to be closed",
-  "scope":["deploy current HEAD","verify FOUNDATION_BOOT_GATE_PASS commit matches Render deployment commit","capture boot gate PASS JSON and parent fingerprint","capture Render memory metrics","inspect durable evidence sink readiness","verify action/state ledger synchronization","persist closure-readiness evidence only if all are green"],
+  "previous":"BRAIN-N059 proved exact-current Render commit 0b4e... live with FOUNDATION_BOOT_GATE_PASS and 268496577-byte peak below the 320MiB guard; Render Postgres is available but SQL connectivity requires TLS",
+  "scope":["implement or repair minimal durable-evidence adapter","require DATABASE_URL from runtime only","require SSL/TLS explicitly and fail closed on plaintext","keep credentials out of source/state/action logs","verify compact evidence round-trip","keep Brain dataset-free and below OOM guard","record exact runtime evidence","synchronize current_state and next_action before promotion decisions"],
   "constraints":["UNKNOWN is not PASS","Brain governance plane only","chat is interface only","Data owns source truth","Engine owns calculations","corridor key != room key != inner release","CapabilityLease != room key != final authority","protected room requires bell/request and authorized occupant release","sensor is observation only","Brain PASS means ADMISSIBLE_FOR_NEXT_GATE only","no master key/bypass","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime dataset-free","FULL_27 source truth","TAIL_27 derived only","no fabricated PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","state/action logs are successor authority","Brain core does not directly own credentials"],
-  "completion_gate":"exact current HEAD live; parent fingerprint matches deployment commit; boot PASS; memory below 320MiB verifier guard and safely below 512MiB; durable evidence sink verified"
+  "completion_gate":"durable adapter has explicit TLS enforcement and a real metadata-only round-trip; failure remains DENY"
 }
