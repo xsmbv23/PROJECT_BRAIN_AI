@@ -37,7 +37,7 @@ def main() -> int:
             "stderr_tail": proc.stderr[-2000:],
         })
         if proc.returncode != 0:
-            print(json.dumps({"runtime_boot_gate": "DENY", "failed": name, "results": results}, ensure_ascii=False))
+            print(json.dumps({"runtime_boot_gate": "DENY", "failed": name, "results": results}, ensure_ascii=False), flush=True)
             return 1
 
     print(json.dumps({
@@ -45,7 +45,7 @@ def main() -> int:
         "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
         "elapsed_seconds": round(time.time() - started, 4),
         "results": results,
-    }, ensure_ascii=False))
+    }, ensure_ascii=False), flush=True)
     return 0
 
 
