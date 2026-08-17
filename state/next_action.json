@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N055",
-  "title":"Redeploy repaired schema/scanner foundation and capture full runtime evidence",
+  "action_id":"BRAIN-N056",
+  "title":"Redeploy scanner-boundary repair and capture first complete boot-gate result",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N054 found and repaired two real runtime defects: schema pin exact-version conflict and credential scanner self-match; the full hardening module was also restored after an intermediate write truncation was detected",
-  "scope":["deploy current HEAD","verify anti-drift PASS","verify all 46+ deterministic tests PASS","verify Brain major-schema policy PASS","verify source scan PASS","verify durable audit/state and security chain PASS","capture boot gate JSON","capture exact Render commit/deploy status","capture service memory metrics","persist evidence","if failure repair immediately and append ledger"],
+  "previous":"BRAIN-N055 reached 46/46 tests PASS but boot gate denied because source_scan flagged intentional credential guard fixtures; scanner boundary was repaired",
+  "scope":["deploy current HEAD","verify state consistency","verify all tests and foundation round trips","verify source scan and adapter isolation","verify protected-room access chain","capture boot gate PASS/FAIL envelope","capture exact Render deployment commit","capture memory metrics","persist evidence and next action"],
   "constraints":["UNKNOWN is not PASS","Brain governance plane only","chat is interface only","Data owns source truth","Engine owns calculations","corridor key != room key != inner release","CapabilityLease != room key != final authority","protected room requires bell/request and authorized occupant release","sensor is observation only","Brain PASS means ADMISSIBLE_FOR_NEXT_GATE only","no master key/bypass","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime dataset-free","FULL_27 source truth","TAIL_27 derived only","no fabricated PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","state/action logs are successor authority","Brain core does not directly own credentials"],
-  "completion_gate":"exact current HEAD live; boot gate PASS; all verifiers PASS; memory below 320MiB; provenance complete"
+  "completion_gate":"exact current HEAD live; boot gate PASS; all subprocesses exit 0; memory below 320MiB; provenance complete"
 }
