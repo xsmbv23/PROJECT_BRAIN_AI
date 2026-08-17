@@ -1,8 +1,8 @@
 """Run lightweight foundation verifiers before Brain serves traffic.
 
-All checks are metadata-only and subprocess-isolated. The database binding probe
-is informational and never logs or exposes credentials; durable DB promotion
-remains a separate explicit gate.
+All checks are metadata-only and subprocess-isolated. Database admission is
+classified without exposing credentials. Durable DB promotion remains a
+separate explicit gate.
 """
 from __future__ import annotations
 
@@ -20,14 +20,13 @@ COMMANDS = (
     ("state_consistency", "tools/check_state_consistency.py"),
     ("foundation", "tools/verify_foundation.py"),
     ("access_path", "tools/verify_access_path.py"),
+    ("database_admission_contract", "tools/verify_database_binding_contract.py"),
 )
 
 
 def database_binding_evidence() -> dict[str, object]:
     from tools.binding_probe import classify_database_binding
-    result = classify_database_binding()
-    # Deliberately return only classification. Never include the URL itself.
-    return result
+    return classify_database_binding()
 
 
 def main() -> int:
@@ -64,11 +63,21 @@ def main() -> int:
                 print(json.dumps({"runtime_boot_gate": "DENY", "failed": "FOUNDATION_MEMORY_GUARD", "results": results}, ensure_ascii=False), flush=True)
                 return 1
 
-    results.append({"name": "database_binding_probe", "exit_code": 0, "evidence": database_binding_evidence()})
+    binding = database_binding_evidence()
+    results.append({"name": "database_binding_probe", "exit_code": 0, "evidence": binding})
+    promotion = "ALLOW" if binding["status"] == "BOUND_TLS" else "DENY"
     print(json.dumps({
         "runtime_boot_gate": "PASS",
         "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
         "memory_guard_bytes": MEMORY_GUARD_BYTES,
+        "database_admission_chain": {
+            "db_existence": "PREREQUISITE_EXTERNAL_EVIDENCE",
+            "db_binding": binding["status"],
+            "db_tls_admission": "PASS" if binding["status"] == "BOUND_TLS" else "DENY",
+            "db_round_trip": "NOT_PROVEN",
+            "promotion": promotion if binding["status"] == "BOUND_TLS" else "DENY",
+            "rule": "PASS_AT_GATE_IS_PREREQUISITE_ONLY; NEVER_INFER_DEEPER_PASS",
+        },
         "elapsed_seconds": round(time.time() - started, 4),
         "results": results,
     }, ensure_ascii=False), flush=True)
