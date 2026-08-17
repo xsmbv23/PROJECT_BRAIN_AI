@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N052",
-  "title":"Deploy current HEAD to Render and capture boot-gate evidence",
+  "action_id":"BRAIN-N053",
+  "title":"Redeploy repaired state verifier and complete runtime foundation gate sequence",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N051 added a boot-time, subprocess-isolated foundation gate so Render can provide real execution evidence before Brain binds its HTTP port",
-  "scope":["deploy current HEAD to Render service project-brain-ai","verify deployment commit matches GitHub HEAD","inspect boot logs for runtime_boot_gate PASS or DENY","capture verifier exit codes and output tails","capture deployment health and memory metrics without loading datasets","if gate fails repair immediately","if gate passes record closure-readiness evidence package"],
+  "previous":"BRAIN-N052 obtained real Render runtime evidence: boot gate executed and correctly DENIED service startup because check_state_consistency had an invalid double JSON decode; verifier was repaired",
+  "scope":["deploy repaired current HEAD to Render","verify state consistency PASS","verify integrated foundation PASS","verify protected-room access PASS","capture boot gate compact JSON","capture exact deployment commit","capture memory metrics","persist evidence","if any gate fails repair immediately; never convert failure to PASS"],
   "constraints":["UNKNOWN is not PASS","Brain governance plane only","chat is interface only","Data owns source truth","Engine owns calculations","corridor key != room key != inner release","CapabilityLease != room key != final authority","protected room requires bell/request and authorized occupant release","sensor is observation only","Brain PASS means ADMISSIBLE_FOR_NEXT_GATE only","no master key/bypass","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime dataset-free","FULL_27 source truth","TAIL_27 derived only","no fabricated PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","state/action logs are successor authority","Brain core does not directly own credentials"],
-  "completion_gate":"Render deploy is live on exact current commit; boot gate emits PASS; all three verifiers exit 0; memory remains below 320MiB guard; evidence is persisted"
+  "completion_gate":"repaired HEAD is live on Render; all boot-gate subprocesses exit 0; compact evidence says PASS; memory evidence remains below 320MiB guard"
 }
