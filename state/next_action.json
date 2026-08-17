@@ -1,10 +1,10 @@
 {
-  "action_id":"BRAIN-N060",
-  "title":"Harden and verify the production durable-evidence adapter with explicit TLS",
+  "action_id":"BRAIN-N061",
+  "title":"Verify exact-current Render durable evidence round-trip with TLS and provenance",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "previous":"BRAIN-N059 proved exact-current Render commit 0b4e... live with FOUNDATION_BOOT_GATE_PASS and 268496577-byte peak below the 320MiB guard; Render Postgres is available but SQL connectivity requires TLS",
-  "scope":["implement or repair minimal durable-evidence adapter","require DATABASE_URL from runtime only","require SSL/TLS explicitly and fail closed on plaintext","keep credentials out of source/state/action logs","verify compact evidence round-trip","keep Brain dataset-free and below OOM guard","record exact runtime evidence","synchronize current_state and next_action before promotion decisions"],
+  "previous":"BRAIN-N060 implemented the TLS-only metadata durable evidence adapter, bounded psycopg dependency, and CI unit gate",
+  "scope":["inspect exact-current Render deployment for commit dd216fc0d944e1fb6f02b2e2135b35c3b40452e1","verify boot gate and durable adapter behavior from runtime logs","prove metadata-only PostgreSQL write/read hash round-trip if DATABASE_URL is configured","deny explicitly if DATABASE_URL is absent, TLS fails, or round-trip cannot be proven","capture memory peak and exact commit provenance","record no credentials or connection strings","synchronize state only after evidence is observed"],
   "constraints":["UNKNOWN is not PASS","Brain governance plane only","chat is interface only","Data owns source truth","Engine owns calculations","corridor key != room key != inner release","CapabilityLease != room key != final authority","protected room requires bell/request and authorized occupant release","sensor is observation only","Brain PASS means ADMISSIBLE_FOR_NEXT_GATE only","no master key/bypass","Render Free 512MB / 1 CPU hard boundary","320MB conservative guard","Brain runtime dataset-free","FULL_27 source truth","TAIL_27 derived only","no fabricated PASS","promotion DENY","Layer 1 LOCKED","staircase LOCKED","state/action logs are successor authority","Brain core does not directly own credentials"],
-  "completion_gate":"durable adapter has explicit TLS enforcement and a real metadata-only round-trip; failure remains DENY"
+  "completion_gate":"exact-current Render deployment provides reproducible durable TLS round-trip evidence and memory/provenance evidence; otherwise remain DENY"
 }
