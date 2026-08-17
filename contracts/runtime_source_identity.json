@@ -1,0 +1,21 @@
+{
+  "contract_id": "RUNTIME_BOUND_SOURCE_IDENTITY_V1",
+  "purpose": "Prevent source truth from being treated as globally transport-invariant",
+  "source_identity": ["source_url", "execution_runtime"],
+  "example": {
+    "source_url": "https://ketqua16.net/",
+    "execution_runtime": "render_container"
+  },
+  "runtime_classes": ["render_container", "github_actions", "local_machine", "external_vps"],
+  "observation_rule": "same_url_different_runtime_is_a_distinct_observation",
+  "repeatability_rule": "different_runtime_results_must_not_be_merged_into_one_truth_without_stability_analysis",
+  "receipt_rule": "capture_http_status_raw_byte_count_sha256_and_runtime_identity_before_parse",
+  "failure_rule": "transport_failure_is_evidence_and_must_not_be_overwritten",
+  "parse_rule": "no_parse_no_normalization_no_mapping_before_transport_receipt_is_frozen",
+  "truth_rule": "runtime_receipt_does_not_define_domain_truth",
+  "promotion_rule": "canonical_domain_truth_requires_minimum_two_receipts_and_preferred_three_receipt_stability_quorum",
+  "conflict_rule": "same_source_date_conflict_across_runtimes_or_sources_is_DENY_UNTIL_EXPLAINED",
+  "no_synthetic_data": true,
+  "no_credential_storage": true,
+  "forensic_immutable": true
+}
