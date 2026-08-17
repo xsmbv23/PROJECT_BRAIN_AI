@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main() -> int:
-    current = json.loads(json.loads((ROOT / "state/current_state.json").read_text(encoding="utf-8")))
+    current = json.loads((ROOT / "state/current_state.json").read_text(encoding="utf-8"))
     nxt = json.loads((ROOT / "state/next_action.json").read_text(encoding="utf-8"))
 
     errors = []
