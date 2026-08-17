@@ -6,7 +6,6 @@ on:
     paths:
       - 'tools/real_world_collector.py'
       - '.github/workflows/reality-receipt-2.yml'
-      - 'state/next_action.json'
   workflow_dispatch:
 
 permissions:
