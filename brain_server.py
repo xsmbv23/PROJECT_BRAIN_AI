@@ -8,4 +8,5 @@ from tools.runtime_boot_gate import main as run_foundation_boot_gate
 if __name__ == "__main__":
     if run_foundation_boot_gate() != 0:
         raise SystemExit("FOUNDATION_BOOT_GATE_DENY")
+    print(f"FOUNDATION_BOOT_GATE_PASS commit={os.environ.get('RENDER_GIT_COMMIT', 'UNKNOWN')}", flush=True)
     HTTPServer(("0.0.0.0", int(os.environ.get("PORT", "10000"))), Handler).serve_forever()
