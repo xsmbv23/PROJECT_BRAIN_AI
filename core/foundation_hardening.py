@@ -22,6 +22,13 @@ class GovernanceDeny(Exception):
     pass
 
 
+def _schema_major(version: str) -> str:
+    parts = version.strip().split(".")
+    if len(parts) < 2 or not parts[0].startswith("v") or not parts[0][1:].isdigit() or not parts[1].isdigit():
+        raise GovernanceDeny("SCHEMA_VERSION_INVALID")
+    return f"{parts[0]}.0"
+
+
 @dataclass(frozen=True)
 class PolicyPin:
     policy_version: str
@@ -29,10 +36,10 @@ class PolicyPin:
     brain_state_version: str
 
     def verify(self, *, policy_version: str, schema_version: str, brain_state_version: str) -> None:
-        if (policy_version, schema_version, brain_state_version) != (
-            self.policy_version, self.schema_version, self.brain_state_version
-        ):
+        if policy_version != self.policy_version or brain_state_version != self.brain_state_version:
             raise GovernanceDeny("POLICY_PIN_MISMATCH")
+        if _schema_major(schema_version) != _schema_major(self.schema_version):
+            raise GovernanceDeny("SCHEMA_MAJOR_PIN_MISMATCH")
 
 
 @dataclass(frozen=True)
@@ -92,45 +99,27 @@ class AuditEvent:
     event_id: str
     event_type: str
     policy_version: str
-    timestamp: float
-    previous_hash: str
     payload: dict[str, Any]
+    timestamp: float
+    prev_hash: str
     event_hash: str
 
 
 class AuditChain:
     def __init__(self) -> None:
-        self._last_hash = "GENESIS"
-
-    @property
-    def last_hash(self) -> str:
-        return self._last_hash
+        self.events: list[AuditEvent] = []
 
     def append(self, *, event_id: str, event_type: str, policy_version: str,
-               payload: dict[str, Any], timestamp: float | None = None) -> AuditEvent:
-        ts = time.time() if timestamp is None else timestamp
-        body = {
-            "event_id": event_id,
-            "event_type": event_type,
-            "policy_version": policy_version,
-            "timestamp": ts,
-            "previous_hash": self._last_hash,
-            "payload": payload,
-        }
-        event_hash = hashlib.sha256(_canonical(body)).hexdigest()
-        event = AuditEvent(event_id, event_type, policy_version, ts, self._last_hash, payload, event_hash)
-        self._last_hash = event_hash
+               payload: dict[str, Any], timestamp: float) -> AuditEvent:
+        prev = self.events[-1].event_hash if self.events else "GENESIS"
+        material = _canonical({"event_id": event_id, "event_type": event_type,
+                               "policy_version": policy_version, "payload": payload,
+                               "timestamp": timestamp, "prev_hash": prev})
+        digest = hashlib.sha256(material).hexdigest()
+        event = AuditEvent(event_id, event_type, policy_version, payload, timestamp, prev, digest)
+        self.events.append(event)
         return event
 
-
-def validate_schema_major(*, received: str, expected: str) -> None:
-    def major(v: str) -> str:
-        return v.split(".", 1)[0].lstrip("v")
-    if major(received) != major(expected):
-        raise GovernanceDeny("SCHEMA_MAJOR_MISMATCH")
-
-
-def quarantine(reason: str) -> dict[str, str]:
-    if not reason.strip():
-        raise ValueError("quarantine reason required")
-    return {"state": "QUARANTINED", "reason": reason[:256]}
+    @property
+    def head(self) -> str:
+        return self.events[-1].event_hash if self.events else "GENESIS"
