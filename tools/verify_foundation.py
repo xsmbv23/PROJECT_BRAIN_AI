@@ -22,7 +22,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 def source_scan() -> None:
-    banned = re.compile(r"(?i)(postgres(?:ql)?://|redis://|-----BEGIN .*PRIVATE KEY-----)")
+    # Build scanner literals from fragments so the verifier cannot flag its own pattern.
+    banned = re.compile(r"(?i)(" + "postgres" + r"(?:ql)?://|" + "redis" + r"://|" + r"-----BEGIN " + r".*PRIVATE KEY-----" + r")")
     for path in ROOT.rglob("*"):
         if not path.is_file() or ".git" in path.parts or path.suffix in {".pyc", ".png", ".jpg", ".zip"}:
             continue
