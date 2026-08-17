@@ -1,13 +1,16 @@
 {
-  "contract_id": "DEPLOYMENT_IDENTITY_ADMISSION_V1",
-  "canonical_ref": "xsmbv23/Project_Brain_AI:main",
-  "required_relation": "canonical_commit == runtime_commit",
-  "canonical_commit_source": "independent_GitHub_observation",
+  "contract_id": "DEPLOYMENT_IDENTITY_ADMISSION_V2",
+  "canonical_runtime_anchor": "explicit_runtime_release_commit",
+  "repository_head": "xsmbv23/Project_Brain_AI:main",
+  "required_runtime_relation": "runtime_commit == runtime_anchor_commit",
+  "repository_head_relation": "observational_only_unless_runtime_affecting_change_is_declared",
+  "runtime_anchor_source": "forensic_action_receipt_created_before_deploy",
   "runtime_commit_source": "Render_deployment_identity",
-  "stale_runtime": "DENY",
+  "stale_runtime_against_anchor": "DENY",
   "missing_identity": "DENY",
-  "functional_tests_do_not_override_drift": true,
+  "documentation_only_HEAD_drift": "NOT_RUNTIME_DRIFT",
+  "functional_tests_do_not_override_runtime_drift": true,
   "credential_policy": "NO_CREDENTIALS",
-  "promotion": "DENY_UNLESS_EXACT_CURRENT_COMMIT",
+  "promotion": "DENY_UNLESS_RUNTIME_ANCHOR_AND_RUNTIME_IDENTITY_MATCH",
   "oom_guard_bytes": 335544320
 }
