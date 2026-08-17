@@ -1,0 +1,21 @@
+{
+  "schema": "FORENSIC_DATABASE_ADMISSION_CHAIN_V1",
+  "single_forensic_state": true,
+  "gates": [
+    {"id":"DB_EXISTENCE","pass":"DB_EXISTS","failure":"DB_NOT_FOUND"},
+    {"id":"DB_BINDING","pass":"BOUND","failure":"NOT_BOUND"},
+    {"id":"DB_TLS_ADMISSION","pass":"BOUND_TLS","failure":"DENY_TLS"},
+    {"id":"DB_ROUND_TRIP","pass":"SHA256_MATCH","failure":"ROUND_TRIP_DENY"}
+  ],
+  "promotion_requires_all": ["DB_EXISTENCE","DB_BINDING","DB_TLS_ADMISSION","DB_ROUND_TRIP"],
+  "non_inheritable_pass": true,
+  "stop_on_first_failure": true,
+  "later_gates_after_failure": "UNREACHED",
+  "failure_history": "IMMUTABLE",
+  "local_pass_equals_render_pass": false,
+  "credential_values_are_evidence": false,
+  "credential_storage": "RENDER_SECRET_ENV_ONLY",
+  "oom_guard_bytes": 335544320,
+  "layer_1": "LOCKED",
+  "staircase": "LOCKED"
+}
