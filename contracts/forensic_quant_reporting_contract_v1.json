@@ -1,0 +1,77 @@
+{
+  "contract_id": "FORENSIC_QUANT_REPORTING_V1",
+  "status": "CANONICAL_SUCCESSOR_CONTRACT",
+  "purpose": "Preserve the required Forensic/Quant reporting semantics for all future bots and downstream layers.",
+  "invariants": {
+    "forensic_direction": "EXACT_CURRENT_RUNTIME_EVIDENCE_FIRST",
+    "logic": "TRACE_EACH_DECISION_FROM_SOURCE_TO_STATE_TO_ACTION",
+    "edge": "REAL_OBSERVABLE_EDGE_ONLY",
+    "negative_ev": "EV_LT_0_IS_DENY_AT_EVERY_LEVEL",
+    "unknown": "UNKNOWN_IS_NOT_PASS",
+    "default": "DEFAULT_DENY",
+    "immutability": "FORENSIC_RECORDS_APPEND_ONLY",
+    "ui": "PRESERVE_EXISTING_INTERFACE; OPTIMIZE_MENU_WITHOUT_BREAKING_LEGACY_ROUTES",
+    "reporting": "REPORTING_IS_EVIDENCE_PRESENTATION_NOT_AUTHORIZATION",
+    "prediction": "PREDICTION_IS_NOT_EXECUTION"
+  },
+  "edge_policy": {
+    "required": ["source_evidence", "target_evidence", "time_alignment", "observable_comparison", "cost_model", "uncertainty_state"],
+    "real_edge_only": true,
+    "edge_without_observable_evidence": "DENY",
+    "stale_edge": "DENY",
+    "synthetic_edge": "DENY"
+  },
+  "ev_policy": {
+    "formula": "EV = sum(outcome_probability * net_payoff) - total_cost",
+    "strict_rule": "EV < 0 => DENY",
+    "unknown_probability": "DENY",
+    "unknown_payoff": "DENY",
+    "unknown_cost": "DENY",
+    "negative_ev_applies_to": ["individual_pair", "candidate_set", "strategy", "session", "day", "portfolio", "research_admission", "execution_admission"],
+    "no_cross_level_pass_inheritance": true
+  },
+  "daily_audit_report": {
+    "required_fields": [
+      "date",
+      "prediction_count",
+      "predicted_pairs",
+      "hit_count",
+      "hit_pairs",
+      "total_stake",
+      "total_loss",
+      "total_payout",
+      "net_pnl",
+      "roi_percent",
+      "ev_by_pair",
+      "ev_total",
+      "edge_by_pair",
+      "denied_pairs",
+      "deny_reasons",
+      "source_evidence_refs",
+      "audit_status"
+    ],
+    "prediction_count_definition": "Number of pairs actually admitted by the prediction gate for that date.",
+    "hit_count_definition": "Number of admitted predicted pairs whose exact pair appears in the authoritative result for that date.",
+    "hit_pairs_definition": "Exact two-digit pairs that hit, preserving leading zeros.",
+    "total_stake_definition": "Sum of recorded stakes for admitted predictions only.",
+    "total_loss_definition": "Sum of losing stakes, explicitly separated from gross stake and payout.",
+    "total_payout_definition": "Gross recorded payout attributable to winning admitted predictions.",
+    "net_pnl_definition": "total_payout - total_stake",
+    "roi_formula": "((total_payout - total_stake) / total_stake) * 100 when total_stake > 0",
+    "zero_stake_rule": "ROI = NOT_APPLICABLE; never divide by zero.",
+    "audit_truth": "Never infer a hit, stake, loss, payout, or ROI from missing records."
+  },
+  "source_policy": {
+    "authoritative_result_required": true,
+    "advertising_content": "NON_DATA; MUST NOT ENTER SOURCE_TRUTH DATASET",
+    "source_navigation_noise": "MUST BE SEPARATED FROM RESULT CONTENT",
+    "scrape_result": "HASHED_AND_REFERENCED_BEFORE_DERIVATION"
+  },
+  "runtime_policy": {
+    "render_memory_guard_bytes": 335544320,
+    "dataset_free_brain_runtime": true,
+    "large_data": "BRANCH_AND_STREAM; NEVER LOAD UNBOUNDED_DATASET_IN_BRAIN",
+    "promotion": "HARD_DENY_WHILE_ANY_REQUIRED_GATE_IS_NOT_PROVEN"
+  },
+  "successor_rule": "This contract is persistent project memory. Future bots MUST read and obey it before changing reporting, edge, EV, menu, or audit behavior."
+}
