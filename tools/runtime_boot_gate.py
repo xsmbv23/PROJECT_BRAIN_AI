@@ -22,6 +22,7 @@ COMMANDS = (
     ("access_path", "tools/verify_access_path.py"),
     ("database_admission_contract", "tools/verify_database_binding_contract.py"),
     ("admission_fsm", "tools/verify_admission_fsm.py"),
+    ("deterministic_replay", "tools/replay_verifier.py"),
 )
 
 
