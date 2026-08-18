@@ -26,16 +26,12 @@ inherits forward as permission.
 ```text
 DB_EXISTS = PASS
     != DB_BOUND = PASS
-
 DB_BOUND = PASS
     != SECRET_RESOLUTION = PASS
-
 SECRET_RESOLUTION = PASS
     != TLS_ADMISSION = PASS
-
 TLS_ADMISSION = PASS
     != NETWORK_ORIGIN_PROOF = PASS
-
 NETWORK_ORIGIN_PROOF = PASS
     != ROUND_TRIP = PASS
 ```
@@ -67,6 +63,53 @@ These are three different facts:
    write/read/hash-match round trip.
 
 Do not collapse them into a single `DATABASE_PASS` state.
+
+## Real external-event trigger rule
+
+Some gates depend on events that must originate outside the Brain process.
+Brain, Bot, and chat are allowed to prepare a workflow, inspect its result,
+verify a receipt, and record the resulting state. They are NOT allowed to
+manufacture the external event or its evidence in order to unlock themselves.
+
+For a real GitHub Actions admission/dispatch, admissible origins are:
+
+1. a real manual workflow dispatch;
+2. a real source-code push/commit event;
+3. a real authorized external API dispatch.
+
+The resulting runner execution must be observable and fresh. A copied historical
+receipt, synthetic fixture, invented Run ID, invented dispatch claim, or chat
+message is not external-world evidence.
+
+```text
+REAL EXTERNAL EVENT
+        |
+        v
+GITHUB ACTIONS RUNNER
+        |
+        +--> real execution identity
+        +--> real receipt / artifact
+        |
+        v
+FORENSIC FSM
+        |
+        +--> verify fresh evidence
+        +--> authorize exact transition
+        |
+        v
+NEXT ACTION SPACE
+```
+
+`WAIT_EXTERNAL_EVENT` is a valid state. Waiting is not a failure.
+
+This is analogous to the protected-room rule:
+
+```text
+corridor key -> room key -> inner latch -> doorbell/external event -> admission
+```
+
+Correct route and correct keys do not manufacture the person inside opening the
+door.
 
 ## Brain versus Quant Engine
 
