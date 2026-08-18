@@ -14,6 +14,8 @@ import sys
 import time
 from pathlib import Path
 
+from tools.database_admission import AdmissionState, evaluate
+
 ROOT = Path(__file__).resolve().parents[1]
 MEMORY_GUARD_BYTES = 320 * 1024 * 1024
 COMMANDS = (
@@ -29,6 +31,34 @@ COMMANDS = (
 def database_binding_evidence() -> dict[str, object]:
     from tools.binding_probe import classify_database_binding
     return classify_database_binding()
+
+
+def admission_summary(binding_status: str, round_trip_proven: bool = False) -> dict[str, object]:
+    """Build the public admission summary without inheriting deeper PASS states.
+
+    BOUND_TLS is evidence only for the binding/TLS gates. Promotion is impossible
+    until an independently observed durable round-trip proves write/read/hash.
+    """
+    state = AdmissionState(
+        existence=False,  # existence is external evidence and is never inferred here
+        binding=binding_status in {"BOUND_TLS"},
+        tls=binding_status == "BOUND_TLS",
+        round_trip=round_trip_proven,
+    )
+    evaluated = evaluate(state)
+    if binding_status != "BOUND_TLS":
+        evaluated["first_failed_gate"] = "DB_BINDING"
+        evaluated["reached"] = ["DB_EXISTENCE", "DB_BINDING"]
+        evaluated["passed"] = []
+        evaluated["promotion"] = False
+    return {
+        "db_existence": "PREREQUISITE_EXTERNAL_EVIDENCE",
+        "db_binding": binding_status,
+        "db_tls_admission": "PASS" if binding_status == "BOUND_TLS" else "DENY",
+        "db_round_trip": "PASS" if round_trip_proven else "NOT_PROVEN",
+        "promotion": "ALLOW" if evaluated["promotion"] else "DENY",
+        "rule": "PASS_AT_GATE_IS_PREREQUISITE_ONLY; NEVER_INFER_DEEPER_PASS",
+    }
 
 
 def main() -> int:
@@ -67,19 +97,12 @@ def main() -> int:
 
     binding = database_binding_evidence()
     results.append({"name": "database_binding_probe", "exit_code": 0, "evidence": binding})
-    promotion = "ALLOW" if binding["status"] == "BOUND_TLS" else "DENY"
+    admission = admission_summary(str(binding["status"]), round_trip_proven=False)
     print(json.dumps({
         "runtime_boot_gate": "PASS",
         "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
         "memory_guard_bytes": MEMORY_GUARD_BYTES,
-        "database_admission_chain": {
-            "db_existence": "PREREQUISITE_EXTERNAL_EVIDENCE",
-            "db_binding": binding["status"],
-            "db_tls_admission": "PASS" if binding["status"] == "BOUND_TLS" else "DENY",
-            "db_round_trip": "NOT_PROVEN",
-            "promotion": promotion if binding["status"] == "BOUND_TLS" else "DENY",
-            "rule": "PASS_AT_GATE_IS_PREREQUISITE_ONLY; NEVER_INFER_DEEPER_PASS",
-        },
+        "database_admission_chain": admission,
         "external_event_path": "ISOLATED; NO_SELF_MANUFACTURED_EVENT",
         "foundation_path": "ADVANCE_ALLOWED; EXTERNAL_STATE_UNCHANGED",
         "room_02": "LOCKED",
