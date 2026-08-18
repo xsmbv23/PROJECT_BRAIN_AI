@@ -1,18 +1,21 @@
 {
-  "action_id": "BRAIN-N083_WAIT_EXTERNAL_EVENT",
+  "action_id": "BRAIN-N086_WAIT_NETWORK_ORIGIN_PROOF",
   "status": "WAITING",
   "mode": "MANDATORY_NO_OP",
   "action_space": 0,
   "trigger": "REAL_EXTERNAL_INFRASTRUCTURE_EVENT",
-  "required_evidence": "NETWORK_ORIGIN_PROOF_FROM_EXACT_CURRENT_RUNTIME_TO_DECLARED_DATABASE_ORIGIN",
-  "current_runtime_commit": "d2289f8e9a7df03a1ef1caad681681ac2399c1bd",
-  "current_deploy": "dep-da21vp9t0dsc73au2fp0",
+  "required_evidence": "NETWORK_ORIGIN_PROOF_FROM_EXACT_CURRENT_RENDER_RUNTIME_TO_DECLARED_DATABASE_ORIGIN",
+  "current_runtime_commit": "eae5fc2c09c54cc2b13902cdf8d92843d4ca0097",
+  "current_deploy": "dep-da22s4lbedkc73d89kq0",
   "current_gate": "NETWORK_ORIGIN_PROOF",
   "current_gate_status": "NOT_PROVEN",
-  "downstream": "DURABLE_ROUND_TRIP_NOT_PROVEN;PROMOTION_DENY;DATA_ADMISSION_LOCKED;RESEARCH_ADMISSION_LOCKED;EVIDENCE_ANALYSIS_LOCKED;REPORTING_LOCKED",
+  "database_binding": "BOUND_TLS",
+  "database_tls_admission": "PASS",
+  "downstream": "DURABLE_ROUND_TRIP_NOT_PROVEN;PROMOTION_HARD_DENY;DATA_ADMISSION_LOCKED;RESEARCH_ADMISSION_LOCKED;EVIDENCE_ANALYSIS_LOCKED;REPORTING_LOCKED",
   "forbidden": [
     "fabricate_network_proof",
     "inherit_pass_between_gates",
+    "treat_bound_tls_as_network_origin_proof",
     "treat_in_memory_round_trip_as_durable_evidence",
     "advance_to_downstream_work_without_promotion",
     "unlock_layer_1",
@@ -20,7 +23,8 @@
     "unlock_research_room",
     "grant_authority_from_reporting",
     "store_credentials_in_github",
-    "use_old_deployment_as_exact_current_evidence"
+    "use_old_deployment_as_exact_current_evidence",
+    "self_manufacture_external_event"
   ],
   "allowed_while_waiting": [
     "read_exact_current_runtime_evidence",
@@ -28,7 +32,7 @@
     "append_non_mutating_forensic_documentation",
     "validate_documentation_integrity"
   ],
-  "successor_instruction": "MANDATORY_NO_OP IS AN ACTIVE SAFETY STATE. DO NOT PERFORM OPERATIONAL MUTATION UNTIL THE DECLARED EXTERNAL EVENT IS OBSERVABLE.",
+  "successor_instruction": "MANDATORY_NO_OP IS AN ACTIVE SAFETY STATE. DO NOT PERFORM OPERATIONAL MUTATION UNTIL NETWORK_ORIGIN_PROOF IS OBSERVABLE FROM THE EXACT-CURRENT RUNTIME.",
   "truth_priority": "EXACT_CURRENT_RUNTIME_EVIDENCE > PERSISTED_FORENSIC_RECORD > OLD_DOCUMENTATION > HYPOTHESIS",
   "promotion": "HARD_DENY",
   "layer_1": "LOCKED",
