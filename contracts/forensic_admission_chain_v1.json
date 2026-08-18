@@ -1,0 +1,33 @@
+{
+  "contract_id": "FORENSIC_ADMISSION_CHAIN_V1",
+  "principle": "A PASS at one gate is evidence only for that gate and never grants implicit permission at the next gate.",
+  "chain": [
+    {"gate":"DB_EXISTENCE","meaning":"resource exists","may_unlock":"DB_BINDING_CHECK","promotion":false},
+    {"gate":"DB_BINDING","meaning":"service has explicit binding","may_unlock":"DB_TLS_ADMISSION","promotion":false},
+    {"gate":"DB_TLS_ADMISSION","meaning":"binding satisfies TLS policy","may_unlock":"DB_ROUND_TRIP","promotion":false},
+    {"gate":"DB_ROUND_TRIP","meaning":"compact metadata write/read and SHA256 match proven","may_unlock":"PROMOTION","promotion":true},
+    {"gate":"PROMOTION","meaning":"durable evidence sink admitted","promotion":true}
+  ],
+  "edge_policy": {
+    "every_transition_requires_explicit_edge": true,
+    "edge_must_have_source_gate": true,
+    "edge_must_have_target_gate": true,
+    "edge_must_have_observable_evidence": true,
+    "implicit_transition_forbidden": true,
+    "unknown_edge": "DENY",
+    "broken_edge": "DENY",
+    "cross_layer_edge_without_contract": "DENY"
+  },
+  "ev_policy": {
+    "EV_means_expected_value_when_defined_by_engine_contract": true,
+    "EV_lt_0": "DENY_ACTION",
+    "EV_is_unknown": "DENY_ACTION",
+    "EV_is_nan": "DENY_ACTION",
+    "EV_must_not_be_invented": true,
+    "EV_calculation_owner": "QUANT_ENGINE",
+    "BRAIN_ROLE": "GOVERN_AND_ADMIT_OR_DENY",
+    "sensor_role": "OBSERVE_ONLY",
+    "execution_role": "DOWNSTREAM_ONLY"
+  },
+  "forensic_invariant": "No downstream PASS may be inferred from an upstream PASS; each edge is independently admissible and auditable."
+}
