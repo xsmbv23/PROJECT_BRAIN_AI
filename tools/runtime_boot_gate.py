@@ -59,26 +59,23 @@ def network_admission_evidence(env: dict[str, str]) -> dict[str, object]:
     return evidence
 
 
-def admission_summary(binding_status: str, round_trip_proven: bool = False) -> dict[str, object]:
+def admission_summary(binding_status: str, network_status: str, round_trip_proven: bool = False) -> dict[str, object]:
+    """Evaluate the single admission chain with strict gate-local PASS semantics."""
+    network_pass = network_status == "PASS"
     state = AdmissionState(
         existence=False,
-        binding=binding_status in {"BOUND_TLS"},
+        binding=binding_status == "BOUND_TLS",
         tls=binding_status == "BOUND_TLS",
         round_trip=round_trip_proven,
     )
     evaluated = evaluate(state)
-    if binding_status != "BOUND_TLS":
-        evaluated["first_failed_gate"] = "DB_BINDING"
-        evaluated["reached"] = ["DB_EXISTENCE", "DB_BINDING"]
-        evaluated["passed"] = []
-        evaluated["promotion"] = False
     return {
         "db_existence": "PREREQUISITE_EXTERNAL_EVIDENCE",
         "db_binding": binding_status,
         "db_tls_admission": "PASS" if binding_status == "BOUND_TLS" else "DENY",
-        "network_origin_proof": "PASS" if binding_status == "BOUND_TLS" else "NOT_PROVEN",
+        "network_origin_proof": "PASS" if network_pass else "NOT_PROVEN",
         "db_round_trip": "PASS" if round_trip_proven else "NOT_PROVEN",
-        "promotion": "ALLOW" if evaluated["promotion"] else "DENY",
+        "promotion": "ALLOW" if (network_pass and evaluated["promotion"]) else "DENY",
         "rule": "PASS_AT_GATE_IS_PREREQUISITE_ONLY; NEVER_INFER_DEEPER_PASS",
     }
 
@@ -121,7 +118,7 @@ def main() -> int:
     results.append({"name": "database_binding_probe", "exit_code": 0, "evidence": binding})
     network = network_admission_evidence(env)
     results.append({"name": "network_admission_probe", "exit_code": int(network.get("exit_code", 0)), "evidence": network})
-    admission = admission_summary(str(binding["status"]), round_trip_proven=False)
+    admission = admission_summary(str(binding["status"]), str(network.get("status", "DISABLED")), round_trip_proven=False)
     print(json.dumps({
         "runtime_boot_gate": "PASS",
         "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
