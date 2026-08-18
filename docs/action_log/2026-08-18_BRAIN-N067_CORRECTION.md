@@ -38,7 +38,7 @@ Observed failures/errors:
 
 - `f7b065e2236d8ee69c73b5bb97c72411d7c32908` — canonicalize missing-day evidence to ISO dates.
 - `7fd7d01dde96517e87bfa1c4f587384dd11570b7` — replace invalid N003 fixtures with bounded valid 27-value fixtures.
-- `1d6e24b0501b190f6c958fcbe08...` — align room receipt test with nested execution signature.
+- `1d6e24b0501b190f6c95812767cac178960946ed` — align room receipt test with nested execution signature.
 - `1fa007eefa43b68b636347a513a5749ced90853a` — close collector response explicitly.
 
 The final current commit is `1fa007eefa43b68b636347a513a5749ced90853a`.
