@@ -56,13 +56,9 @@ def evaluate(state: AdmissionState) -> dict[str, object]:
     if promotion:
         reached.append(Gate.PROMOTION.value)
         passed.append(Gate.PROMOTION.value)
-    else:
-        # Promotion is never evaluated when an admission gate fails.
-        # It is therefore UNREACHED, not merely FALSE.
-        pass
 
     return {
-        "chain": [gate.value for gate in (*checks, (Gate.PROMOTION, promotion))],
+        "chain": [gate.value for gate, _ in checks] + [Gate.PROMOTION.value],
         "reached": reached,
         "passed": passed,
         "first_failed_gate": first_failed,
