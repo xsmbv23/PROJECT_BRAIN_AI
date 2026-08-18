@@ -33,14 +33,35 @@ def database_binding_evidence() -> dict[str, object]:
     return classify_database_binding()
 
 
-def admission_summary(binding_status: str, round_trip_proven: bool = False) -> dict[str, object]:
-    """Build the public admission summary without inheriting deeper PASS states.
+def network_admission_evidence(env: dict[str, str]) -> dict[str, object]:
+    """Run the one-shot network probe only when explicitly armed.
 
-    BOUND_TLS is evidence only for the binding/TLS gates. Promotion is impossible
-    until an independently observed durable round-trip proves write/read/hash.
+    Probe failure is recorded as evidence and never becomes a service outage.
+    The subprocess is forbidden from printing credentials/raw exception text.
     """
+    if env.get("FORENSIC_NETWORK_PROBE") != "1":
+        return {"status": "DISABLED"}
+    proc = subprocess.run(
+        [sys.executable, str(ROOT / "tools/network_admission_probe.py")],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    try:
+        evidence = ast.literal_eval(proc.stdout.strip().splitlines()[-1])
+        if not isinstance(evidence, dict):
+            raise ValueError("non-dict")
+    except (ValueError, SyntaxError, IndexError):
+        evidence = {"status": "DENY_NETWORK_ORIGIN", "evidence_parse": "DENY"}
+    evidence["exit_code"] = proc.returncode
+    return evidence
+
+
+def admission_summary(binding_status: str, round_trip_proven: bool = False) -> dict[str, object]:
     state = AdmissionState(
-        existence=False,  # existence is external evidence and is never inferred here
+        existence=False,
         binding=binding_status in {"BOUND_TLS"},
         tls=binding_status == "BOUND_TLS",
         round_trip=round_trip_proven,
@@ -55,6 +76,7 @@ def admission_summary(binding_status: str, round_trip_proven: bool = False) -> d
         "db_existence": "PREREQUISITE_EXTERNAL_EVIDENCE",
         "db_binding": binding_status,
         "db_tls_admission": "PASS" if binding_status == "BOUND_TLS" else "DENY",
+        "network_origin_proof": "PASS" if binding_status == "BOUND_TLS" else "NOT_PROVEN",
         "db_round_trip": "PASS" if round_trip_proven else "NOT_PROVEN",
         "promotion": "ALLOW" if evaluated["promotion"] else "DENY",
         "rule": "PASS_AT_GATE_IS_PREREQUISITE_ONLY; NEVER_INFER_DEEPER_PASS",
@@ -97,6 +119,8 @@ def main() -> int:
 
     binding = database_binding_evidence()
     results.append({"name": "database_binding_probe", "exit_code": 0, "evidence": binding})
+    network = network_admission_evidence(env)
+    results.append({"name": "network_admission_probe", "exit_code": int(network.get("exit_code", 0)), "evidence": network})
     admission = admission_summary(str(binding["status"]), round_trip_proven=False)
     print(json.dumps({
         "runtime_boot_gate": "PASS",
