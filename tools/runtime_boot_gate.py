@@ -2,7 +2,7 @@
 
 All checks are metadata-only and subprocess-isolated. Database admission is
 classified without exposing credentials. Durable DB promotion remains a
-separate explicit gate.
+separate explicit gate. The external-event path is never manufactured here.
 """
 from __future__ import annotations
 
@@ -21,6 +21,7 @@ COMMANDS = (
     ("foundation", "tools/verify_foundation.py"),
     ("access_path", "tools/verify_access_path.py"),
     ("database_admission_contract", "tools/verify_database_binding_contract.py"),
+    ("admission_fsm", "tools/verify_admission_fsm.py"),
 )
 
 
@@ -78,6 +79,10 @@ def main() -> int:
             "promotion": promotion if binding["status"] == "BOUND_TLS" else "DENY",
             "rule": "PASS_AT_GATE_IS_PREREQUISITE_ONLY; NEVER_INFER_DEEPER_PASS",
         },
+        "external_event_path": "ISOLATED; NO_SELF_MANUFACTURED_EVENT",
+        "foundation_path": "ADVANCE_ALLOWED; EXTERNAL_STATE_UNCHANGED",
+        "room_02": "LOCKED",
+        "staircase": "LOCKED",
         "elapsed_seconds": round(time.time() - started, 4),
         "results": results,
     }, ensure_ascii=False), flush=True)
