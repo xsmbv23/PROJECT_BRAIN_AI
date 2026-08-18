@@ -36,9 +36,6 @@ def _require_tls_database_url(url: str) -> str:
         raise DurableEvidenceDeny("DATABASE_URL_SCHEME_DENIED")
     params = dict(parse_qsl(parsed.query, keep_blank_values=True))
     sslmode = params.get("sslmode", "")
-    # Critical invariant: the adapter MUST NOT silently upgrade an unsafe
-    # binding. Admission is owned by the Forensic FSM. If TLS is not explicit,
-    # fail closed and require the external secret binding to be corrected.
     if sslmode not in {"require", "verify-ca", "verify-full"}:
         raise DurableEvidenceDeny("DATABASE_TLS_NOT_EXPLICIT")
     return url
@@ -50,6 +47,24 @@ def _load_psycopg():
     except ImportError as exc:
         raise DurableEvidenceDeny("PSYCOPG_UNAVAILABLE") from exc
     return psycopg
+
+
+def probe_tls_connection(*, database_url: str | None = None) -> dict[str, object]:
+    """Prove runtime-to-Postgres connectivity without mutating the database."""
+    url = _require_tls_database_url(database_url or os.environ.get("DATABASE_URL", ""))
+    psycopg = _load_psycopg()
+    try:
+        with psycopg.connect(url, connect_timeout=5) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1")
+                row = cur.fetchone()
+        if row != (1,):
+            raise DurableEvidenceDeny("NETWORK_ORIGIN_PROBE_UNEXPECTED_RESULT")
+        return {"network_origin_proof": "PASS", "tls_connection": "PASS", "mutation": "NONE"}
+    except DurableEvidenceDeny:
+        raise
+    except Exception as exc:
+        raise DurableEvidenceDeny(f"NETWORK_ORIGIN_PROBE_FAILED:{type(exc).__name__}") from exc
 
 
 def record_envelope(envelope: dict[str, object], *, database_url: str | None = None) -> EvidenceReceipt:
@@ -83,7 +98,7 @@ def record_envelope(envelope: dict[str, object], *, database_url: str | None = N
     except DurableEvidenceDeny:
         raise
     except Exception as exc:
-        raise DurableEvidenceDeny("DURABLE_EVIDENCE_WRITE_FAILED") from exc
+        raise DurableEvidenceDeny(f"DURABLE_EVIDENCE_WRITE_FAILED:{type(exc).__name__}") from exc
     return EvidenceReceipt(evidence_id=evidence_id, envelope_sha=envelope_sha, recorded_at=recorded_at)
 
 
@@ -98,7 +113,7 @@ def verify_receipt(receipt: EvidenceReceipt, *, database_url: str | None = None)
     except DurableEvidenceDeny:
         raise
     except Exception as exc:
-        raise DurableEvidenceDeny("DURABLE_EVIDENCE_READ_FAILED") from exc
+        raise DurableEvidenceDeny(f"DURABLE_EVIDENCE_READ_FAILED:{type(exc).__name__}") from exc
     if not row:
         raise DurableEvidenceDeny("DURABLE_EVIDENCE_NOT_FOUND")
     stored_sha, payload = row
