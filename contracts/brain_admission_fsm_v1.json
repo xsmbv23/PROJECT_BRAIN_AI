@@ -1,0 +1,86 @@
+{
+  "contract_id": "BRAIN_FORENSIC_ADMISSION_FSM_V1",
+  "contract_version": 1,
+  "authority": "BRAIN_FORENSIC_OBSERVER",
+  "principle": "ONE_FORENSIC_ADMISSION_CHAIN",
+  "transition_rule": "EVIDENCE -> STATE -> ACTION",
+  "immutability": {
+    "pass_locality": true,
+    "pass_is_prerequisite_only": true,
+    "no_pass_inheritance": true,
+    "unknown_is_not_pass": true,
+    "fail_is_evidence": true,
+    "default_deny": true
+  },
+  "edge_policy": {
+    "source_required": true,
+    "target_required": true,
+    "observable_evidence_required": true,
+    "unknown_edge": "DENY",
+    "broken_edge": "DENY",
+    "cross_layer_edge_without_contract": "DENY"
+  },
+  "paths": {
+    "external_event_path": {
+      "authority": "REAL_EXTERNAL_EVENT_ONLY",
+      "when_event_absent": {"state": "WAIT_EXTERNAL_EVENT", "action_space": 0, "action": "MANDATORY_NO_OP"},
+      "self_manufactured_event": "FORBIDDEN",
+      "alternate_path": "FORBIDDEN"
+    },
+    "foundation_path": {
+      "authority": "REPOSITORY_PERSISTED_FOUNDATION_CONTRACT",
+      "may_advance_without_external_event": true,
+      "may_change_external_event_state": false,
+      "may_unlock_room_02": false
+    }
+  },
+  "states": [
+    {
+      "state_id": "STATE_DISPATCH_EXECUTION",
+      "external_dependency": "REAL_GITHUB_WORKFLOW_DISPATCH",
+      "evidence_required": ["REAL_GITHUB_RUN_ID", "FRESH_RECEIPT_ARTIFACT_SHA256"],
+      "allowed_transitions": ["STATE_FRESH_ARTIFACT_VERIFY"],
+      "forbidden_transitions": ["STATE_PROMOTION", "STATE_QUANT_EXECUTION", "ROOM_02_UNLOCK"],
+      "default_action": "NO_OP"
+    },
+    {
+      "state_id": "STATE_FRESH_ARTIFACT_VERIFY",
+      "evidence_required": ["FRESH_ARTIFACT_IDENTITY", "SOURCE_RUN_ID", "ARTIFACT_RETRIEVABLE"],
+      "allowed_transitions": ["STATE_CANONICAL_INPUT_ADMISSION"],
+      "forbidden_transitions": ["STATE_PROMOTION", "STATE_QUANT_EXECUTION", "ROOM_02_UNLOCK"]
+    },
+    {
+      "state_id": "STATE_CANONICAL_INPUT_ADMISSION",
+      "evidence_required": ["CANONICAL_XSMB_SOURCE", "NO_SYNTHETIC_DATA", "FORENSIC_LINEAGE"],
+      "allowed_transitions": ["STATE_QUANT_EXECUTION_ADMISSION"],
+      "forbidden_transitions": ["STATE_PROMOTION", "ROOM_02_UNLOCK"]
+    },
+    {
+      "state_id": "STATE_QUANT_EXECUTION_ADMISSION",
+      "evidence_required": ["QUANT_ENGINE_CANONICAL_GATE", "EV_POLICY_EVIDENCE"],
+      "allowed_transitions": ["STATE_PROMOTION"],
+      "forbidden_transitions": ["ROOM_02_UNLOCK"]
+    },
+    {
+      "state_id": "STATE_PROMOTION",
+      "evidence_required": ["ALL_PREVIOUS_GATE_EVIDENCE_FRESH_AND_LOCAL", "NO_NEGATIVE_EV", "NO_UNKNOWN_EDGE"],
+      "allowed_transitions": [],
+      "forbidden_transitions": ["ROOM_02_UNLOCK_WITHOUT_INNER_RELEASE"]
+    }
+  ],
+  "ev_policy": {
+    "owner": "QUANT_ENGINE",
+    "brain_role": "ADMIT_OR_DENY",
+    "ev_lt_0": "HARD_DENY",
+    "ev_unknown": "DENY_ACTION",
+    "ev_nan": "DENY_ACTION",
+    "ev_infinite": "DENY_ACTION",
+    "ev_zero": "NOT_SUFFICIENT_FOR_PASS"
+  },
+  "lineage": ["RAW_SOURCE", "ARTIFACT_HASH", "EVIDENCE", "ADMISSION", "ACTION"],
+  "room_policy": {
+    "room_02": "LOCKED",
+    "inner_release_required": true,
+    "no_staircase_unlock_from_foundation_pass": true
+  }
+}
