@@ -1,0 +1,48 @@
+{
+  "contract_id": "FORENSIC_DB_ADMISSION_CHAIN_V1",
+  "purpose": "Prevent inference, PASS inheritance, and promotion before durable evidence is proven",
+  "fsm": [
+    "DB_EXISTENCE",
+    "DB_BINDING",
+    "DB_TLS_ADMISSION",
+    "DB_ROUND_TRIP",
+    "PROMOTION"
+  ],
+  "semantics": {
+    "pass_locality": true,
+    "pass_is_prerequisite_only": true,
+    "no_pass_inheritance": true,
+    "unknown_is_not_pass": true,
+    "default_deny": true
+  },
+  "gate_meaning": {
+    "DB_EXISTENCE": "Database existence is independently evidenced; it does not grant access.",
+    "DB_BINDING": "Service binding is independently evidenced; it does not imply TLS admission.",
+    "DB_TLS_ADMISSION": "Binding satisfies explicit TLS policy; it does not imply durable round-trip success.",
+    "DB_ROUND_TRIP": "Independent compact metadata write/read with SHA-256 match is observed.",
+    "PROMOTION": "Only complete evidence-backed chain may promote the database to durable evidence sink."
+  },
+  "forbidden_shortcuts": [
+    "DB_EXISTENCE -> DATABASE_ACCESS",
+    "DB_BINDING -> DB_TLS_ADMISSION",
+    "DB_TLS_ADMISSION -> DB_ROUND_TRIP",
+    "BOUND_TLS -> PROMOTION",
+    "test_green -> invariant_override"
+  ],
+  "test_governance": "If a test conflicts with an immutable higher-order Forensic rule, fix the test when the code preserves the invariant; never weaken the invariant to make the test green.",
+  "ev_governance": {
+    "negative": "DENY",
+    "nan": "DENY",
+    "infinite": "DENY",
+    "unknown": "DENY",
+    "zero": "NOT_SUFFICIENT"
+  },
+  "promotion_requires": [
+    "DB_EXISTENCE_EVIDENCE",
+    "BOUND_TLS",
+    "NETWORK_ORIGIN_PROOF_WHEN_REQUIRED",
+    "COMPACT_WRITE_READ",
+    "SHA256_MATCH"
+  ],
+  "successor_rule": "A successor may evaluate only the next gate after evidence proves the current gate. It may not infer deeper state from a shallower PASS."
+}
