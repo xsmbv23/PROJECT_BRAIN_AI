@@ -19,6 +19,22 @@ required event = REAL_GITHUB_WORKFLOW_DISPATCH
 mode = ACTIVE_HOLD
 ```
 
+## Gate interpretation
+
+Database admission is not a second forensic system. It is a chain of local predicates inside `ONE_FORENSIC_FSM` and `ONE_EVIDENCE_LEDGER`:
+
+```text
+DB_EXISTENCE
+  -> DB_BINDING
+  -> SECRET_RESOLUTION
+  -> DB_TLS_ADMISSION
+  -> NETWORK_ORIGIN_PROOF
+  -> DB_ROUND_TRIP
+  -> PROMOTION
+```
+
+A gate PASS proves only its own predicate. It never grants implicit PASS to a later gate. `DB_EXISTENCE=PASS` can therefore coexist correctly with `DB_BINDING=NOT_BOUND`.
+
 ## Consequence
 
 No self-trigger, workaround, synthetic receipt, browser observation, or alternate path is authorized merely because the system is waiting.
@@ -29,6 +45,7 @@ A real external workflow dispatch is the only event that can move this hold into
 
 ```text
 ONE_FORENSIC_FSM = TRUE
+ONE_EVIDENCE_LEDGER = TRUE
 PASS_LOCAL_ONLY = TRUE
 NO_PASS_INHERITANCE = TRUE
 RETRY_IS_NEW_EVENT = TRUE
