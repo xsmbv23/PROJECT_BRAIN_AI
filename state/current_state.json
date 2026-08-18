@@ -44,10 +44,10 @@
     "room_02": "LOCKED",
     "forensic_status": "RUNTIME_GATE_PASS_ONLY;NO_DOMAIN_TRUTH"
   },
-  "last_foundation_action": "BRAIN-N072",
-  "last_action_id": "BRAIN-N073",
-  "next_brain_action": "BRAIN-N070",
-  "next_action_id": "BRAIN-N074",
+  "last_foundation_action": "BRAIN-N074",
+  "last_action_id": "BRAIN-N074",
+  "next_brain_action": "BRAIN-N075",
+  "next_action_id": "BRAIN-N075",
   "next_quant_action": "QUANT-N003_OR_CURRENT_CANONICAL_GATE_POLICY",
   "ci_status": "UNKNOWN_NO_OBSERVABLE_WORKFLOW_RUN",
   "prohibited": "NO_PASS_INHERITANCE;NO_DOMAIN_TRUTH_CLAIM;NO_STAIRCASE_UNLOCK;NO_ALTERNATE_PATH;NO_SELF_MANUFACTURED_EXTERNAL_EVENT;NO_EV_INVENTION;NO_NEGATIVE_EV_ACTION",
@@ -62,7 +62,7 @@
   "fsm_external_path_isolated": true,
   "fsm_foundation_path_advance_allowed": true,
   "fsm_room_02_locked": true,
-  "forensic_drift": "RECONCILED_TO_EXACT_CURRENT_RUNTIME",
-  "drift_type": "STATE_LAG_DRIFT_CLOSED_BY_STATE_SYNC",
-  "sync_basis": "RENDER_DEPLOY_AND_RUNTIME_LOG_OBSERVED"
+  "forensic_drift": "N074_POINTER_DRIFT_RECONCILED",
+  "drift_type": "NEXT_ACTION_POINTER_MISMATCH",
+  "sync_basis": "EXACT_CURRENT_RENDER_BOOT_DENY_LOG"
 }
