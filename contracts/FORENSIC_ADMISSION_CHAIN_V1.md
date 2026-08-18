@@ -31,6 +31,35 @@ DB_EXISTENCE
 9. `WAIT_EXTERNAL_EVENT` is a valid active hold, not an error and not permission to invent work.
 10. Promotion requires all preceding gates to have independently admissible evidence.
 
+## Gate semantics
+
+- `DB_EXISTENCE`: database resource exists. This does not grant service access.
+- `DB_BINDING`: service has an explicit `DATABASE_URL` binding. This does not prove TLS or connectivity.
+- `SECRET_RESOLUTION`: the binding resolves through the approved secret-management boundary without exposing the secret to GitHub, logs, action receipts, or Brain output. This does not prove DB connectivity.
+- `DB_TLS_ADMISSION`: resolved connection metadata satisfies the admitted TLS policy (`require`, `verify-ca`, `verify-full`). This does not prove durable evidence write/read.
+- `NETWORK_ORIGIN_PROOF`: the service reaches the authorized database endpoint through the approved network path. This does not prove persistence integrity.
+- `DB_ROUND_TRIP`: one compact metadata envelope is written, read back, and independently verified by SHA-256. This proves durable evidence-path execution.
+- `PROMOTION`: final admission decision. It may PASS only when every prerequisite has fresh admissible evidence.
+
+## Non-inheritance rule
+
+```text
+DB_EXISTS = PASS
+    != DB_BOUND
+    != SECRET_RESOLVED
+    != DB_TLS_ADMITTED
+    != NETWORK_ORIGIN_PROVEN
+    != DB_ROUND_TRIP
+    != PROMOTION
+```
+
+Likewise:
+
+```text
+DB_TLS_ADMITTED = PASS
+    != DB_ROUND_TRIP
+```
+
 ## Protected-room model
 
 ```text
@@ -72,3 +101,7 @@ If an action-log document says one next step but `state/next_action.json` says a
 ## OOM law
 
 Render Free 512 MB is a hard boundary. 320 MiB remains the conservative guard. No foundation action may bulk-load source datasets into Brain runtime.
+
+## Sealing rule
+
+This V1 contract's semantics are immutable. Any future semantic change requires a new contract version and a new forensic action receipt. Do not silently rewrite V1 meaning.
