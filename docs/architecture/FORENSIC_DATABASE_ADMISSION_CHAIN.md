@@ -8,7 +8,19 @@ This document is normative foundation architecture. It prevents a successor Bot 
 
 **A PASS at one gate is only a prerequisite for the next gate. It is never permission to infer PASS at a deeper gate.**
 
-There is one Forensic system and one database-admission chain. The states below are sequential gates, not independent Forensic systems.
+There is one Forensic system and one database-admission chain / one FSM. The gates below are sequential and local, not independent Forensic systems.
+
+## Canonical chain
+
+```text
+DB_EXISTENCE
+    -> DB_BINDING
+    -> SECRET_RESOLUTION
+    -> DB_TLS_ADMISSION
+    -> NETWORK_ORIGIN_PROOF
+    -> DB_ROUND_TRIP
+    -> PROMOTION
+```
 
 ## Gates
 
@@ -21,7 +33,7 @@ There is one Forensic system and one database-admission chain. The states below 
    - Evidence: the running service has the explicitly required `DATABASE_URL` binding.
    - Credential source must be Render Secret Environment only.
    - Meaning: the service has a candidate key to the room.
-   - Does NOT prove secret resolution, TLS, or usable database access.
+   - Does NOT prove secret resolution, TLS, network origin, or usable database access.
 
 3. `SECRET_RESOLUTION`
    - Evidence: the exact runtime has a non-empty `DATABASE_URL` sourced from the approved Render Secret Environment boundary, is not a known placeholder, and is not overridden by an unapproved source.
@@ -32,7 +44,7 @@ There is one Forensic system and one database-admission chain. The states below 
 4. `DB_TLS_ADMISSION`
    - Evidence: PostgreSQL binding uses an accepted TLS mode: `require`, `verify-ca`, or `verify-full`.
    - Meaning: the key is valid for the required secure corridor.
-   - Does NOT prove a real round-trip.
+   - Does NOT prove network origin or round-trip.
 
 5. `NETWORK_ORIGIN_PROOF`
    - Evidence: the final database interaction can be attributed to the exact Render runtime, using exact runtime/database-side evidence or an equivalent challenge-response mechanism.
@@ -47,6 +59,29 @@ There is one Forensic system and one database-admission chain. The states below 
 
 7. `PROMOTION`
    - Only a successful `DB_ROUND_TRIP` on the exact runtime may satisfy the durable-evidence promotion gate.
+
+## Non-inheritance law
+
+These are NOT valid deductions:
+
+```text
+DB_EXISTENCE = PASS
+    != DB_BINDING = PASS
+
+DB_BINDING = BOUND_TLS
+    != SECRET_RESOLUTION = PASS
+
+DB_TLS_ADMISSION = PASS
+    != NETWORK_ORIGIN_PROOF = PASS
+
+NETWORK_ORIGIN_PROOF = PASS
+    != DB_ROUND_TRIP = PASS
+
+DB_ROUND_TRIP = PASS
+    != automatic downstream authority
+```
+
+A gate may only be marked PASS by evidence belonging to that gate.
 
 ## Deny transitions
 
@@ -71,44 +106,98 @@ unknown evidence
 ## State interaction
 
 ```text
-DB_EXISTENCE
-     |
-     | PASS only
-     v
-DB_BINDING
-     |
-     | PASS only
-     v
-SECRET_RESOLUTION
-     |
-     | PASS only
-     v
-DB_TLS_ADMISSION
-     |
-     | PASS only
-     v
-NETWORK_ORIGIN_PROOF
-     |
-     | PASS only
-     v
-DB_ROUND_TRIP
-     |
-     | SHA256 MATCH only
-     v
-PROMOTION
+                    ONE FORENSIC FSM
+                          |
+                    Evidence arrives
+                          |
+                          v
+                    local gate check
+                          |
+                 +--------+--------+
+                 |                 |
+                PASS             FAIL/UNKNOWN
+                 |                 |
+                 v                 v
+           next gate          DENY / UNREACHED
+                 |
+                 v
+             next gate
 ```
 
-A failure at any stage stops the chain. A later gate cannot repair an earlier missing prerequisite.
+A PASS is local to its gate. It is a prerequisite edge, not a state inheritance mechanism.
+
+## Mandatory no-op interaction
+
+When a required external event is not observable, the FSM enters:
+
+```text
+WAIT_EXTERNAL_EVENT
+ACTION_SPACE = 0
+ACTION = MANDATORY_NO_OP
+PROMOTION = DENY
+```
+
+This is an **active safety state**, not an idle/error state.
+
+The Foundation may:
+
+- read exact-current runtime evidence;
+- monitor the declared external event;
+- append non-mutating forensic documentation;
+- validate documentation integrity.
+
+It may NOT manufacture the external event or mutate downstream state to escape the wait.
+
+## Current exact-current state
+
+The current exact-current runtime evidence is anchored by commit `eae5fc2c09c54cc2b13902cdf8d92843d4ca0097` and deploy `dep-da22s4lbedkc73d89kq0`.
+
+Observed:
+
+```text
+DB_BINDING             = BOUND_TLS
+DB_TLS_ADMISSION       = PASS
+NETWORK_ORIGIN_PROOF   = NOT_PROVEN
+DB_ROUND_TRIP          = NOT_PROVEN
+PROMOTION              = DENY
+FOUNDATION             = FROZEN
+ACTION_SPACE           = 0
+ACTION                 = MANDATORY_NO_OP
+LAYER_1                = LOCKED
+STAIRCASE              = LOCKED
+```
+
+The observed reason for the current network gate is `NETWORK_ORIGIN_PROBE_FAILED:OperationalError`.
+
+Therefore the current successor action is:
+
+```text
+BRAIN-N086_WAIT_NETWORK_ORIGIN_PROOF
+```
+
+**No operational mutation is permitted while this mandatory wait remains active.**
 
 ## Security analogy
 
 The database is a secured room.
 
 ```text
-corridor_key + room_key + secret-resolution + TLS admission + origin proof + inner proof
+corridor_key
+    +
+room_key
+    +
+secret-resolution
+    +
+TLS admission
+    +
+network-origin proof
+    +
+inner proof where required
+    =
+permission to advance ONE edge
 ```
 
-Knowing that a room exists is not possessing its key. Possessing a key is not proof that the runtime resolved it. Resolving a key is not proof that the secure corridor was used. A secure connection is not proof of origin. Opening the door is not proof that the forensic evidence survived a write/read cycle.
+A key to one corridor/room never becomes a key to another room. A PASS for one gate never becomes a PASS for another gate.
 
 ## Immutability rules
 
@@ -131,7 +220,7 @@ LOCAL PASS != RENDER PASS
 DOCUMENTED TARGET != EXECUTED PROOF
 ```
 
-The exact runtime anchor and exact-current deployment evidence are mandatory for production claims.
+Exact-current runtime evidence has priority over old deployment descriptions or hypotheses.
 
 ## Temporal round-trip
 
@@ -148,24 +237,10 @@ F: persist receipt without secrets
 
 A documented target is not a completed round-trip.
 
-## Current foundation state
-
-As of N070/N071 design handoff:
-
-```text
-DB_EXISTENCE       = PASS
-DB_BINDING         = NOT_BOUND
-SECRET_RESOLUTION  = UNREACHED
-DB_TLS_ADMISSION   = UNREACHED
-NETWORK_ORIGIN     = UNREACHED
-DB_ROUND_TRIP      = UNREACHED
-PROMOTION          = DENY
-LAYER_1            = LOCKED
-STAIRCASE          = LOCKED
-```
-
-The exact-current runtime records `NOT_BOUND` directly through the non-secret binding probe; the successor must not infer it from missing logs.
-
 ## OOM constraint
 
 Render Free has a hard 512 MB boundary. Foundation runtime keeps a 320 MiB conservative guard. Database round-trip tests must remain compact and must never load source datasets or bulk evidence into memory.
+
+## Successor instruction
+
+The phrase **FORENSIC DATABASE ADMISSION CHAIN** always refers to this ONE FSM. Never describe the gates as separate forensic systems. Never infer a deeper PASS from a shallower PASS. Preserve the chain, its ordering, its deny semantics, and its mandatory-no-op state across generations.
