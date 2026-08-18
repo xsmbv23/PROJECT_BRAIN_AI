@@ -1,8 +1,16 @@
 """Check that persistent state and next-action pointers cannot silently drift.
 
 State files are forensic artifacts, not transport envelopes. A valid state file
-must be direct JSON with the required keys at the top level. Any wrapper such as
-{\"content\": \"{...}\"} is a hard integrity failure.
+must be direct JSON with the required keys at the top level.
+
+There are two explicit modes:
+
+* FOUNDATION_LOCKED: promotion denied, action space zero, mandatory no-op.
+* PROMOTED_DATA_ADMISSION: promotion passed by fresh local evidence, Room 01
+  is the only admitted downstream room, staircase remains locked, and the next
+  action is explicitly DATA_ADMISSION.
+
+No PASS is inherited between gates.
 """
 from __future__ import annotations
 
@@ -45,28 +53,48 @@ def main() -> int:
 
     if not errors and current["next_action_id"] != nxt["action_id"]:
         errors.append(f"next_action mismatch: current={current['next_action_id']} state={nxt['action_id']}")
-    if current.get("promotion") != "DENY" or nxt.get("promotion") != "HARD_DENY":
-        errors.append("promotion must remain denied during foundation")
-    if current.get("layer_1") not in {"LOCKED", "ROOM_01_GATE_LOCKED"} or nxt.get("layer_1") != "LOCKED":
-        errors.append("layer_1 must remain LOCKED during foundation")
-    if current.get("staircase") != "LOCKED" or nxt.get("staircase") != "LOCKED":
-        errors.append("staircase must remain LOCKED during foundation")
+
+    mode = current.get("state_mode", "FOUNDATION_LOCKED")
+    if mode == "FOUNDATION_LOCKED":
+        if current.get("promotion") != "DENY" or nxt.get("promotion") != "HARD_DENY":
+            errors.append("foundation mode requires promotion DENY/HARD_DENY")
+        if current.get("layer_1") not in {"LOCKED", "ROOM_01_GATE_LOCKED"} or nxt.get("layer_1") != "LOCKED":
+            errors.append("foundation mode requires layer_1 LOCKED")
+        if current.get("staircase") != "LOCKED" or nxt.get("staircase") != "LOCKED":
+            errors.append("foundation mode requires staircase LOCKED")
+        if current.get("action_space") != 0 or nxt.get("action_space") != 0:
+            errors.append("foundation mode requires action_space zero")
+        if current.get("action") != "MANDATORY_NO_OP" or nxt.get("mode") != "MANDATORY_NO_OP":
+            errors.append("foundation mode requires MANDATORY_NO_OP")
+    elif mode == "PROMOTED_DATA_ADMISSION":
+        if current.get("promotion") != "PASS" or nxt.get("promotion") != "PASS":
+            errors.append("promoted mode requires promotion PASS")
+        if current.get("layer_1") != "ROOM_01_DATA_ADMISSION" or nxt.get("layer_1") != "ROOM_01_DATA_ADMISSION":
+            errors.append("promoted mode requires Room 01 DATA_ADMISSION")
+        if current.get("staircase") != "LOCKED" or nxt.get("staircase") != "LOCKED":
+            errors.append("promoted mode still requires staircase LOCKED")
+        if current.get("action_space") != 1 or nxt.get("action_space") != 1:
+            errors.append("promoted mode requires exactly one admitted action slot")
+        if current.get("action") != "DATA_ADMISSION" or nxt.get("mode") != "DATA_ADMISSION":
+            errors.append("promoted mode requires DATA_ADMISSION action")
+        if nxt.get("status") != "READY":
+            errors.append("promoted mode requires next action READY")
+    else:
+        errors.append(f"unknown state_mode: {mode}")
+
     if current.get("pass_inheritance") is not False:
         errors.append("pass_inheritance must be false")
     if current.get("unknown_is_not_pass") is not True:
         errors.append("unknown_is_not_pass must be true")
     if current.get("default_deny") is not True:
         errors.append("default_deny must be true")
-    if current.get("action_space") != 0 or nxt.get("action_space") != 0:
-        errors.append("action_space must remain zero")
-    if current.get("action") != "MANDATORY_NO_OP" or nxt.get("mode") != "MANDATORY_NO_OP":
-        errors.append("action must remain MANDATORY_NO_OP")
     if current.get("ci_status") not in {"PENDING", "UNKNOWN_NO_OBSERVABLE_WORKFLOW_RUN", "PASS", "FAIL"}:
         errors.append("invalid ci_status")
+
     if errors:
         print({"status": "FAIL", "errors": errors})
         return 1
-    print({"status": "PASS", "last_action_id": current["last_action_id"], "next_action_id": current["next_action_id"], "promotion": current["promotion"], "layer_1": current["layer_1"], "staircase": current["staircase"], "action_space": current["action_space"]})
+    print({"status": "PASS", "state_mode": mode, "last_action_id": current["last_action_id"], "next_action_id": current["next_action_id"], "promotion": current["promotion"], "layer_1": current["layer_1"], "staircase": current["staircase"], "action_space": current["action_space"]})
     return 0
 
 
