@@ -1,0 +1,19 @@
+{
+  "evidence_id": "ba161bea48f2ba1570d7d69b607cfef8",
+  "evidence_type": "EXACT_CURRENT_DURABLE_DB_ROUND_TRIP",
+  "runtime_commit": "f7c97bf703193bc644ae86ca1e9ca70abcd50594",
+  "runtime_deploy": "dep-da23scpt0dsc73b216v0",
+  "observed_at": "2026-08-18T11:13:37.427072932Z",
+  "network_origin_proof": "PASS",
+  "write": "PASS",
+  "read": "PASS",
+  "canonical_sha256": "00d413a8119e6323cf11196e58a3dcd705360b9f413b6b1a7bf79ae20d1eed0b",
+  "stored_sha256": "00d413a8119e6323cf11196e58a3dcd705360b9f413b6b1a7bf79ae20d1eed0b",
+  "sha_match": true,
+  "promotion_eligibility": "PASS",
+  "mutation_observed": "EXPLICIT_ONE_TIME_PROOF",
+  "source": "RENDER_EXACT_CURRENT_RUNTIME_LOG",
+  "credential_present": false,
+  "payload_policy": "COMPACT_METADATA_ONLY",
+  "forensic_rule": "EVIDENCE_TO_STATE_TO_ACTION; PASS_IS_LOCAL_TO_GATE; NO_PASS_INHERITANCE"
+}
