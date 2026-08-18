@@ -16,30 +16,29 @@ A PASS at an earlier gate is only a prerequisite for evaluating the next gate. *
 FORENSIC DATABASE ADMISSION CHAIN
             |
             +--> DB_EXISTENCE
-            |      "Does the database actually exist?"
-            |          |
-            |        PASS
-            |          v
+            |      |
+            |    PASS
+            |      v
             +--> DB_BINDING
-            |      "Does the service possess an explicit binding?"
-            |          |
-            |        PASS
-            |          v
+            |      |
+            |    PASS
+            |      v
             +--> DB_TLS_ADMISSION
-            |      "Does the binding satisfy TLS policy?"
-            |          |
-            |        BOUND_TLS
-            |          v
+            |      |
+            |  BOUND_TLS
+            |      v
+            +--> NETWORK_ORIGIN_PROOF
+            |      |
+            |   PROVEN / UNKNOWN
+            |      v
             +--> DB_ROUND_TRIP
-            |      "Can the service write/read a compact evidence envelope
-            |       and verify SHA-256 equality?"
-            |          |
-            |        MATCH
-            |          v
+            |      |
+            |    MATCH
+            |      v
             +--> PROMOTION
 ```
 
-Any failure or unknown state terminates the chain with `DENY`.
+Any failure or unknown state terminates admission with `DENY`.
 
 ## Critical distinctions
 
@@ -50,18 +49,21 @@ SERVICE IS BOUND
     !=
 SERVICE IS TLS-ADMITTED
     !=
+NETWORK PATH IS PROVEN
+    !=
 DURABLE ROUND-TRIP IS PROVEN
     !=
 PROMOTION IS ALLOWED
 ```
 
-These are observations about different security/admission questions, not contradictory states.
+These are observations about different admission questions, not contradictory states.
 
 ## Gate semantics
 
 - `DB_EXISTENCE`: proves the PostgreSQL resource exists and is available. It does not grant service access.
 - `DB_BINDING`: proves the service possesses an explicit binding (`DATABASE_URL`). It does not prove safe communication.
-- `DB_TLS_ADMISSION`: proves the binding satisfies the accepted TLS policy (`require`, `verify-ca`, `verify-full`). It does not prove a real database round-trip.
+- `DB_TLS_ADMISSION`: proves the binding satisfies the accepted TLS policy (`require`, `verify-ca`, `verify-full`). It does not prove a reachable database path.
+- `NETWORK_ORIGIN_PROOF`: proves the exact-current deployed runtime can establish the declared network path to the database origin. A generic IP allowlist is not proof of a successful path.
 - `DB_ROUND_TRIP`: proves a real compact metadata envelope was written, read back, and SHA-256 verified as identical. The payload must contain no credentials and no bulk/source data.
 - `PROMOTION`: may pass only after all required preceding gates have independently produced their evidence.
 
@@ -78,7 +80,7 @@ Later PASS   = separately observed fact
 PASS inheritance by inference = FORBIDDEN
 ```
 
-The chain is therefore compositional:
+The chain is compositional:
 
 ```text
 DB_EXISTENCE PASS
@@ -88,6 +90,9 @@ DB_BINDING PASS
     -> permits DB_TLS_ADMISSION evaluation
 
 DB_TLS_ADMISSION BOUND_TLS
+    -> permits NETWORK_ORIGIN_PROOF evaluation
+
+NETWORK_ORIGIN_PROOF PROVEN
     -> permits DB_ROUND_TRIP evaluation
 
 DB_ROUND_TRIP MATCH
@@ -96,15 +101,64 @@ DB_ROUND_TRIP MATCH
 
 A failure/unknown at any stage terminates admission and does not contaminate earlier observations.
 
+## Exact-current truth priority
+
+```text
+EXACT_CURRENT_RUNTIME_EVIDENCE
+        >
+PERSISTED_FORENSIC_RECORD
+        >
+OLD_DOCUMENTATION
+        >
+HYPOTHESIS
+```
+
+If an old deployment says `BOUND_TLS` but the exact-current runtime cannot prove network origin, the effective state remains `NETWORK_ORIGIN_PROOF = NOT_PROVEN` and promotion remains denied.
+
 ## Door/key analogy
 
 - `DB_EXISTENCE`: the room exists.
 - `DB_BINDING`: the service has the room's key.
 - `DB_TLS_ADMISSION`: the key is accepted for protected communication.
-- `DB_ROUND_TRIP`: the door actually opened and the forensic interaction was proven.
+- `NETWORK_ORIGIN_PROOF`: the exact-current route to the room is proven.
+- `DB_ROUND_TRIP`: the door actually opened and the forensic interaction was proven intact.
 - `PROMOTION`: only after the full chain succeeds may durable DB evidence be promoted.
 
 A service must never infer a later gate from an earlier PASS.
+
+## Current canonical handoff
+
+```text
+DB_EXISTENCE          = PASS
+DB_BINDING            = BOUND_TLS
+DB_TLS_ADMISSION      = PASS
+NETWORK_ORIGIN_PROOF  = NOT_PROVEN
+DB_ROUND_TRIP         = NOT_PROVEN
+PROMOTION             = HARD_DENY
+```
+
+The current state machine declares `MANDATORY_NO_OP` while waiting for the real external infrastructure event that can produce network-origin evidence. `MANDATORY_NO_OP` is an **active safety state**, not inactivity.
+
+## Allowed while waiting
+
+```text
+ALLOW:
+  - read exact-current runtime evidence
+  - monitor the declared external infrastructure event
+  - append non-mutating forensic documentation
+  - validate documentation integrity
+
+DENY:
+  - fabricate network proof
+  - inherit PASS between gates
+  - treat BOUND_TLS as network-origin proof
+  - treat in-memory round-trip as durable DB evidence
+  - advance downstream work without promotion
+  - unlock Layer 1
+  - unlock staircase
+  - store credentials in GitHub
+  - self-manufacture the external event
+```
 
 ## Forbidden transitions
 
@@ -116,6 +170,9 @@ DB_BINDING = PASS
     -> DB_TLS_ADMISSION = PASS   FORBIDDEN BY INFERENCE
 
 DB_TLS_ADMISSION = BOUND_TLS
+    -> NETWORK_ORIGIN_PROOF = PROVEN   FORBIDDEN BY INFERENCE
+
+NETWORK_ORIGIN_PROOF = PROVEN
     -> DB_ROUND_TRIP = MATCH      FORBIDDEN BY INFERENCE
 ```
 
@@ -134,9 +191,14 @@ Each transition requires its own observable evidence.
 9. The successor action log is authoritative for continuation.
 10. A database resource's existence is never treated as an authorization grant.
 11. A successful binding is never treated as proof of TLS admission.
-12. TLS admission is never treated as proof of durable evidence persistence.
+12. TLS admission is never treated as proof of network reachability.
+13. Network reachability is never treated as proof of durable evidence persistence.
+14. Exact-current evidence outranks historical deployment descriptions.
+15. A waiting safety state permits documentation/observation only; it does not authorize operational mutation.
 
 ## Successor instruction
+
+Every future Bot must read this file and `state/next_action.json` before touching the database admission path.
 
 Never collapse the chain into a single boolean such as `DATABASE_PASS`.
 
@@ -162,9 +224,17 @@ If:
 
 ```text
 DB_TLS_ADMISSION = BOUND_TLS
-DB_ROUND_TRIP = NOT_PROVEN
+NETWORK_ORIGIN_PROOF = NOT_PROVEN
 ```
 
-the correct interpretation is **the door/key path is admitted, but durable forensic interaction has not been proven**.
+the correct interpretation is **the key/TLS path is admitted, but the exact-current network path remains unproven**.
 
-Only a verified `DB_ROUND_TRIP = MATCH` may reach `PROMOTION`.
+Only:
+
+```text
+NETWORK_ORIGIN_PROOF = PROVEN
+AND
+DB_ROUND_TRIP = MATCH
+```
+
+may reach `PROMOTION`.
