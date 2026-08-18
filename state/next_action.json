@@ -1,1 +1,25 @@
-{"action_id":"BRAIN-N078","title":"Strengthen explicit TLS admission correction after fresh bound-but-unsafe evidence","status":"READY","mode":"FOUNDATION_PATH","external_event_path":"WAIT_EXTERNAL_EVENT","external_action_space":0,"external_action":"MANDATORY_NO_OP","previous":"BRAIN-N077 observed bound=true, tls=false, status=DENY_TLS on exact-current Render runtime","database_chain":"DB_EXISTENCE -> DB_BINDING -> SECRET_RESOLUTION -> DB_TLS_ADMISSION -> NETWORK_ORIGIN_PROOF -> DB_ROUND_TRIP -> PROMOTION","database_current":"BOUND_BUT_DENY_TLS;SECRET_RESOLUTION_NOT_PROVEN;ROUND_TRIP_NOT_PROVEN;PROMOTION_DENY","rules":["PASS_IS_LOCAL_TO_GATE","PASS_IS_PREREQUISITE_ONLY","NO_PASS_INHERITANCE","UNKNOWN_IS_NOT_PASS","DEFAULT_DENY","UNSAFE_TLS_MUST_DENY","NO_ADAPTER_AUTO_UPGRADE","EXTERNAL_EVENT_MUST_BE_OBSERVED","NO_CREDENTIAL_IN_REPOSITORY_OR_EVIDENCE"],"completion_gate":"exact-current runtime reports BOUND_TLS; then network-origin proof and real compact metadata write/read SHA256 match remain mandatory"}
+{
+  "action_id": "BRAIN-N080",
+  "title": "Re-run exact-current foundation gate and verify immutable TLS admission behavior",
+  "status": "READY",
+  "mode": "FOUNDATION_PATH",
+  "previous": "BRAIN-N079 corrected stale TLS tests that contradicted the immutable fail-closed adapter rule",
+  "database_chain": "DB_EXISTENCE -> DB_BINDING -> SECRET_RESOLUTION -> DB_TLS_ADMISSION -> NETWORK_ORIGIN_PROOF -> DB_ROUND_TRIP -> PROMOTION",
+  "rules": [
+    "PASS_IS_LOCAL_TO_GATE",
+    "PASS_IS_PREREQUISITE_ONLY",
+    "NO_PASS_INHERITANCE",
+    "UNKNOWN_IS_NOT_PASS",
+    "DEFAULT_DENY",
+    "UNSAFE_TLS_MUST_DENY",
+    "NO_ADAPTER_AUTO_UPGRADE",
+    "TESTS_MUST_NOT_WEAKEN_IMMUTABLE_FORENSIC_SECURITY_RULES",
+    "EXTERNAL_EVENT_MUST_BE_OBSERVED",
+    "NO_CREDENTIAL_IN_REPOSITORY_OR_EVIDENCE",
+    "LAYER_1_LOCKED",
+    "STAIRCASE_LOCKED"
+  ],
+  "completion_gate": "exact-current Render runtime_boot_gate PASS with all foundation tests passing; then continue only from observed evidence",
+  "failure_policy": "DENY_AND_RECORD_ACTION_LOG",
+  "successor_instruction": "If a test conflicts with a higher-order immutable Forensic rule, classify it as stale, correct the test, record the correction, and preserve the invariant. Never weaken the invariant to make CI green."
+}
