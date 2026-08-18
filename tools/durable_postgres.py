@@ -10,7 +10,7 @@ import json
 import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlsplit
 
 
 class DurableEvidenceDeny(RuntimeError):
@@ -36,9 +36,12 @@ def _require_tls_database_url(url: str) -> str:
         raise DurableEvidenceDeny("DATABASE_URL_SCHEME_DENIED")
     params = dict(parse_qsl(parsed.query, keep_blank_values=True))
     sslmode = params.get("sslmode", "")
+    # Critical invariant: the adapter MUST NOT silently upgrade an unsafe
+    # binding. Admission is owned by the Forensic FSM. If TLS is not explicit,
+    # fail closed and require the external secret binding to be corrected.
     if sslmode not in {"require", "verify-ca", "verify-full"}:
-        params["sslmode"] = "require"
-    return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urlencode(params), parsed.fragment))
+        raise DurableEvidenceDeny("DATABASE_TLS_NOT_EXPLICIT")
+    return url
 
 
 def _load_psycopg():
@@ -77,6 +80,8 @@ def record_envelope(envelope: dict[str, object], *, database_url: str | None = N
                     ON CONFLICT (evidence_id) DO NOTHING
                 """, (evidence_id, envelope_sha, recorded_at, canonical.decode("utf-8")))
             conn.commit()
+    except DurableEvidenceDeny:
+        raise
     except Exception as exc:
         raise DurableEvidenceDeny("DURABLE_EVIDENCE_WRITE_FAILED") from exc
     return EvidenceReceipt(evidence_id=evidence_id, envelope_sha=envelope_sha, recorded_at=recorded_at)
@@ -90,6 +95,8 @@ def verify_receipt(receipt: EvidenceReceipt, *, database_url: str | None = None)
             with conn.cursor() as cur:
                 cur.execute("SELECT envelope_sha, envelope_json FROM brain_forensic_evidence WHERE evidence_id=%s", (receipt.evidence_id,))
                 row = cur.fetchone()
+    except DurableEvidenceDeny:
+        raise
     except Exception as exc:
         raise DurableEvidenceDeny("DURABLE_EVIDENCE_READ_FAILED") from exc
     if not row:
