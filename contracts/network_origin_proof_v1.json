@@ -1,0 +1,30 @@
+{
+  "contract_id": "NETWORK_ORIGIN_PROOF_V1",
+  "purpose": "Prevent silent network-origin assumptions in the durable DB admission chain",
+  "service": {
+    "name": "project-brain-ai",
+    "id": "srv-da0506u1egvs73ftsdng",
+    "region": "oregon"
+  },
+  "database": {
+    "name": "xsmb-runtime-db",
+    "id": "dpg-da07g0ou01pc738i3ldg-a",
+    "region": "singapore"
+  },
+  "observed_region_relation": "CROSS_REGION",
+  "drift_status": "WARN",
+  "default_policy": "DENY_PROMOTION_UNTIL_PROVEN",
+  "network_origin_gate": "FRESH_EVIDENCE_REQUIRED",
+  "required_evidence": [
+    "service_region",
+    "database_region",
+    "actual_connection_observation",
+    "TLS_admission_pass"
+  ],
+  "latency_policy": "CROSS_REGION_IS_NOT_AN_AUTOMATIC_FAIL_BUT_MUST_NOT_BE_SILENT",
+  "credential_policy": "NO_CREDENTIALS_IN_GITHUB_OR_LOGS",
+  "tls_policy": "sslmode=require|verify-ca|verify-full",
+  "round_trip_policy": "WRITE_READ_SHA256_MATCH_REQUIRED",
+  "promotion_policy": "DENY_WHILE_NETWORK_ORIGIN_UNPROVEN",
+  "oom_guard_bytes": 335544320
+}
