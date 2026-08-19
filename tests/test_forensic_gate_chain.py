@@ -1,6 +1,6 @@
 import unittest
 
-from core.forensic_gate import Gate, GateEvidence, GateStatus, admit_gate, promote
+from core.forensic_gate import Gate, GateEvidence, GateStatus, SourceGate, SourceEvidence, admit_gate, admit_source_gate, promote
 
 
 class ForensicGateChainTests(unittest.TestCase):
@@ -19,23 +19,19 @@ class ForensicGateChainTests(unittest.TestCase):
         self.assertEqual(decision.status, GateStatus.DENY)
         self.assertEqual(decision.reason, "PREREQUISITE_NOT_PROVEN")
 
-    def test_promotion_requires_network_origin(self):
-        chain = (
-            self.ev(Gate.EXISTENCE),
-            self.ev(Gate.BINDING),
-            self.ev(Gate.SECURITY),
-            self.ev(Gate.ROUND_TRIP),
-        )
+    def test_db_promotion_is_not_granted_by_source_network_gate(self):
+        source = SourceEvidence(SourceGate.NETWORK_ORIGIN, GateStatus.PASS, "n")
+        source_decision = admit_source_gate(source)
+        self.assertEqual(source_decision.status, GateStatus.PASS)
+        chain = (self.ev(Gate.EXISTENCE), self.ev(Gate.BINDING), self.ev(Gate.SECURITY), self.ev(Gate.ROUND_TRIP))
         decision = promote(chain)
-        self.assertEqual(decision.status, GateStatus.DENY)
-        self.assertEqual(decision.reason, "NETWORK_ORIGIN_PROOF_NOT_INDEPENDENTLY_PROVEN")
+        self.assertEqual(decision.status, GateStatus.PASS)
 
-    def test_promotion_requires_independent_receipts(self):
+    def test_db_promotion_requires_independent_db_receipts(self):
         chain = (
             self.ev(Gate.EXISTENCE, receipt="e"),
             self.ev(Gate.BINDING, receipt="b"),
             self.ev(Gate.SECURITY, receipt="s"),
-            self.ev(Gate.NETWORK_ORIGIN, receipt="n"),
             self.ev(Gate.ROUND_TRIP, receipt="r"),
         )
         decision = promote(chain)
