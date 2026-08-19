@@ -1,6 +1,6 @@
 """Bounded origin metadata probe for N101.
 
-Policy: metadata only. Never download, parse, hash, or persist source-truth
+Policy: metadata only. Never download, parse, or persist source-truth
 payloads. Redirects are observed but never promoted to canonical identity.
 """
 from __future__ import annotations
@@ -12,19 +12,16 @@ import ssl
 import time
 from dataclasses import asdict, dataclass
 from http.client import HTTPResponse
-from urllib.parse import urlsplit
-from urllib.request import Request, build_opener, HTTPRedirectHandler
+from urllib.parse import urljoin, urlsplit
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from tools.evidence_envelope import build_envelope
 
-DECLARED_SOURCES = (
-    "https://ketqua16.net",
-    "https://xsmb.com.vn",
-)
+DECLARED_SOURCES = ("https://ketqua16.net", "https://xsmb.com.vn")
 SAFE_HEADERS = {
-    "content-type", "content-length", "content-encoding", "date",
-    "server", "cache-control", "etag", "last-modified", "vary",
-    "strict-transport-security", "content-security-policy",
+    "content-type", "content-length", "content-encoding", "date", "server",
+    "cache-control", "etag", "last-modified", "vary", "strict-transport-security",
+    "content-security-policy",
 }
 
 
@@ -48,6 +45,7 @@ class OriginReceipt:
     payload_downloaded: bool
     empty_probe_body_sha256: str
     canonical_identity: str
+    error_class: str | None
 
 
 def _tls_metadata(response: HTTPResponse) -> tuple[str | None, str | None]:
@@ -80,6 +78,7 @@ def probe_origin(url: str, timeout: float = 8.0) -> OriginReceipt:
     headers: dict[str, str] = {}
     tls_version = None
     tls_cipher = None
+    error_class = None
 
     for _ in range(6):
         req = Request(current, method="HEAD", headers={"User-Agent": "XSMB-Forensic-OriginProbe/1.0"})
@@ -91,19 +90,20 @@ def probe_origin(url: str, timeout: float = 8.0) -> OriginReceipt:
             final_url = current
             break
         except Exception as exc:
-            if hasattr(exc, "code") and hasattr(exc, "headers") and hasattr(exc, "geturl"):
-                code = int(exc.code)
-                location = exc.headers.get("Location")
-                if 300 <= code < 400 and location:
-                    chain.append(current)
-                    current = location
-                    continue
+            error_class = exc.__class__.__name__
+            code = int(getattr(exc, "code", 0) or 0)
+            location = getattr(getattr(exc, "headers", None), "get", lambda *_: None)("Location")
+            if 300 <= code < 400 and location:
+                chain.append(current)
+                current = urljoin(current, location)
+                continue
             final_url = current
-            status = int(getattr(exc, "code", 0) or 0)
+            status = code
             break
     else:
         final_url = current
         status = 310
+        error_class = "REDIRECT_LIMIT"
 
     elapsed = round((time.perf_counter() - started) * 1000, 3)
     final = urlsplit(final_url)
@@ -128,17 +128,14 @@ def probe_origin(url: str, timeout: float = 8.0) -> OriginReceipt:
         payload_downloaded=False,
         empty_probe_body_sha256=empty_probe_body_sha256,
         canonical_identity="DENY_UNPROVEN",
+        error_class=error_class,
     )
 
 
 def run_probe() -> dict[str, object]:
     receipts = [asdict(probe_origin(url)) for url in DECLARED_SOURCES]
     cycle_id = os.environ.get("RENDER_DEPLOY_ID", "LOCAL-N101")
-    envelope = build_envelope(
-        action_id="BRAIN-N101_ORIGIN_METADATA_PROBE",
-        cycle_id=cycle_id,
-        receipts=receipts,
-    )
+    envelope = build_envelope(action_id="BRAIN-N101_ORIGIN_METADATA_PROBE", cycle_id=cycle_id, receipts=receipts)
     return {
         "probe": "BRAIN-N101_ORIGIN_METADATA_PROBE",
         "mode": "DATA_ADMISSION",
@@ -151,4 +148,14 @@ def run_probe() -> dict[str, object]:
 
 
 if __name__ == "__main__":
-    print(json.dumps(run_probe(), ensure_ascii=False, sort_keys=True))
+    try:
+        print(json.dumps(run_probe(), ensure_ascii=False, sort_keys=True))
+    except Exception as exc:
+        print(json.dumps({
+            "probe": "BRAIN-N101_ORIGIN_METADATA_PROBE",
+            "status": "DENY_ORIGIN_METADATA",
+            "error_class": exc.__class__.__name__,
+            "canonical_identity": "DENY_UNPROVEN",
+            "payload_policy": "NO_DOWNLOAD_NO_PARSE_NO_SOURCE_HASH",
+        }, ensure_ascii=False, sort_keys=True))
+        raise SystemExit(1)
