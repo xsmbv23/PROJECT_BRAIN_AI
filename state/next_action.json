@@ -1,1 +1,47 @@
-{"action_id":"BRAIN-N101_ORIGIN_METADATA_PROBE","title":"Implement and execute bounded metadata-only origin observation on Render","status":"READY","mode":"DATA_ADMISSION","action_space":1,"action":"NETWORK_ORIGIN_METADATA_PROBE","promotion":"DENY","layer_1":"ROOM_01_DATA_ADMISSION","staircase":"LOCKED","previous":"BRAIN-P0-GATE-INVARIANT-HARDENING implemented and boot-enforced PASS-local evidence, freshness TTL, cycle identity, and GateRunner admission","current_gate":"NETWORK_ORIGIN_METADATA_PROBE","scope":["implement Render-side bounded metadata probe","record HTTP status","record requested host and final host","record redirect chain","record HTTPS/TLS transport metadata where safely observable","record compact non-secret headers only","do not download or parse source-truth payload","do not follow application links","do not classify redirects as canonical identity","do not classify hostname difference as independence","persist compact evidence receipt","measure memory and keep 320MiB guard"],"rules":["P0_GATE_INVARIANT_V1","N098 history immutable","N099 execution manifest immutable","N100 origin observation immutable","UNKNOWN_IS_NOT_PASS","DEFAULT_DENY","PASS_IS_LOCAL_TO_GATE","NO_PASS_INHERITANCE","IMPLEMENTED_IS_NOT_ADMITTED","ADMITTED_IS_NOT_EXECUTABLE","EVIDENCE_MUST_BE_FRESH","ADS_ARE_NON_TRUTH_CONTENT","REDIRECT_TARGETS_ARE_NOT_AUTOMATIC_SOURCE_IDENTITY","HOSTNAME_DIFFERENCE_IS_NOT_INDEPENDENCE_PROOF","NO_CREDENTIALS_IN_REPOSITORY","NO_CREDENTIALS_IN_EVIDENCE","OOM_GUARD_320MB"],"completion_gate":"Render runtime executes the probe and emits a compact non-secret origin receipt for both declared sources; canonical identity remains DENY unless an explicit proof contract is satisfied"}
+{
+  "action_id": "BRAIN-N101_ORIGIN_METADATA_PROBE",
+  "title": "Implement and execute bounded metadata-only origin observation on Render",
+  "status": "READY",
+  "mode": "DATA_ADMISSION",
+  "action_space": 1,
+  "action": "NETWORK_ORIGIN_METADATA_PROBE",
+  "promotion": "PASS_TO_ROOM_01_ONLY;CANONICAL_QUORUM_DENY",
+  "layer_1": "ROOM_01_DATA_ADMISSION",
+  "staircase": "LOCKED",
+  "previous": "BRAIN-P0-GATE-INVARIANT-HARDENING implemented and boot-enforced PASS-local evidence, freshness TTL, cycle identity, and GateRunner admission",
+  "current_gate": "NETWORK_ORIGIN_METADATA_PROBE",
+  "scope": [
+    "implement Render-side bounded metadata probe",
+    "record HTTP status",
+    "record requested host and final host",
+    "record redirect chain",
+    "record HTTPS/TLS transport metadata where safely observable",
+    "record compact non-secret headers only",
+    "do not download or parse source-truth payload",
+    "do not follow application links",
+    "do not classify redirects as canonical identity",
+    "do not classify hostname difference as independence",
+    "persist compact evidence receipt",
+    "measure memory and keep 320MiB guard"
+  ],
+  "rules": [
+    "P0_GATE_INVARIANT_V1",
+    "N098 history immutable",
+    "N099 execution manifest immutable",
+    "N100 origin observation immutable",
+    "UNKNOWN_IS_NOT_PASS",
+    "DEFAULT_DENY",
+    "PASS_IS_LOCAL_TO_GATE",
+    "NO_PASS_INHERITANCE",
+    "IMPLEMENTED_IS_NOT_ADMITTED",
+    "ADMITTED_IS_NOT_EXECUTABLE",
+    "EVIDENCE_MUST_BE_FRESH",
+    "ADS_ARE_NON_TRUTH_CONTENT",
+    "REDIRECT_TARGETS_ARE_NOT_AUTOMATIC_SOURCE_IDENTITY",
+    "HOSTNAME_DIFFERENCE_IS_NOT_INDEPENDENCE_PROOF",
+    "NO_CREDENTIALS_IN_REPOSITORY",
+    "NO_CREDENTIALS_IN_EVIDENCE",
+    "OOM_GUARD_320MB"
+  ],
+  "completion_gate": "Render runtime executes the probe and emits a compact non-secret origin receipt for both declared sources; canonical identity remains DENY unless an explicit proof contract is satisfied"
+}
