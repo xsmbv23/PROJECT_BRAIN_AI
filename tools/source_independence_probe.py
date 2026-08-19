@@ -1,7 +1,8 @@
 """Bounded infrastructure comparison for N103.
 
-No credentials, no application actions, no bulk content. IPs are hashed. ASN
-is intentionally not guessed; absence of an explicit owner signal is DENY.
+No credentials, no application actions, no bulk content. IPs are hashed.
+Network ownership is queried through bounded RDAP metadata; absence of an
+explicit owner signal is DENY.
 """
 from __future__ import annotations
 
@@ -12,8 +13,10 @@ import ssl
 import time
 from dataclasses import asdict, dataclass
 from urllib.parse import urlsplit
+from urllib.request import Request, urlopen
 
 DECLARED_SOURCES = ("https://ketqua16.net", "https://xsmb.com.vn")
+RDAP_MAX_BYTES = 16_384
 
 
 @dataclass(frozen=True)
@@ -33,9 +36,8 @@ class InfrastructureReceipt:
     transfer_ms: float
 
 
-def _ip_hashes(host: str, port: int) -> tuple[str, ...]:
-    addresses = sorted({item[4][0] for item in socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)})
-    return tuple(hashlib.sha256(ip.encode()).hexdigest()[:16] for ip in addresses)
+def _raw_addresses(host: str, port: int) -> list[str]:
+    return sorted({item[4][0] for item in socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)})
 
 
 def _flatten_name(value) -> str | None:
@@ -48,22 +50,47 @@ def _flatten_name(value) -> str | None:
     return ";".join(parts)[:512] or None
 
 
+def _rdap_owner(ip: str, timeout: float = 5.0) -> str | None:
+    req = Request(f"https://rdap.org/ip/{ip}", headers={"User-Agent": "XSMB-Forensic-IndependenceProbe/1.0", "Accept": "application/rdap+json"})
+    with urlopen(req, timeout=timeout) as response:
+        raw = response.read(RDAP_MAX_BYTES)
+    doc = json.loads(raw.decode("utf-8", errors="ignore"))
+    for key in ("name", "handle"):
+        value = doc.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()[:256]
+    for entity in doc.get("entities", [])[:8]:
+        roles = entity.get("roles", [])
+        if "registrant" in roles or "administrative" in roles:
+            handle = entity.get("handle")
+            if isinstance(handle, str) and handle.strip():
+                return handle.strip()[:256]
+    return None
+
+
 def probe_infrastructure(url: str, timeout: float = 8.0) -> InfrastructureReceipt:
     parsed = urlsplit(url)
     started = time.perf_counter()
     host = parsed.hostname or ""
     port = parsed.port or 443
-    ips: tuple[str, ...] = ()
+    ips: list[str] = []
+    ips_hash: tuple[str, ...] = ()
     tls_version = None
     tls_cipher = None
     subject = None
     issuer = None
     san_hash = None
-    server_hint = None
-    owner = "NOT_OBSERVED"
+    owner = None
     owner_observed = False
     try:
-        ips = _ip_hashes(host, port)
+        ips = _raw_addresses(host, port)
+        ips_hash = tuple(hashlib.sha256(ip.encode()).hexdigest()[:16] for ip in ips)
+        if ips:
+            try:
+                owner = _rdap_owner(ips[0])
+                owner_observed = bool(owner)
+            except (OSError, ValueError, json.JSONDecodeError):
+                owner = None
         ctx = ssl.create_default_context()
         with socket.create_connection((host, port), timeout=timeout) as raw:
             with ctx.wrap_socket(raw, server_hostname=host) as sock:
@@ -75,23 +102,22 @@ def probe_infrastructure(url: str, timeout: float = 8.0) -> InfrastructureReceip
                 issuer = _flatten_name(cert.get("issuer"))
                 sans = tuple(v for key, v in cert.get("subjectAltName", ()) if key == "DNS")
                 san_hash = hashlib.sha256("|".join(sorted(sans)).encode()).hexdigest()[:16] if sans else None
-        # Network ownership is deliberately not inferred from IP ranges or CDN names.
         decision = "DENY"
-        reason = "NETWORK_OWNER_NOT_OBSERVED"
+        reason = "NETWORK_OWNER_NOT_OBSERVED" if not owner_observed else "INDEPENDENCE_REQUIRES_CROSS_OWNER_AND_FRESH_COMPARISON"
     except (OSError, ssl.SSLError, ValueError):
         decision = "DENY"
         reason = "INFRASTRUCTURE_METADATA_NOT_PROVEN"
 
     return InfrastructureReceipt(
         requested_host=host,
-        resolved_ip_sha256_16=ips,
+        resolved_ip_sha256_16=ips_hash,
         tls_version=tls_version,
         tls_cipher=tls_cipher,
         certificate_subject=subject,
         certificate_issuer=issuer,
         certificate_san_sha256_16=san_hash,
         server_hint=None,
-        network_owner=owner,
+        network_owner=owner or "NOT_OBSERVED",
         network_owner_observed=owner_observed,
         decision=decision,
         reason=reason,
@@ -101,13 +127,17 @@ def probe_infrastructure(url: str, timeout: float = 8.0) -> InfrastructureReceip
 
 def run_probe() -> dict[str, object]:
     receipts = [asdict(probe_infrastructure(url)) for url in DECLARED_SOURCES]
+    owners = [r["network_owner"] for r in receipts if r["network_owner_observed"]]
+    distinct_owners = len(set(owners))
+    independence = "PASS_LOCAL" if len(receipts) == 2 and all(r["network_owner_observed"] for r in receipts) and distinct_owners == 2 else "DENY"
     return {
         "probe": "BRAIN-N103_SOURCE_INDEPENDENCE_PROOF",
         "mode": "DATA_ADMISSION",
         "source_count": len(receipts),
         "receipts": receipts,
-        "independence": "DENY",
-        "canonical_quorum": "DENY",
+        "distinct_network_owners": distinct_owners,
+        "independence": independence,
+        "canonical_quorum": "PASS_LOCAL" if independence == "PASS_LOCAL" else "DENY",
         "promotion": "DENY",
         "policy": "HOSTNAME_DIFFERENCE_IS_NOT_INDEPENDENCE_PROOF;NETWORK_OWNER_REQUIRED",
     }
