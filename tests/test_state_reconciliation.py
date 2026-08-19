@@ -10,8 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 class StateReconciliationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        outer = json.loads((ROOT / "state" / "current_state.json").read_text(encoding="utf-8"))
-        cls.state = json.loads(outer["content"])
+        cls.state = json.loads((ROOT / "state" / "current_state.json").read_text(encoding="utf-8"))
         cls.expected_commit = cls.state.get("last_verified_runtime_commit") or cls.state.get("promotion_runtime_commit")
 
     def test_current_verified_commit_passes(self):
