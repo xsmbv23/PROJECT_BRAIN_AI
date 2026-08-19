@@ -134,7 +134,7 @@ def probe_origin(url: str, timeout: float = 8.0) -> OriginReceipt:
 
 def run_probe() -> dict[str, object]:
     receipts = [asdict(probe_origin(url)) for url in DECLARED_SOURCES]
-    cycle_id = os.environ.get("RENDER_DEPLOY_ID", "LOCAL-N101")
+    cycle_id = os.environ.get("RENDER_DEPLOY_ID") or os.environ.get("RENDER_GIT_COMMIT") or "UNKNOWN_RUNTIME_CYCLE"
     envelope = build_envelope(action_id="BRAIN-N101_ORIGIN_METADATA_PROBE", cycle_id=cycle_id, receipts=receipts)
     return {
         "probe": "BRAIN-N101_ORIGIN_METADATA_PROBE",
