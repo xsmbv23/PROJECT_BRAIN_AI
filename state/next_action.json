@@ -1,37 +1,33 @@
 {
-  "action_id": "BRAIN-N103_SOURCE_INDEPENDENCE_PROOF",
-  "title": "Bounded source independence proof",
+  "action_id": "BRAIN-N103_SOURCE_INDEPENDENCE_PROOF_RETRY",
+  "title": "Re-run bounded source independence proof from an evidence-capable network environment",
   "status": "READY",
   "mode": "DATA_ADMISSION",
   "action_space": 1,
-  "action": "SOURCE_INDEPENDENCE_PROOF",
-  "promotion": "PASS_TO_ROOM_01_ONLY;CANONICAL_QUORUM_DENY",
+  "promotion": "DENY",
+  "canonical_quorum": "LOCKED",
   "layer_1": "ROOM_01_DATA_ADMISSION",
   "staircase": "LOCKED",
-  "previous": "BRAIN-N102_CANONICAL_SOURCE_IDENTITY_PROOF produced PASS_LOCAL identity evidence for both declared hosts; independence remained NOT_PROVEN",
-  "current_gate": "SOURCE_INDEPENDENCE_PROOF",
-  "scope": [
-    "compare fresh bounded infrastructure metadata for both declared sources",
-    "observe resolved network path metadata where safely observable",
-    "observe TLS certificate identity metadata without credentials",
-    "observe ASN/network-owner metadata where safely observable",
-    "compare edge/server metadata",
-    "do not treat hostname difference as independence proof",
-    "do not treat HTML/content differences as independence proof",
-    "do not perform application actions",
-    "emit compact cross-source evidence envelope",
-    "keep 320MiB guard"
+  "previous": "BRAIN-N103 fresh execution could not obtain DNS or RDAP evidence for either target; UNKNOWN_IS_NOT_PASS",
+  "required_evidence": [
+    "fresh DNS resolution for ketqua16.net",
+    "fresh DNS resolution for xsmb.com.vn",
+    "ASN/network-owner metadata where observable",
+    "edge/CDN/server metadata where observable",
+    "TLS certificate identity metadata where safely observable",
+    "compact immutable evidence receipt"
   ],
   "rules": [
     "UNKNOWN_IS_NOT_PASS",
     "DEFAULT_DENY",
     "PASS_IS_LOCAL_TO_GATE",
     "NO_PASS_INHERITANCE",
-    "ADS_ARE_NON_TRUTH_CONTENT",
     "HOSTNAME_DIFFERENCE_IS_NOT_INDEPENDENCE_PROOF",
+    "HTML_DIFFERENCE_IS_NOT_INDEPENDENCE_PROOF",
+    "ADS_ARE_NON_TRUTH_CONTENT",
     "NO_CREDENTIALS_IN_REPOSITORY",
     "NO_CREDENTIALS_IN_EVIDENCE",
     "OOM_GUARD_320MB"
   ],
-  "completion_gate": "Fresh bounded infrastructure evidence exists for both sources and explicit independence criteria are satisfied; otherwise independence and canonical quorum remain DENY."
+  "completion_gate": "Only explicit fresh infrastructure evidence satisfying the independence criteria may open N104. Otherwise remain DENY and do not open canonical quorum."
 }
