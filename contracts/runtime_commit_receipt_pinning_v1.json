@@ -1,0 +1,24 @@
+{
+  "contract_id": "RUNTIME_COMMIT_RECEIPT_PINNING_V1",
+  "purpose": "Prevent a later Git commit from inheriting an immutable action receipt issued for an earlier runtime.",
+  "rules": [
+    "receipt.commit_sha MUST equal exact-current runtime commit_sha",
+    "receipt action_id MUST equal the action being reconciled",
+    "a later documentation-only commit does NOT inherit an earlier action receipt",
+    "a receipt MUST NOT be rewritten to follow a later commit",
+    "a new runtime commit requires a fresh action/evidence receipt if the action is to be executed again",
+    "repository HEAD alone is not runtime proof",
+    "runtime evidence has priority over repository projection",
+    "mismatch => DENY and no transport probe",
+    "DENY receipt may document the mismatch but cannot satisfy the original action receipt gate"
+  ],
+  "current_case": {
+    "action_id": "BRAIN-N104C.1",
+    "immutable_receipt_commit": "36a1504594d58ed516bbe3ba0d71d81326d69003",
+    "current_runtime_commit": "2d4415a875df3582aa26df4598f4f409c3c23027",
+    "decision": "DENY_RUNTIME_COMMIT_MISMATCH"
+  },
+  "promotion": "DENY_UNTIL_EXACT_COMMIT_RECEIPT_MATCH",
+  "layer_1": "LOCKED",
+  "staircase": "LOCKED"
+}
