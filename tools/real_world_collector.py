@@ -18,14 +18,69 @@ except ModuleNotFoundError:
     from source_evidence_adapter import extract_xsmb_candidate
 
 SOURCE = "https://ketqua16.net/"
+BRAIN_HEALTH = "https://project-brain-ai.onrender.com/health"
 ARTIFACT_DIR = Path(os.environ.get("FORENSIC_ARTIFACT_DIR", "/tmp/forensic_artifacts"))
 MAX_CAPTURE_BYTES = 8 * 1024 * 1024
 CHUNK_SIZE = 64 * 1024
+BRAIN_HEALTH_MAX_BYTES = 8192
+
+
+def observe_brain_runtime() -> dict[str, object]:
+    """Observe Brain from a separate Render service without granting authority.
+
+    The observer performs a bounded GET and records only response metadata and
+    a hash of the compact response body. It cannot mutate Brain state and it
+    cannot promote any admission gate.
+    """
+    request = Request(BRAIN_HEALTH, headers={"User-Agent": "XSMB-Forensic-RealityObserver/1.0", "Accept": "application/json"}, method="GET")
+    digest = hashlib.sha256()
+    body = bytearray()
+    with urlopen(request, timeout=15) as response:
+        status = int(getattr(response, "status", 0) or 0)
+        final_url = response.geturl()
+        while len(body) < BRAIN_HEALTH_MAX_BYTES:
+            chunk = response.read(min(2048, BRAIN_HEALTH_MAX_BYTES - len(body)))
+            if not chunk:
+                break
+            body.extend(chunk)
+            digest.update(chunk)
+    try:
+        payload = json.loads(bytes(body).decode("utf-8", errors="strict"))
+    except Exception:
+        payload = {}
+    if not isinstance(payload, dict):
+        payload = {}
+    return {
+        "observer": "BRAIN_RUNTIME_EXTERNAL_OBSERVER",
+        "requested_url": BRAIN_HEALTH,
+        "final_url": final_url,
+        "http_status": status,
+        "body_bytes": len(body),
+        "body_sha256": digest.hexdigest(),
+        "observed_commit_sha": payload.get("commit_sha", "UNKNOWN"),
+        "observed_liveness": payload.get("liveness", "UNKNOWN"),
+        "observed_payload_status": payload.get("status", "UNKNOWN"),
+        "authority": "OBSERVATION_ONLY",
+        "promotion": "DENY",
+    }
 
 
 def collect() -> dict[str, object]:
     started = time.time()
     observed_at = datetime.now(timezone.utc).isoformat()
+    brain_runtime = None
+    if os.environ.get("RUN_BRAIN_RUNTIME_OBSERVER", "1") == "1":
+        try:
+            brain_runtime = observe_brain_runtime()
+        except Exception as exc:
+            brain_runtime = {
+                "observer": "BRAIN_RUNTIME_EXTERNAL_OBSERVER",
+                "status": "DENY",
+                "error_type": type(exc).__name__,
+                "authority": "OBSERVATION_ONLY",
+                "promotion": "DENY",
+            }
+
     parsed = urlsplit(SOURCE)
     infos = socket.getaddrinfo(parsed.hostname, 443, type=socket.SOCK_STREAM)
     if not infos:
@@ -68,6 +123,8 @@ def collect() -> dict[str, object]:
         "parse_performed": False, "normalization_performed": False,
         "classification_performed": False, "elapsed_seconds": round(time.time() - started, 4),
     }
+    if brain_runtime is not None:
+        receipt["brain_runtime_observation"] = brain_runtime
     if os.environ.get("RUN_N104B_ADAPTER") == "1":
         candidate = extract_xsmb_candidate(raw.decode("utf-8", errors="replace"), SOURCE, observed_at)
         receipt["candidate"] = {
