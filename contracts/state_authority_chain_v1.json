@@ -1,0 +1,45 @@
+{
+  "contract_id": "STATE_AUTHORITY_CHAIN_V1",
+  "authority": {
+    "repository": "xsmbv23/Project_Brain_AI",
+    "path": "state/current_state.json",
+    "role": "SINGLE_SOURCE_OF_LOGICAL_STATE_TRUTH"
+  },
+  "non_authorities": [
+    "xsmbv23/Quant_Engine/state/current_state.json",
+    "xsmbv23/xsmb-quant runtime state",
+    "Render deployment metadata",
+    "chat transcript",
+    "historical action logs"
+  ],
+  "evidence_vs_state": "RUNTIME_AND_EVIDENCE_CAN_PROVE_OR_DISPROVE_STATE_BUT_CANNOT_SELF_PROMOTE_LOGICAL_STATE",
+  "state_transition_rule": "EVIDENCE -> BRAIN_STATE -> AUTHORIZED_ACTION",
+  "pass_semantics": "PASS_IS_LOCAL_TO_GATE_AND_IS_ONLY_A_PREREQUISITE",
+  "pass_inheritance": false,
+  "unknown_is_not_pass": true,
+  "default_deny": true,
+  "runtime_reconciliation": {
+    "required": true,
+    "comparison": ["brain_state_authority_identity", "runtime_commit", "runtime_deployment"],
+    "mismatch": "HARD_DENY",
+    "runtime_is_evidence_not_authority": true
+  },
+  "quant_projection": {
+    "mode": "READ_ONLY_PROJECTION",
+    "must_reference": "Brain state authority identity",
+    "may_not_override": true,
+    "local_state_changes": "FORBIDDEN"
+  },
+  "data_projection": {
+    "mode": "READ_ONLY_PROJECTION",
+    "may_not_promote": true,
+    "may_not_override": true
+  },
+  "historical_record": {
+    "action_logs_are_immutable_history": true,
+    "action_log_cannot_override_current_state": true
+  },
+  "promotion_rule": "No downstream room, layer, research, sensor, algorithm, or execution capability may be promoted from a downstream state alone.",
+  "layer_1": "LOCKED",
+  "staircase": "LOCKED"
+}
