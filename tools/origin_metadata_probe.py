@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import socket
 import ssl
 import time
 from dataclasses import asdict, dataclass
@@ -44,13 +43,13 @@ class OriginReceipt:
     tls_cipher: str | None
     safe_headers: dict[str, str]
     payload_downloaded: bool
-    payload_hash: str
+    empty_probe_body_sha256: str
     canonical_identity: str
 
 
 def _tls_metadata(response: HTTPResponse) -> tuple[str | None, str | None]:
     try:
-        sock = response.fp.raw._sock  # CPython HTTPResponse/socket path
+        sock = response.fp.raw._sock
         if isinstance(sock, ssl.SSLSocket):
             cipher = sock.cipher()
             return sock.version(), cipher[0] if cipher else None
@@ -89,7 +88,6 @@ def probe_origin(url: str, timeout: float = 8.0) -> OriginReceipt:
             final_url = current
             break
         except Exception as exc:
-            # RedirectError exposes the Location header while keeping payload untouched.
             if hasattr(exc, "code") and hasattr(exc, "headers") and hasattr(exc, "geturl"):
                 code = int(exc.code)
                 location = exc.headers.get("Location")
@@ -112,9 +110,9 @@ def probe_origin(url: str, timeout: float = 8.0) -> OriginReceipt:
         except Exception:
             pass
 
-    # The probe deliberately has no payload bytes. A fixed digest of the empty
-    # byte string makes that fact machine-checkable without hashing source data.
-    empty_payload_hash = hashlib.sha256(b"").hexdigest()
+    # This is NOT a source hash. It is the fixed digest proving that the probe
+    # downloaded zero source bytes.
+    empty_probe_body_sha256 = hashlib.sha256(b"").hexdigest()
     return OriginReceipt(
         requested_url=url,
         requested_host=requested.hostname or "",
@@ -127,7 +125,7 @@ def probe_origin(url: str, timeout: float = 8.0) -> OriginReceipt:
         tls_cipher=tls_cipher,
         safe_headers=headers,
         payload_downloaded=False,
-        payload_hash=empty_payload_hash,
+        empty_probe_body_sha256=empty_probe_body_sha256,
         canonical_identity="DENY_UNPROVEN",
     )
 
