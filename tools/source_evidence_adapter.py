@@ -7,7 +7,7 @@ to declare canonical truth, quorum, signal, prediction, or risk.
 Design rules:
 - selector allowlist only;
 - advertisement/navigation/free-text regions are never accepted as result rows;
-- only one bounded result table is emitted per capture;
+- only one bounded result candidate is emitted per capture;
 - raw HTML is not retained in the returned object;
 - numeric payload is represented compactly and can be hashed by the caller;
 - no bulk history is loaded into memory.
@@ -18,9 +18,9 @@ import hashlib
 import re
 from dataclasses import dataclass, asdict
 from html.parser import HTMLParser
-from typing import Iterable
 
 ALLOWED_GRADES = ("ĐB", "G1", "G2", "G3", "G4", "G5", "G6", "G7")
+EXPECTED_COUNTS = {"ĐB": 1, "G1": 1, "G2": 2, "G3": 6, "G4": 4, "G5": 6, "G6": 3, "G7": 4}
 GRADE_ALIASES = {
     "ĐẶC BIỆT": "ĐB",
     "GIẢI ĐẶC BIỆT": "ĐB",
@@ -49,11 +49,12 @@ class SourceEvidenceCandidate:
 
 
 class _TableParser(HTMLParser):
-    """Collect only table-cell text; scripts/styles/comments never become cells."""
+    """Collect table-cell text; executable/embedded content is ignored."""
 
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
         self.tables: list[list[list[str]]] = []
+        self.text_tokens: list[str] = []
         self._table: list[list[str]] | None = None
         self._row: list[str] | None = None
         self._cell: list[str] | None = None
@@ -83,6 +84,8 @@ class _TableParser(HTMLParser):
         if tag in {"td", "th"} and self._row is not None and self._cell is not None:
             text = " ".join("".join(self._cell).split())
             self._row.append(text)
+            if text:
+                self.text_tokens.append(text)
             self._cell = None
         elif tag == "tr" and self._table is not None and self._row is not None:
             if self._row:
@@ -107,6 +110,10 @@ def _canonical_grade(label: str) -> str | None:
     return GRADE_ALIASES.get(normalized)
 
 
+def _validate_counts(rows: dict[str, tuple[str, ...]]) -> bool:
+    return all(len(rows.get(grade, ())) == count for grade, count in EXPECTED_COUNTS.items())
+
+
 def _candidate_from_table(table: list[list[str]]) -> dict[str, tuple[str, ...]] | None:
     rows: dict[str, tuple[str, ...]] = {}
     for cells in table:
@@ -118,11 +125,43 @@ def _candidate_from_table(table: list[list[str]]) -> dict[str, tuple[str, ...]] 
         numbers = tuple(cell for cell in cells[1:] if NUMBER_RE.fullmatch(cell))
         if not numbers:
             continue
-        # First occurrence wins: duplicate labels in ads/widgets/history must not
-        # overwrite the bounded result table candidate.
         rows.setdefault(grade, numbers)
-    if all(grade in rows for grade in ALLOWED_GRADES):
+    if _validate_counts(rows):
         return rows
+    return None
+
+
+def _candidate_from_ordered_tokens(tokens: list[str]) -> dict[str, tuple[str, ...]] | None:
+    """Fallback for modern markup where result cells are not enclosed in tables.
+
+    Admission requires one contiguous ordered grade sequence and exact XSMB
+    cardinalities. This is still candidate-only and cannot grant canonicality.
+    """
+    for start, token in enumerate(tokens):
+        if _canonical_grade(token) != "ĐB":
+            continue
+        rows: dict[str, tuple[str, ...]] = {}
+        pos = start
+        valid = True
+        for grade in ALLOWED_GRADES:
+            if pos >= len(tokens) or _canonical_grade(tokens[pos]) != grade:
+                valid = False
+                break
+            pos += 1
+            nums: list[str] = []
+            while pos < len(tokens) and _canonical_grade(tokens[pos]) is None:
+                if NUMBER_RE.fullmatch(tokens[pos]):
+                    nums.append(tokens[pos])
+                pos += 1
+                if len(nums) > EXPECTED_COUNTS[grade]:
+                    valid = False
+                    break
+            if not valid or len(nums) != EXPECTED_COUNTS[grade]:
+                valid = False
+                break
+            rows[grade] = tuple(nums)
+        if valid and _validate_counts(rows):
+            return rows
     return None
 
 
@@ -138,6 +177,8 @@ def extract_xsmb_candidate(html: str, source_url: str, capture_timestamp_utc: st
         if candidate is not None:
             selected = candidate
             break
+    if selected is None:
+        selected = _candidate_from_ordered_tokens(parser.text_tokens)
 
     source_sha256 = hashlib.sha256(html.encode("utf-8")).hexdigest()
     if selected is None:
