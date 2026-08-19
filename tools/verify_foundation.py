@@ -47,12 +47,14 @@ def adapter_import_scan() -> None:
                 raise AssertionError(f"direct runtime adapter import in core: {path}: {token}")
 
 
-def in_memory_audit_round_trip() -> None:
-    """Proves deterministic audit envelope persistence only against a local test store.
+def execution_identity_registration() -> dict[str, object]:
+    from tools.verify_execution_identity import main as verify_identity
+    if verify_identity() != 0:
+        raise AssertionError("execution identity registration denied")
+    return {"status": "PASS_REGISTRATION", "capture_admission": "DENY_UNTIL_NETWORK_ORIGIN_PROOF"}
 
-    This is NOT evidence that the Render PostgreSQL service is reachable or that
-    a durable DB round-trip has occurred.
-    """
+
+def in_memory_audit_round_trip() -> None:
     class Store:
         def __init__(self): self.data = {}
         def put(self, k, v): self.data[k] = v
@@ -108,14 +110,14 @@ def main() -> int:
     tracemalloc.start(); started = time.monotonic()
     suite = unittest.defaultTestLoader.discover(str(ROOT / "tests"), pattern="test_*.py")
     result = unittest.TextTestRunner(verbosity=1).run(suite)
-    source_scan(); adapter_import_scan(); in_memory_audit_round_trip(); brain_governance_round_trip(); room_lock_round_trip(); corridor_sensor_round_trip(); inner_latch_round_trip(); unified_security_chain_round_trip()
+    source_scan(); adapter_import_scan(); identity = execution_identity_registration(); in_memory_audit_round_trip(); brain_governance_round_trip(); room_lock_round_trip(); corridor_sensor_round_trip(); inner_latch_round_trip(); unified_security_chain_round_trip()
     from tools.verify_database_binding_contract import verify as verify_db_contract
     db_contract = verify_db_contract()
     gate = run_foundation_gate()
     _, peak = tracemalloc.get_traced_memory(); tracemalloc.stop()
-    report = {"tests_ok": result.wasSuccessful(), "gate": gate["status"], "source_scan": "PASS", "adapter_import_scan": "PASS", "in_memory_audit_round_trip": "PASS", "durable_db_round_trip": "NOT_PROVEN", "brain_governance": "PASS", "room_lock": "PASS", "corridor_sensor": "PASS", "inner_latch": "PASS", "security_chain": "PASS", "database_binding_contract": db_contract["status"], "tracemalloc_peak_bytes": peak, "elapsed_seconds": round(time.monotonic()-started, 4)}
+    report = {"tests_ok": result.wasSuccessful(), "gate": gate["status"], "source_scan": "PASS", "adapter_import_scan": "PASS", "execution_identity_registration": identity["status"], "capture_admission": identity["capture_admission"], "in_memory_audit_round_trip": "PASS", "durable_db_round_trip": "NOT_PROVEN", "brain_governance": "PASS", "room_lock": "PASS", "corridor_sensor": "PASS", "inner_latch": "PASS", "security_chain": "PASS", "database_binding_contract": db_contract["status"], "tracemalloc_peak_bytes": peak, "elapsed_seconds": round(time.monotonic()-started, 4)}
     print(report)
-    return 0 if result.wasSuccessful() and gate["status"] == "PASS" and db_contract["status"] == "PASS" else 1
+    return 0 if result.wasSuccessful() and gate["status"] == "PASS" and db_contract["status"] == "PASS" and identity["status"] == "PASS_REGISTRATION" else 1
 
 if __name__ == "__main__":
     sys.exit(main())
