@@ -1,7 +1,7 @@
 """Exact-current runtime verification for Room 01.
 
 The fixture remains owned by xsmbv23/xsmb-quant. Brain fetches only the
-credential-free JSON fixture over HTTPS, verifies its immutable content hashes,
+credential-free JSON fixture over HTTPS, verifies immutable content hashes,
 then executes Room 01 locally in the Render runtime. No fixture is copied into
 Brain as a second source of truth.
 """
@@ -10,7 +10,6 @@ from __future__ import annotations
 import hashlib
 import json
 import urllib.request
-from pathlib import Path
 
 from rooms.room_01_data_admission import admit_manifest
 
@@ -25,35 +24,51 @@ def _sha_bytes(data: bytes) -> str:
 
 
 def verify() -> dict:
-    with urllib.request.urlopen(FIXTURE_URL, timeout=15) as response:
-        raw = response.read()
-    manifest = json.loads(raw.decode("utf-8"))
+    try:
+        with urllib.request.urlopen(FIXTURE_URL, timeout=15) as response:
+            raw = response.read()
+        manifest = json.loads(raw.decode("utf-8"))
 
-    if manifest.get("source_file_sha256") != EXPECTED_FILE_SHA256:
-        raise RuntimeError("ROOM01_SOURCE_HASH_CHANGED")
-    if manifest.get("fixture_payload_sha256") != EXPECTED_PAYLOAD_SHA256:
-        raise RuntimeError("ROOM01_FIXTURE_HASH_CHANGED")
-    if manifest.get("fixture_status") != "VERIFICATION_ONLY":
-        raise RuntimeError("ROOM01_SOURCE_STATUS_DENY")
+        if manifest.get("source_file_sha256") != EXPECTED_FILE_SHA256:
+            raise RuntimeError("ROOM01_SOURCE_HASH_CHANGED")
+        if manifest.get("fixture_payload_sha256") != EXPECTED_PAYLOAD_SHA256:
+            raise RuntimeError("ROOM01_FIXTURE_HASH_CHANGED")
+        if manifest.get("fixture_status") != "VERIFICATION_ONLY":
+            raise RuntimeError("ROOM01_SOURCE_STATUS_DENY")
 
-    receipt = admit_manifest(manifest)
-    if receipt.get("receipt_sha256") != EXPECTED_RECEIPT_SHA256:
-        raise RuntimeError("ROOM01_RECEIPT_HASH_CHANGED")
+        receipt = admit_manifest(manifest)
+        if receipt.get("receipt_sha256") != EXPECTED_RECEIPT_SHA256:
+            raise RuntimeError("ROOM01_RECEIPT_HASH_CHANGED")
 
-    return {
-        "action": "BRAIN-N090_DATA_ADMISSION_RUNTIME_VERIFY",
-        "room": receipt["room"],
-        "runtime": "EXACT_CURRENT",
-        "source_fixture": manifest["fixture_id"],
-        "source_file_sha256": manifest["source_file_sha256"],
-        "fixture_payload_sha256": manifest["fixture_payload_sha256"],
-        "receipt_sha256": receipt["receipt_sha256"],
-        "admission": receipt["admission"],
-        "canonical_eligibility": receipt["canonical_eligibility"],
-        "research_admission": receipt["research_admission"],
-        "staircase": receipt["staircase"],
-        "fixture_transport_sha256": _sha_bytes(raw),
-    }
+        return {
+            "status": "PASS",
+            "action": "BRAIN-N090_DATA_ADMISSION_RUNTIME_VERIFY",
+            "room": receipt["room"],
+            "runtime": "EXACT_CURRENT",
+            "source_fixture": manifest["fixture_id"],
+            "source_file_sha256": manifest["source_file_sha256"],
+            "fixture_payload_sha256": manifest["fixture_payload_sha256"],
+            "receipt_sha256": receipt["receipt_sha256"],
+            "admission": receipt["admission"],
+            "canonical_eligibility": receipt["canonical_eligibility"],
+            "research_admission": receipt["research_admission"],
+            "staircase": receipt["staircase"],
+            "fixture_transport_sha256": _sha_bytes(raw),
+        }
+    except Exception as exc:
+        reason = str(exc)
+        safe_reason = reason if reason.startswith("ROOM01_") else "RUNTIME_EXTERNAL_FIXTURE_UNAVAILABLE"
+        return {
+            "status": "DENY",
+            "action": "BRAIN-N090_DATA_ADMISSION_RUNTIME_VERIFY",
+            "runtime": "EXACT_CURRENT",
+            "reason": safe_reason,
+            "exception_class": type(exc).__name__,
+            "fixture_owner": "xsmbv23/xsmb-quant",
+            "canonical_eligibility": "DENY_QUORUM_LT_2",
+            "research_admission": "LOCKED",
+            "staircase": "LOCKED",
+        }
 
 
 if __name__ == "__main__":
