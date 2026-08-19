@@ -14,7 +14,10 @@ GRADE_ALIASES = {
     "GIẢI NĂM": "G5", "GIẢI SÁU": "G6", "GIẢI BẢY": "G7",
 }
 NUMBER_RE = re.compile(r"^\d{2,5}$")
-LEXICAL_RE = re.compile(r"ĐẶC\s+BIỆT|GIẢI\s+ĐẶC\s+BIỆT|GIẢI\s+NHẤT|GIẢI\s+NHÌ|GIẢI\s+BA|GIẢI\s+TƯ|GIẢI\s+NĂM|GIẢI\s+SÁU|GIẢI\s+BẢY|\d{2,5}", re.I)
+LEXICAL_RE = re.compile(
+    r"GIẢI\s+ĐẶC\s+BIỆT|GIẢI\s+NHẤT|GIẢI\s+NHÌ|GIẢI\s+BA|GIẢI\s+TƯ|GIẢI\s+NĂM|GIẢI\s+SÁU|GIẢI\s+BẢY|ĐẶC\s+BIỆT|\d{2,5}",
+    re.I,
+)
 
 
 @dataclass(frozen=True)
@@ -95,13 +98,13 @@ def _candidate_from_table(table: list[list[str]]) -> dict[str, tuple[str, ...]] 
 def _candidate_from_ordered_tokens(tokens: list[str]) -> tuple[dict[str, tuple[str, ...]] | None, dict[str, object]]:
     grade_hits = [(i, _canonical_grade(t)) for i, t in enumerate(tokens)]
     grade_hits = [(i, g) for i, g in grade_hits if g is not None]
-    diagnostics: dict[str, object] = {
+    diagnostics = {
         "grade_token_counts": {grade: sum(1 for _, g in grade_hits if g == grade) for grade in ALLOWED_GRADES},
         "ordered_sequence_candidates": 0,
     }
     for start, token in enumerate(tokens):
         if _canonical_grade(token) != "ĐB": continue
-        diagnostics["ordered_sequence_candidates"] = int(diagnostics["ordered_sequence_candidates"]) + 1
+        diagnostics["ordered_sequence_candidates"] += 1
         rows: dict[str, tuple[str, ...]] = {}
         pos = start
         valid = True
