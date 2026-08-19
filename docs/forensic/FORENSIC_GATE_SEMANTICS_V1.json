@@ -1,1 +1,107 @@
-{"contract_id":"FORENSIC_GATE_SEMANTICS_V1","status":"IMMUTABLE_ENFORCED","fsm":"ONE_CANONICAL_FORENSIC_FSM","laws":{"pass_is_local":true,"pass_is_prerequisite_only":true,"pass_inheritance":false,"unknown_is_not_pass":true,"default_deny":true,"historical_records_append_only":true},"database_chain":["DB_EXISTENCE","DB_BINDING","DB_TLS_ADMISSION","DB_ROUND_TRIP","PROMOTION"],"non_implication":["DB_EXISTENCE(PASS) !=> DB_BINDING(PASS)","DB_BINDING(PASS) !=> DB_ROUND_TRIP(PASS)","DB_ROUND_TRIP(PASS) !=> PROMOTION(PASS)"],"transport_non_equivalence":["CODE_EXISTS != CODE_EXECUTED","DEPLOYMENT_IDENTITY != RUNTIME_RECEIPT","LOCAL_CURL != EXACT_RUNTIME_EVIDENCE"],"hard_deny_states":["UNKNOWN","NOT_AVAILABLE","NOT_EXECUTED","MISSING","MISMATCH"],"security":{"corridor_key_distinct_from_room_key":true,"protected_room_may_require_inner_release":true},"successor_protocol":["read current_state.json","read next_action.json","read forensic contract","preserve historical DENY/BLOCKED","execute only recorded next action","write successor action log"],"oom":{"render_free_boundary_bytes":536870912,"conservative_guard_bytes":335544320},"current_block":{"action_id":"BRAIN-N104C.1D-INFRA","status":"BLOCKED_PAUSED_ARMED","resume_requires":"AUDITABLE_EXACT_RUNTIME_EXECUTION_PRIMITIVE","promotion":"DENY","layer_1":"LOCKED","staircase":"LOCKED"}}
+{
+  "contract_id": "FORENSIC_GATE_SEMANTICS_V1",
+  "contract_version": 1,
+  "status": "IMMUTABLE_ENFORCED",
+  "fsm": "ONE_CANONICAL_FORENSIC_FSM",
+  "purpose": "Prevent successor AI/Bot generations from converting local PASS into global PASS or fabricating evidence while an exact execution primitive is unavailable.",
+  "laws": {
+    "pass_is_local": true,
+    "pass_is_prerequisite_only": true,
+    "pass_inheritance": false,
+    "pass_inheritance_policy": "FORBIDDEN",
+    "unknown_is_not_pass": true,
+    "default_deny": true,
+    "historical_records_append_only": true,
+    "blocked_is_valid_forensic_state": true,
+    "blocked_is_success_state": true,
+    "blocked_state_mutation_without_required_primitive": "FORBIDDEN",
+    "proxy_evidence": "FORBIDDEN",
+    "local_substitution_for_exact_runtime": "FORBIDDEN",
+    "hypothesis_as_evidence": "FORBIDDEN"
+  },
+  "database_chain": [
+    "DB_EXISTENCE",
+    "DB_BINDING",
+    "DB_TLS_ADMISSION",
+    "DB_ROUND_TRIP",
+    "PROMOTION"
+  ],
+  "non_implication": [
+    "DB_EXISTENCE(PASS) !=> DB_BINDING(PASS)",
+    "DB_BINDING(PASS) !=> DB_TLS_ADMISSION(PASS)",
+    "DB_TLS_ADMISSION(PASS) !=> DB_ROUND_TRIP(PASS)",
+    "DB_ROUND_TRIP(PASS) !=> PROMOTION(PASS)"
+  ],
+  "transport_non_equivalence": [
+    "CODE_EXISTS != CODE_EXECUTED",
+    "CODE_EXECUTED != EXACT_RUNTIME_EVIDENCE",
+    "DEPLOYMENT_IDENTITY != RUNTIME_RECEIPT",
+    "LOCAL_CURL != EXACT_RUNTIME_EVIDENCE",
+    "PROXY_RESULT != AUTHENTIC_TRANSPORT_RECEIPT"
+  ],
+  "source_admission_chain": [
+    "SOURCE_INDEPENDENCE",
+    "NETWORK_ORIGIN_PROOF",
+    "RESULT_TRANSPORT",
+    "OFFICIAL_RESULT_PANEL",
+    "CANDIDATE",
+    "EXCEL_VS_WEB_MATCH",
+    "CANONICAL_QUORUM",
+    "TRUTH_ADMISSION"
+  ],
+  "hard_deny_states": [
+    "UNKNOWN",
+    "NOT_AVAILABLE",
+    "NOT_EXECUTED",
+    "NOT_BOUND",
+    "MISSING",
+    "MISMATCH",
+    "PROXY_ONLY",
+    "LOCAL_ONLY"
+  ],
+  "security": {
+    "corridor_key_distinct_from_room_key": true,
+    "protected_room_may_require_inner_release": true,
+    "capability_must_be_explicit": true,
+    "credential_must_not_be_stored_in_github": true,
+    "credential_must_not_be_emitted_to_logs": true
+  },
+  "successor_protocol": [
+    "read state/current_state.json",
+    "read state/next_action.json",
+    "read forensic contracts",
+    "read latest immutable action log",
+    "preserve historical DENY/BLOCKED states",
+    "execute only the recorded next action",
+    "do not invent an execution primitive",
+    "write a new immutable successor action log",
+    "update canonical state only with observed evidence"
+  ],
+  "exact_runtime_rule": {
+    "required_for_transport_receipt": true,
+    "required_for_promotion": true,
+    "execution_identity": "EXACT_CURRENT_RUNTIME",
+    "acceptable_evidence": "AUTHENTIC_TRANSPORT_RECEIPT",
+    "primitive_unavailable_action": "REMAIN_BLOCKED_AND_PRESERVE_STATE"
+  },
+  "oom": {
+    "render_free_boundary_bytes": 536870912,
+    "conservative_guard_bytes": 335544320,
+    "policy": "NEVER_TRADE_FORENSIC_INTEGRITY_FOR_MEMORY"
+  },
+  "layer_policy": {
+    "layer_1": "LOCKED",
+    "staircase": "LOCKED",
+    "foundation_can_pause_indefinitely": true,
+    "upper_layer_must_not_mask_foundation_gap": true
+  },
+  "success_definition": "The forensic workflow succeeds when truth and invariants are preserved, including the ability to remain DENY/BLOCKED indefinitely until the exact missing primitive and authentic evidence exist.",
+  "current_block": {
+    "action_id": "BRAIN-N104C.1D-INFRA",
+    "status": "BLOCKED_PAUSED_ARMED",
+    "resume_requires": "AUDITABLE_EXACT_RUNTIME_EXECUTION_PRIMITIVE",
+    "promotion": "DENY",
+    "layer_1": "LOCKED",
+    "staircase": "LOCKED"
+  }
+}
