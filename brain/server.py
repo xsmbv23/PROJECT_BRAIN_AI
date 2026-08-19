@@ -10,6 +10,7 @@ class Handler(BaseHTTPRequestHandler):
     def _send_payload(self):
         binding = classify_database_binding()
         payload = {
+            "status": 200,
             "project": "XSMB_FORENSIC",
             "component": "PROJECT_BRAIN_AI",
             "version": __version__,
@@ -20,10 +21,12 @@ class Handler(BaseHTTPRequestHandler):
             "mutation": "DENY",
             "evidence": "COMPACT_ENVELOPE_ONLY",
             "render": "READONLY_HEALTH_BOUNDARY",
+            "liveness": "LIVE",
+            "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
             "database_binding": binding["status"],
             "database_tls": binding["tls"],
         }
-        body = json.dumps(payload, ensure_ascii=False).encode()
+        body = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
