@@ -1,7 +1,8 @@
 """Fail-closed reconciliation of Brain authority against runtime evidence.
 
-This verifier does not create or mutate logical state. It only evaluates whether
-runtime evidence is consistent with the Brain state authority contract.
+Deployment IDs are operational evidence and may change without a code/state
+change. The immutable runtime identity used for reconciliation is the deployed
+commit SHA. This verifier never mutates logical state.
 """
 from __future__ import annotations
 
@@ -38,16 +39,21 @@ def reconcile(runtime_commit: str | None = None, deployment_id: str | None = Non
     runtime_known = bool(observed_runtime and observed_runtime != "UNKNOWN")
     runtime_match = bool(expected_runtime and runtime_known and observed_runtime == expected_runtime)
 
+    # Deployment IDs are not immutable identity: a redeploy can legitimately
+    # create a new ID while running the same commit. Keep them as evidence only.
     observed_deploy = deployment_id or os.environ.get("RENDER_DEPLOY_ID", "")
-    expected_deploy = state.get("promotion_runtime_deploy") or state.get("last_verified_deploy")
-    deploy_known = bool(observed_deploy)
-    deploy_match = bool(expected_deploy and deploy_known and observed_deploy == expected_deploy)
+    expected_deploy = state.get("last_verified_deploy") or state.get("promotion_runtime_deploy")
+    deploy_evidence = {
+        "known": bool(observed_deploy),
+        "expected": expected_deploy or "UNKNOWN",
+        "observed": observed_deploy or "UNKNOWN",
+        "identity_rule": "DEPLOYMENT_ID_IS_EVIDENCE_ONLY",
+    }
 
     state_mode = state.get("state_mode") or state.get("state")
     promotion = state.get("promotion")
 
-    # Runtime identity is evidence. It cannot rewrite or promote logical state.
-    consistent = authority_ok and runtime_match and deploy_match
+    consistent = authority_ok and runtime_match
     status = "VERIFIED" if consistent else "HARD_DENY"
 
     return {
@@ -57,8 +63,7 @@ def reconcile(runtime_commit: str | None = None, deployment_id: str | None = Non
         "promotion": promotion,
         "runtime_commit_known": runtime_known,
         "runtime_commit_match": runtime_match,
-        "deployment_known": deploy_known,
-        "deployment_match": deploy_match,
+        "deployment_evidence": deploy_evidence,
         "runtime_is_authority": False,
         "downstream_override_allowed": False,
         "unknown_is_not_pass": True,
