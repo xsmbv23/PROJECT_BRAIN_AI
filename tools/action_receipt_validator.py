@@ -23,8 +23,10 @@ def expected_receipt_sha(receipt: dict[str, Any]) -> str:
 
 
 def validate_action_receipt(receipt: dict[str, Any], state: dict[str, Any], runtime: dict[str, Any]) -> dict[str, Any]:
-    action_id = state.get("last_action")
-    next_action = state.get("next_action")
+    # Canonical state schema uses *_id. Legacy aliases are deliberately rejected
+    # here so a stale schema cannot silently satisfy a production evidence gate.
+    action_id = state.get("last_action_id")
+    next_action = state.get("next_action_id")
     if not action_id or not next_action:
         return {"status": "DENY", "reason": "STATE_POINTER_MISSING"}
 
