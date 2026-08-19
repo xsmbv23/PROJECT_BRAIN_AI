@@ -1,0 +1,66 @@
+{
+  "evidence_id": "N101-08687d9d-20260819T044129Z",
+  "action_id": "BRAIN-N101_ORIGIN_METADATA_PROBE",
+  "cycle_id": "08687d9ddbbc8b35d131b9db70fb9dadb9e07e0c",
+  "render_deploy_id": "dep-da2j7kjm8hqs73dq3skg",
+  "runtime_commit": "08687d9ddbbc8b35d131b9db70fb9dadb9e07e0c",
+  "observed_at_utc": "2026-08-19T04:41:29Z",
+  "mode": "DATA_ADMISSION",
+  "probe": "BRAIN-N101_ORIGIN_METADATA_PROBE",
+  "source_count": 2,
+  "receipts": [
+    {
+      "requested_url": "https://ketqua16.net",
+      "requested_host": "ketqua16.net",
+      "final_url": "https://ketqua16.net",
+      "final_host": "ketqua16.net",
+      "status_code": 200,
+      "redirect_chain": [],
+      "transfer_ms": 478.223,
+      "tls_version": "TLSv1.3",
+      "tls_cipher": "TLS_AES_256_GCM_SHA384",
+      "safe_headers": {
+        "cache-control": "no-store, no-cache, must-revalidate",
+        "content-type": "text/html; charset=UTF-8",
+        "date": "Wed, 19 Aug 2026 04:41:29 GMT",
+        "server": "cloudflare",
+        "vary": "Accept-Encoding"
+      },
+      "payload_downloaded": false,
+      "empty_probe_body_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "canonical_identity": "DENY_UNPROVEN",
+      "error_class": null
+    },
+    {
+      "requested_url": "https://xsmb.com.vn",
+      "requested_host": "xsmb.com.vn",
+      "final_url": "https://xsmb.com.vn",
+      "final_host": "xsmb.com.vn",
+      "status_code": 200,
+      "redirect_chain": [],
+      "transfer_ms": 631.724,
+      "tls_version": "TLSv1.3",
+      "tls_cipher": "TLS_AES_256_GCM_SHA384",
+      "safe_headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Wed, 19 Aug 2026 04:41:29 GMT",
+        "last-modified": "Tue, 18 Aug 2026 17:10:58 GMT",
+        "server": "cloudflare",
+        "vary": "Accept-Encoding"
+      },
+      "payload_downloaded": false,
+      "empty_probe_body_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "canonical_identity": "DENY_UNPROVEN",
+      "error_class": null
+    }
+  ],
+  "evidence_envelope_sha256": "b001788406fa50028a2118f32dc98b5ee42a7fa1915422c00ba8843b203033d0",
+  "payload_policy": "NO_DOWNLOAD_NO_PARSE_NO_SOURCE_HASH",
+  "canonical_identity": "DENY_UNPROVEN",
+  "promotion": "DENY",
+  "layer_1": "ROOM_01_DATA_ADMISSION",
+  "staircase": "LOCKED",
+  "render_memory_guard_bytes": 335544320,
+  "foundation_tracemalloc_peak_bytes": 18640355,
+  "forensic_note": "This receipt proves only the N101 origin-observation gate. It does not prove canonical source identity, source independence, source-truth payload integrity, or any downstream gate."
+}
