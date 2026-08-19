@@ -3,8 +3,8 @@
 All checks are metadata-only and subprocess-isolated. Database admission is
 classified without exposing credentials. Durable DB promotion remains a
 separate explicit gate. Room 01 runtime verification is opt-in and one-shot.
-State reconciliation is also surfaced at the admission boundary; it never
-silently converts missing projection evidence into PASS.
+State reconciliation and PASS-local gate invariants are surfaced at the
+admission boundary; missing evidence never becomes PASS by inference.
 """
 from __future__ import annotations
 
@@ -28,6 +28,7 @@ COMMANDS = (
     ("database_admission_contract", "tools/verify_database_binding_contract.py"),
     ("admission_fsm", "tools/verify_admission_fsm.py"),
     ("deterministic_replay", "tools/replay_verifier.py"),
+    ("gate_invariant", "tools/verify_gate_invariant.py"),
 )
 
 
@@ -78,7 +79,7 @@ def admission_summary(binding_status: str, network_status: str, round_trip_prove
         "network_origin_proof": "PASS" if network_pass else "NOT_PROVEN",
         "db_round_trip": "PASS" if round_trip_proven else "NOT_PROVEN",
         "promotion": "ALLOW" if (network_pass and evaluated["promotion"]) else "DENY",
-        "rule": "PASS_AT_GATE_IS_PREREQUISITE_ONLY; NEVER_INFER_DEEPER_PASS",
+        "rule": "PASS_IS_LOCAL_TO_GATE;PASS_IS_PREREQUISITE_ONLY;NO_PASS_INHERITANCE",
     }
 
 
