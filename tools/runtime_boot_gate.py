@@ -52,14 +52,7 @@ def network_admission_evidence(env: dict[str, str]) -> dict[str, object]:
 
 
 def origin_metadata_evidence() -> dict[str, object]:
-    """N101: metadata-only observation of every declared source."""
-    proc = subprocess.run(
-        [sys.executable, str(ROOT / "tools/origin_metadata_probe.py")],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        timeout=24,
-    )
+    proc = subprocess.run([sys.executable, str(ROOT / "tools/origin_metadata_probe.py")], cwd=ROOT, capture_output=True, text=True, timeout=24)
     raw = proc.stdout.strip().splitlines()
     if raw:
         try:
@@ -69,7 +62,13 @@ def origin_metadata_evidence() -> dict[str, object]:
                 return evidence
         except (ValueError, json.JSONDecodeError):
             pass
-    return {"status": "DENY_ORIGIN_METADATA", "exit_code": proc.returncode, "evidence_parse": "DENY"}
+    return {
+        "status": "DENY_ORIGIN_METADATA",
+        "exit_code": proc.returncode,
+        "evidence_parse": "DENY",
+        "stderr_class": "NON_SECRET_RUNTIME_DIAGNOSTIC",
+        "stderr_tail": proc.stderr[-1200:],
+    }
 
 
 def room01_runtime_evidence(env: dict[str, str]) -> dict[str, object]:
