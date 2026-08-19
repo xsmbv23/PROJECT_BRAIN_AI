@@ -1,0 +1,19 @@
+{
+  "action_id": "BRAIN-N104C.1R.RECONCILE",
+  "status": "PASS_TO_N104C.1_TRANSPORT_PROBE_GATE",
+  "exact_runtime_commit": "2d4415a875df3582aa26df4598f4f409c3c23027",
+  "render_deployment": "dep-da2tjk7qj5pc738ht64g",
+  "render_deployment_status": "live",
+  "repair_receipt_commit_sha": "2d4415a875df3582aa26df4598f4f409c3c23027",
+  "repair_receipt_runtime_match": true,
+  "original_receipt_commit_sha": "36a1504594d58ed516bbe3ba0d71d81326d69003",
+  "original_receipt_retroactive_validation": false,
+  "receipt_inheritance": false,
+  "boot_identity_reconcile": "PASS",
+  "transport_probe": "LOCKED",
+  "canonical_quorum": "DENY",
+  "source_truth": "DENY",
+  "layer_1": "LOCKED",
+  "staircase": "LOCKED",
+  "promotion": "DENY"
+}
