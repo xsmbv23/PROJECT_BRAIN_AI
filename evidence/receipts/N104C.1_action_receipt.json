@@ -2,12 +2,13 @@
   "action_id": "BRAIN-N104C.1",
   "commit_sha": "36a1504594d58ed516bbe3ba0d71d81326d69003",
   "evidence": {
-    "body_sha256": "2f60e1e7ec1d0aa15c431ce5ba7712a4e8a8dcd83c5b24882130f4742c209389",
+    "body_sha256": "2f60e1e7ec1d0aa15c431ce5ba7712a4e8a4dcd83c5b24882130f4742c209389",
     "http_status": 200,
     "probe_endpoint": "/health",
     "runtime_identity_proven": true
   },
   "receipt_id": "RECEIPT-BRAIN-N104C.1-EXECUTION",
+  "receipt_sha256": "74c6159bde5dc7f8dc49a4703d65d0005eef1aea2213e3ce178f449da685390b",
   "status": "PASS",
   "timestamp": "2026-08-19T14:44:30.431731211Z"
 }
