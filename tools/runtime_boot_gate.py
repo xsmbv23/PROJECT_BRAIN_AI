@@ -2,7 +2,7 @@
 
 All checks are metadata-only and subprocess-isolated. Database admission is
 classified without exposing credentials. Durable DB promotion remains a
-separate explicit gate. The external-event path is never manufactured here.
+separate explicit gate. Room 01 runtime verification is opt-in and one-shot.
 """
 from __future__ import annotations
 
@@ -34,20 +34,11 @@ def database_binding_evidence() -> dict[str, object]:
 
 
 def network_admission_evidence(env: dict[str, str]) -> dict[str, object]:
-    """Run the one-shot network probe only when explicitly armed.
-
-    Probe failure is recorded as evidence and never becomes a service outage.
-    The subprocess is forbidden from printing credentials/raw exception text.
-    """
     if env.get("FORENSIC_NETWORK_PROBE") != "1":
         return {"status": "DISABLED"}
     proc = subprocess.run(
         [sys.executable, str(ROOT / "tools/network_admission_probe.py")],
-        cwd=ROOT,
-        env=env,
-        capture_output=True,
-        text=True,
-        timeout=30,
+        cwd=ROOT, env=env, capture_output=True, text=True, timeout=30,
     )
     try:
         evidence = ast.literal_eval(proc.stdout.strip().splitlines()[-1])
@@ -59,15 +50,29 @@ def network_admission_evidence(env: dict[str, str]) -> dict[str, object]:
     return evidence
 
 
-def admission_summary(binding_status: str, network_status: str, round_trip_proven: bool = False) -> dict[str, object]:
-    """Evaluate the single admission chain with strict gate-local PASS semantics."""
-    network_pass = network_status == "PASS"
-    state = AdmissionState(
-        existence=False,
-        binding=binding_status == "BOUND_TLS",
-        tls=binding_status == "BOUND_TLS",
-        round_trip=round_trip_proven,
+def room01_runtime_evidence(env: dict[str, str]) -> dict[str, object]:
+    if env.get("FORENSIC_ROOM01_RUNTIME_VERIFY") != "1":
+        return {"status": "DISABLED"}
+    proc = subprocess.run(
+        [sys.executable, str(ROOT / "tools/runtime_room01_verify.py")],
+        cwd=ROOT, env=env, capture_output=True, text=True, timeout=45,
     )
+    if proc.returncode != 0:
+        return {"status": "DENY", "exit_code": proc.returncode, "output": proc.stdout[-2000:]}
+    try:
+        evidence = json.loads(proc.stdout.strip().splitlines()[-1])
+        if not isinstance(evidence, dict):
+            raise ValueError("non-dict")
+    except (ValueError, json.JSONDecodeError, IndexError):
+        return {"status": "DENY", "exit_code": proc.returncode, "evidence_parse": "DENY"}
+    evidence["status"] = "PASS"
+    evidence["exit_code"] = proc.returncode
+    return evidence
+
+
+def admission_summary(binding_status: str, network_status: str, round_trip_proven: bool = False) -> dict[str, object]:
+    network_pass = network_status == "PASS"
+    state = AdmissionState(existence=False, binding=binding_status == "BOUND_TLS", tls=binding_status == "BOUND_TLS", round_trip=round_trip_proven)
     evaluated = evaluate(state)
     return {
         "db_existence": "PREREQUISITE_EXTERNAL_EVIDENCE",
@@ -88,19 +93,12 @@ def main() -> int:
     env["PYTHONPATH"] = str(ROOT) + (os.pathsep + existing_pythonpath if existing_pythonpath else "")
 
     for name, relpath in COMMANDS:
-        cmd = [sys.executable, str(ROOT / relpath)]
-        proc = subprocess.run(cmd, cwd=ROOT, env=env, capture_output=True, text=True, timeout=120)
-        result = {
-            "name": name,
-            "exit_code": proc.returncode,
-            "stdout_tail": proc.stdout[-4000:],
-            "stderr_tail": proc.stderr[-2000:],
-        }
+        proc = subprocess.run([sys.executable, str(ROOT / relpath)], cwd=ROOT, env=env, capture_output=True, text=True, timeout=120)
+        result = {"name": name, "exit_code": proc.returncode, "stdout_tail": proc.stdout[-4000:], "stderr_tail": proc.stderr[-2000:]}
         results.append(result)
         if proc.returncode != 0:
             print(json.dumps({"runtime_boot_gate": "DENY", "failed": name, "results": results}, ensure_ascii=False), flush=True)
             return 1
-
         if name == "foundation":
             try:
                 report = ast.literal_eval(proc.stdout.strip().splitlines()[-1])
@@ -118,12 +116,15 @@ def main() -> int:
     results.append({"name": "database_binding_probe", "exit_code": 0, "evidence": binding})
     network = network_admission_evidence(env)
     results.append({"name": "network_admission_probe", "exit_code": int(network.get("exit_code", 0)), "evidence": network})
-    admission = admission_summary(str(binding["status"]), str(network.get("status", "DISABLED")), round_trip_proven=False)
+    room01 = room01_runtime_evidence(env)
+    results.append({"name": "room01_runtime_verify", "exit_code": int(room01.get("exit_code", 0)), "evidence": room01})
+
     print(json.dumps({
         "runtime_boot_gate": "PASS",
         "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
         "memory_guard_bytes": MEMORY_GUARD_BYTES,
-        "database_admission_chain": admission,
+        "database_admission_chain": admission_summary(str(binding["status"]), str(network.get("status", "DISABLED")), round_trip_proven=False),
+        "room01_runtime": room01,
         "external_event_path": "ISOLATED; NO_SELF_MANUFACTURED_EVENT",
         "foundation_path": "ADVANCE_ALLOWED; EXTERNAL_STATE_UNCHANGED",
         "room_02": "LOCKED",
