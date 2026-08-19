@@ -1,1 +1,27 @@
-{"action_id":"BRAIN-N104C.1D-INFRA","title":"Provide an auditable exact-runtime execution primitive for the live Render container","status":"BLOCKED_ON_EXECUTION_PRIMITIVE","phase":"SOURCE_PROVENANCE_CAPTURE","previous":"BRAIN-N106 clarified that database existence, binding, TLS admission, round-trip, and promotion are ordered gates in ONE Forensic FSM; PASS is local and only a prerequisite for the next gate","required_primitive":"Render SSH/ephemeral shell/one-off exact-runtime execution facility bound to the live deployment commit","exact_runtime_commit":"2d4415a875df3582aa86df4598f4f409c3c23027","exact_runtime_deployment":"dep-da2tjk7qj5pc738ht64g","probe":"tools/transport_probe.py","probe_source_must_remain_unchanged":true,"receipt":"compact TransportReceipt only","receipt_fields":["action_id","url","status_code","bytes_read","sha256","truncated","elapsed_ms","verdict","timestamp"],"forensic_chain":"ONE_FORENSIC_FSM","pass_semantics":"PASS_IS_LOCAL_AND_IS_ONLY_PREREQUISITE_FOR_NEXT_GATE","no_pass_inheritance":true,"constraints":["RAW_PAYLOAD_IMMUTABILITY","ADS_AND_HTML_ARE_RAW_TRANSPORT_BYTES","NO_PARSE_AT_TRANSPORT","MAX_BYTES_131072","READ_MAX_PLUS_ONE_ONLY_FOR_TRUNCATION_DETECTION","UNKNOWN_IS_NOT_PASS","NO_LOCAL_RESULT_SUBSTITUTION","NO_PROXY_EVIDENCE","NO_PASS_INHERITANCE","EACH_GATE_REQUIRES_OWN_EVIDENCE","DEFAULT_DENY","NO_SYNTHETIC_DATA","NO_GITHUB_CREDENTIALS","CANONICAL_QUORUM_LOCKED","TRUTH_ADMISSION_LOCKED","LAYER_1_LOCKED","STAIRCASE_LOCKED","RENDER_FREE_512MB_BOUNDARY","320MB_GUARD","HISTORICAL_DENY_MEANING_IMMUTABLE"],"completion_gate":"exact live runtime executes unchanged transport_probe.py and produces a valid PASS receipt cryptographically bound to the exact runtime identity; otherwise remain LOCKED/DENY"}
+{
+  "action_id":"BRAIN-N104C.1D-INFRA",
+  "title":"Provide an auditable exact-runtime execution primitive for the live Render container",
+  "status":"READY",
+  "mode":"DATA_ADMISSION",
+  "action_space":1,
+  "action":"RUNTIME_PROVENANCE_EXECUTION",
+  "promotion":"PASS_TO_ROOM_01_ONLY;CANONICAL_QUORUM_DENY",
+  "layer_1":"ROOM_01_DATA_ADMISSION",
+  "staircase":"LOCKED",
+  "phase":"SOURCE_PROVENANCE_CAPTURE",
+  "previous":"BRAIN-N106 clarified that database existence, binding, TLS admission, round-trip, and promotion are ordered gates in ONE Forensic FSM; PASS is local and only a prerequisite for the next gate",
+  "required_primitive":"Authenticated runtime endpoint invoking the unchanged transport probe inside the live Render container",
+  "exact_runtime_commit":"2d4415a875df3582aa26df4598f4f409c3c23027",
+  "exact_runtime_deployment":"dep-da2tjk7qj5pc738ht64g",
+  "probe":"tools/transport_probe.py",
+  "probe_source_must_remain_unchanged":true,
+  "execution_endpoint":"/forensic/run-transport-probe",
+  "execution_authentication":"X-Forensic-Probe-Token stored only in Render Secret Environment",
+  "receipt":"compact TransportReceipt only",
+  "receipt_fields":["action_id","url","status_code","bytes_read","sha256","truncated","elapsed_ms","verdict"],
+  "forensic_chain":"ONE_FORENSIC_FSM",
+  "pass_semantics":"PASS_IS_LOCAL_AND_IS_ONLY_PREREQUISITE_FOR_NEXT_GATE",
+  "no_pass_inheritance":true,
+  "constraints":["RAW_PAYLOAD_IMMUTABILITY","ADS_AND_HTML_ARE_RAW_TRANSPORT_BYTES","NO_PARSE_AT_TRANSPORT","MAX_BYTES_131072","READ_MAX_PLUS_ONE_ONLY_FOR_TRUNCATION_DETECTION","UNKNOWN_IS_NOT_PASS","NO_LOCAL_RESULT_SUBSTITUTION","NO_PROXY_EVIDENCE","NO_PASS_INHERITANCE","EACH_GATE_REQUIRES_OWN_EVIDENCE","DEFAULT_DENY","NO_SYNTHETIC_DATA","NO_GITHUB_CREDENTIALS","CANONICAL_QUORUM_LOCKED","TRUTH_ADMISSION_LOCKED","LAYER_1_GENERAL_UNLOCK_FORBIDDEN","STAIRCASE_LOCKED","RENDER_FREE_512MB_BOUNDARY","320MB_GUARD","HISTORICAL_DENY_MEANING_IMMUTABLE"],
+  "completion_gate":"exact live runtime executes unchanged transport_probe.py and produces a valid PASS or DENY receipt cryptographically bound to the exact runtime identity; no receipt remains NOT_PROVEN/HARD_DENY"
+}
