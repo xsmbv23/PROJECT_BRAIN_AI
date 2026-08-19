@@ -35,8 +35,8 @@
   "edge_admission": "SOURCE_AND_TARGET_AND_OBSERVABLE_EVIDENCE_REQUIRED",
   "unknown_edge": "DENY",
   "target_date": "2026-08-12",
-  "last_action_id": "BRAIN-P0-GATE-INVARIANT-HARDENING",
-  "last_action_status": "IMPLEMENTED_BOOT_ENFORCED",
+  "last_action_id": "BRAIN-N101_ORIGIN_METADATA_PROBE",
+  "last_action_status": "COMPLETE_LOCAL_GATE_CANONICAL_DENY",
   "last_verified_runtime_commit": "b4debec0d38b9749fcce39570ccb755437d4fe56",
   "last_verified_deploy": "dep-da2h8g2jnfac73dk82cg",
   "source_registry": "PASS_STRUCTURE_ONLY",
@@ -51,7 +51,7 @@
   "fresh_execution_manifest": "state/execution_identity_manifest_N099.json",
   "fresh_execution_identity_status": "REGISTERED_NOT_PROVEN",
   "capture_admission": "DENY_UNTIL_NETWORK_ORIGIN_PROOF",
-  "network_origin_observation": "REACHABLE_HTTPS_CONTENT_OBSERVED",
+  "network_origin_observation": "PASS_N101_TWO_FRESH_HTTPS_RECEIPTS",
   "network_origin_canonicality": "NOT_PROVEN",
   "redirect_identity_policy": "REQUESTED_HOST != FINAL HOST PROOF;FINAL HOST != CANONICAL SOURCE PROOF",
   "ad_policy": "ADS_ARE_NON_TRUTH_CONTENT;AD_REDIRECTS_NOT_SOURCE",
@@ -75,6 +75,7 @@
   "n098_status": "CLOSED_WITH_DENY_PREEXEC",
   "n099_status": "PASS_REGISTRATION_CAPTURE_DENIED",
   "n100_status": "CLOSED_WITH_DENY",
+  "n101_status": "PASS_LOCAL_ORIGIN_METADATA_CANONICAL_DENY",
   "ci_status": "UNKNOWN_NO_OBSERVABLE_WORKFLOW_RUN",
-  "next_action_id": "BRAIN-N101_ORIGIN_METADATA_PROBE"
+  "next_action_id": "BRAIN-N102_CANONICAL_SOURCE_IDENTITY_PROOF"
 }
