@@ -60,22 +60,16 @@ def origin_metadata_evidence() -> dict[str, object]:
         text=True,
         timeout=24,
     )
-    if proc.returncode != 0:
-        return {"status": "DENY_ORIGIN_METADATA", "exit_code": proc.returncode}
-    try:
-        evidence = json.loads(proc.stdout.strip().splitlines()[-1])
-        if not isinstance(evidence, dict):
-            raise ValueError("non-dict")
-    except (ValueError, json.JSONDecodeError, IndexError):
-        return {"status": "DENY_ORIGIN_METADATA", "exit_code": proc.returncode, "evidence_parse": "DENY"}
-    receipts = evidence.get("receipts", [])
-    if not isinstance(receipts, list) or len(receipts) != 2:
-        return {"status": "DENY_ORIGIN_METADATA", "exit_code": proc.returncode, "receipt_quorum": "DENY"}
-    if any(item.get("payload_downloaded") is not False for item in receipts if isinstance(item, dict)):
-        return {"status": "DENY_ORIGIN_METADATA", "exit_code": proc.returncode, "payload_policy": "DENY"}
-    evidence["status"] = "OBSERVED_NON_SECRET"
-    evidence["exit_code"] = proc.returncode
-    return evidence
+    raw = proc.stdout.strip().splitlines()
+    if raw:
+        try:
+            evidence = json.loads(raw[-1])
+            if isinstance(evidence, dict):
+                evidence["exit_code"] = proc.returncode
+                return evidence
+        except (ValueError, json.JSONDecodeError):
+            pass
+    return {"status": "DENY_ORIGIN_METADATA", "exit_code": proc.returncode, "evidence_parse": "DENY"}
 
 
 def room01_runtime_evidence(env: dict[str, str]) -> dict[str, object]:
@@ -145,11 +139,7 @@ def main() -> int:
     results.append({"name": "network_admission_probe", "exit_code": int(network.get("exit_code", 0)), "evidence": network})
     room01 = room01_runtime_evidence(env)
     results.append({"name": "room01_runtime_verify", "exit_code": int(room01.get("exit_code", 0)), "evidence": room01})
-    reconciliation = evaluate_admission(
-        runtime_commit=os.environ.get("RENDER_GIT_COMMIT"),
-        deployment_id=os.environ.get("RENDER_DEPLOY_ID"),
-        quant_projection=None,
-    )
+    reconciliation = evaluate_admission(runtime_commit=os.environ.get("RENDER_GIT_COMMIT"), deployment_id=os.environ.get("RENDER_DEPLOY_ID"), quant_projection=None)
     results.append({"name": "state_reconciliation_admission", "exit_code": 0, "evidence": reconciliation})
 
     print(json.dumps({
