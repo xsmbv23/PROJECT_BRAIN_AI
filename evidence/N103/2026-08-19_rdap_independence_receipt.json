@@ -1,0 +1,27 @@
+{
+  "action_id": "BRAIN-N103",
+  "probe": "rdap_independence",
+  "timestamp_utc": "2026-08-19T07:47:32.666074+00:00",
+  "targets": {
+    "ketqua16.net": {
+      "resolved_ips": [],
+      "rdap_name": null,
+      "rdap_handle": null,
+      "rdap_entities": [],
+      "raw_rdap_available": false
+    },
+    "xsmb.com.vn": {
+      "resolved_ips": [],
+      "rdap_name": null,
+      "rdap_handle": null,
+      "rdap_entities": [],
+      "raw_rdap_available": false
+    }
+  },
+  "independence_proven": false,
+  "status": "DENY_INDEPENDENCE",
+  "promotion": "DENY",
+  "canonical_quorum": "LOCKED",
+  "next_action": "BRAIN-N104_NOT_OPEN",
+  "reason": "Fresh probe could not obtain DNS resolution or RDAP evidence for either target from the execution environment. UNKNOWN_IS_NOT_PASS; no independence inference is permitted."
+}
