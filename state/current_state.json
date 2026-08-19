@@ -1,8 +1,8 @@
 {
   "project_id":"XSMB_FORENSIC",
   "repository":"xsmbv23/Project_Brain_AI",
-  "state_schema_version":"1.5",
-  "authority_protocol_version":"1.4",
+  "state_schema_version":"1.6",
+  "authority_protocol_version":"1.5",
   "foundation_state":"PROMOTED_TO_DATA_ADMISSION",
   "state_mode":"DATA_ADMISSION",
   "state":"SOURCE_PROVENANCE_CAPTURE",
@@ -21,6 +21,8 @@
   "pass_inheritance":false,
   "unknown_is_not_pass":true,
   "default_deny":true,
+  "forensic_gate_independence_doctrine":"docs/architecture/FORENSIC_GATE_INDEPENDENCE_DOCTRINE_V1.md",
+  "forensic_gate_regression_tests":"tests/test_forensic_gate_independence.py",
   "database_admission_chain":"DB_EXISTENCE->DB_BINDING->DB_TLS_ADMISSION->DB_ROUND_TRIP->PROMOTION",
   "source_admission_chain":"SOURCE_INDEPENDENCE->NETWORK_ORIGIN_PROOF->EXCEL_VS_WEB_MATCH->CANONICAL_QUORUM->TRUTH_ADMISSION",
   "security_corridor_chain":"CORRIDOR_KEY->ROOM_KEY->INNER_RELEASE_WHEN_PROTECTED",
@@ -60,5 +62,5 @@
   "n104_status":"READY",
   "n064_status":"DOCUMENTED_AND_CODED",
   "ci_status":"UNKNOWN_NO_OBSERVABLE_WORKFLOW_RUN",
-  "state_integrity_note":"Direct JSON state artifact. Transport envelopes are forbidden at the state-consistency boundary. Database and source admission chains are separate; PASS is local to its gate and never inherits across domains."
+  "state_integrity_note":"Direct JSON state artifact. Transport envelopes are forbidden at the state-consistency boundary. Database and source admission chains are separate domains within one Forensic FSM; each PASS is local evidence and never becomes global authorization or cross-domain evidence."
 }
