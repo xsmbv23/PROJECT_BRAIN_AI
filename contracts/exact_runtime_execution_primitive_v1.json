@@ -1,0 +1,17 @@
+{
+  "contract_id": "EXACT_RUNTIME_EXECUTION_PRIMITIVE_V1",
+  "purpose": "Permit a probe to execute inside the exact live Render container without changing the probe source",
+  "required_runtime_commit": "2d4415a875df3582aa26df4598f4f409c3c23027",
+  "required_deployment": "dep-da2tjk7qj5pc738ht64g",
+  "required_probe": "tools/transport_probe.py",
+  "probe_mutation": false,
+  "accepted_execution_paths": ["Render SSH ephemeral shell", "Render one-off exact-runtime shell", "equivalent auditable Render-native exact-runtime primitive"],
+  "rejected_substitutions": ["local curl", "local python execution", "proxy execution", "historical receipt", "synthetic receipt", "source modification to force PASS"],
+  "receipt_required": true,
+  "receipt_type": "TransportReceipt",
+  "receipt_must_bind_to": ["runtime commit", "deployment identity", "probe identity", "timestamp"],
+  "credential_policy": "no credentials in receipt, logs, GitHub, or chat",
+  "oom_guard_bytes": 335544320,
+  "promotion_policy": "DEFAULT_DENY_UNTIL_EXACT_RUNTIME_RECEIPT",
+  "current_status": "BLOCKED_ON_EXECUTION_PRIMITIVE"
+}
