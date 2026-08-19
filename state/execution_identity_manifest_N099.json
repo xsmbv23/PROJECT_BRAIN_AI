@@ -1,0 +1,41 @@
+{
+  "manifest_schema_version": "1.0",
+  "manifest_status": "REGISTERED_NOT_PROVEN",
+  "execution_id_policy": "SHA256_OF_CANONICAL_MANIFEST_WITHOUT_EXECUTION_ID",
+  "target_date": "2026-08-12",
+  "source_a": {
+    "identity": "ketqua16.net",
+    "requested_url": "https://ketqua16.net/",
+    "identity_status": "DECLARED_NOT_YET_PROVEN",
+    "redirect_policy": "OBSERVE_CHAIN;DO_NOT_INFER_IDENTITY"
+  },
+  "source_b": {
+    "identity": "xsmb.com.vn",
+    "requested_url": "https://xsmb.com.vn/",
+    "identity_status": "DECLARED_NOT_YET_PROVEN",
+    "redirect_policy": "OBSERVE_CHAIN;DO_NOT_INFER_IDENTITY"
+  },
+  "parser_version": "UNSET_BEFORE_CAPTURE",
+  "canonicalization_version": "DETERMINISTIC_FULL27_V1",
+  "selection_policy": "EXPLICIT_REQUESTED_PAIR_REGISTERED_AS_FRESH_EXECUTION",
+  "parent_execution": "BRAIN-N098-PREEXECUTION_GATE",
+  "historical_pair": {
+    "source_a": "Minh Ngoc",
+    "source_b": "Xo so Phonix",
+    "target_date": "2026-08-12",
+    "status": "IMMUTABLE_HISTORY_ONLY"
+  },
+  "provenance_policy": {
+    "source_identity_part_of_chain_of_custody": true,
+    "requested_host_is_not_final_host": true,
+    "final_host_is_not_canonical_source_without_proof": true,
+    "hostname_difference_is_not_independence_proof": true,
+    "ads_are_non_truth_content": true,
+    "ad_redirects_are_not_source_identity": true
+  },
+  "capture_admission": "DENY_UNTIL_NETWORK_ORIGIN_PROOF",
+  "canonical_quorum": "DENY",
+  "promotion": "DENY",
+  "layer_1": "LOCKED",
+  "staircase": "LOCKED"
+}
