@@ -2,8 +2,9 @@
 
 All checks are metadata-only and subprocess-isolated. Database admission is
 classified without exposing credentials. Durable DB promotion remains a
-separate explicit gate. Room 01 runtime verification is opt-in and one-shot.
-N101/N102/N103 observations are bounded and never treated as downstream truth.
+separate explicit gate. Room 01 and N104C.1 runtime verification are opt-in
+and one-shot. N101/N102/N103 observations are bounded and never treated as
+downstream truth.
 """
 from __future__ import annotations
 
@@ -45,15 +46,13 @@ def _run_json_tool(env: dict[str, str], filename: str, timeout: int, deny_status
 def network_admission_evidence(env: dict[str, str]) -> dict[str, object]:
     if env.get("FORENSIC_NETWORK_PROBE") != "1":
         return {"status": "DISABLED"}
-    proc = subprocess.run([sys.executable, str(ROOT / "tools/network_admission_probe.py")], cwd=ROOT, env=env, capture_output=True, text=True, timeout=30)
-    try:
-        evidence = ast.literal_eval(proc.stdout.strip().splitlines()[-1])
-        if not isinstance(evidence, dict):
-            raise ValueError("non-dict")
-    except (ValueError, SyntaxError, IndexError):
-        evidence = {"status": "DENY_NETWORK_ORIGIN", "evidence_parse": "DENY"}
-    evidence["exit_code"] = proc.returncode
-    return evidence
+    return _run_json_tool(env, "tools/network_admission_probe.py", 30, "DENY_NETWORK_ORIGIN")
+
+
+def n104c1_transport_evidence(env: dict[str, str]) -> dict[str, object]:
+    if env.get("FORENSIC_N104C1_PROBE") != "1":
+        return {"status": "DISABLED"}
+    return _run_json_tool(env, "tools/n104c1_transport_inspection.py", 45, "DENY_N104C1_TRANSPORT")
 
 
 def room01_runtime_evidence(env: dict[str, str]) -> dict[str, object]:
@@ -107,13 +106,15 @@ def main() -> int:
         {"name": "source_independence_probe", "exit_code": int(independence.get("exit_code", 0)), "evidence": independence},
     ])
     network = network_admission_evidence(env)
+    n104c1 = n104c1_transport_evidence(env)
     results.append({"name": "network_admission_probe", "exit_code": int(network.get("exit_code", 0)), "evidence": network})
+    results.append({"name": "n104c1_transport_inspection", "exit_code": int(n104c1.get("exit_code", 0)), "evidence": n104c1})
     room01 = room01_runtime_evidence(env)
     results.append({"name": "room01_runtime_verify", "exit_code": int(room01.get("exit_code", 0)), "evidence": room01})
     reconciliation = evaluate_admission(runtime_commit=os.environ.get("RENDER_GIT_COMMIT"), deployment_id=os.environ.get("RENDER_DEPLOY_ID"), quant_projection=None)
     results.append({"name": "state_reconciliation_admission", "exit_code": 0, "evidence": reconciliation})
 
-    print(json.dumps({"runtime_boot_gate": "PASS", "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"), "memory_guard_bytes": MEMORY_GUARD_BYTES, "origin_metadata": origin, "canonical_identity": canonical, "source_independence": independence, "database_admission_chain": admission_summary(str(binding["status"]), str(network.get("status", "DISABLED")), round_trip_proven=False), "state_reconciliation_admission": reconciliation, "room01_runtime": room01, "external_event_path": "ISOLATED; NO_SELF_MANUFACTURED_EVENT", "foundation_path": "ADVANCE_ALLOWED; EXTERNAL_STATE_UNCHANGED", "room_02": "LOCKED", "staircase": "LOCKED", "elapsed_seconds": round(time.time() - started, 4), "results": results}, ensure_ascii=False), flush=True)
+    print(json.dumps({"runtime_boot_gate": "PASS", "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"), "memory_guard_bytes": MEMORY_GUARD_BYTES, "origin_metadata": origin, "canonical_identity": canonical, "source_independence": independence, "database_admission_chain": admission_summary(str(binding["status"]), str(network.get("status", "DISABLED")), round_trip_proven=False), "n104c1_transport": n104c1, "state_reconciliation_admission": reconciliation, "room01_runtime": room01, "external_event_path": "ISOLATED; NO_SELF_MANUFACTURED_EVENT", "foundation_path": "ADVANCE_ALLOWED; EXTERNAL_STATE_UNCHANGED", "room_02": "LOCKED", "staircase": "LOCKED", "elapsed_seconds": round(time.time() - started, 4), "results": results}, ensure_ascii=False), flush=True)
     return 0
 
 
