@@ -1,5 +1,3 @@
-import hashlib
-import json
 import unittest
 
 from tools.action_receipt_validator import expected_receipt_sha, validate_action_receipt
@@ -11,25 +9,31 @@ class ActionReceiptValidatorTests(unittest.TestCase):
         receipt["receipt_sha256"] = expected_receipt_sha(receipt)
         return receipt
 
+    def state(self, last="N104C.1", nxt="N104C.1R"):
+        return {"last_action_id": last, "next_action_id": nxt}
+
     def test_matching_state_runtime_and_receipt_pass(self):
-        state = {"last_action": "N104C.1", "next_action": "N104C.1R"}
-        runtime = {"commit_sha": "1b337d9e"}
-        result = validate_action_receipt(self.make_receipt(), state, runtime)
+        result = validate_action_receipt(self.make_receipt(), self.state(), {"commit_sha": "1b337d9e"})
         self.assertEqual(result["status"], "PASS")
 
     def test_missing_receipt_sha_denies(self):
         receipt = self.make_receipt()
         del receipt["receipt_sha256"]
-        result = validate_action_receipt(receipt, {"last_action": "N104C.1", "next_action": "N104C.1R"}, {"commit_sha": "1b337d9e"})
+        result = validate_action_receipt(receipt, self.state(), {"commit_sha": "1b337d9e"})
         self.assertEqual(result["reason"], "RECEIPT_SHA_MISMATCH")
 
     def test_action_mismatch_denies(self):
-        result = validate_action_receipt(self.make_receipt(action="N999"), {"last_action": "N104C.1", "next_action": "N104C.1R"}, {"commit_sha": "1b337d9e"})
+        result = validate_action_receipt(self.make_receipt(action="N999"), self.state(), {"commit_sha": "1b337d9e"})
         self.assertEqual(result["reason"], "RECEIPT_ACTION_MISMATCH")
 
     def test_runtime_commit_mismatch_denies(self):
-        result = validate_action_receipt(self.make_receipt(), {"last_action": "N104C.1", "next_action": "N104C.1R"}, {"commit_sha": "different"})
+        result = validate_action_receipt(self.make_receipt(), self.state(), {"commit_sha": "different"})
         self.assertEqual(result["reason"], "RUNTIME_COMMIT_MISMATCH")
+
+    def test_legacy_pointer_names_are_not_accepted(self):
+        legacy = {"last_action": "N104C.1", "next_action": "N104C.1R"}
+        result = validate_action_receipt(self.make_receipt(), legacy, {"commit_sha": "1b337d9e"})
+        self.assertEqual(result["reason"], "STATE_POINTER_MISSING")
 
 
 if __name__ == "__main__":
