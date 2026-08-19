@@ -1,0 +1,31 @@
+{
+  "contract_id": "FORENSIC_GATE_INVARIANT_V1",
+  "priority": "P0_STATE_INTEGRITY_RECONCILIATION",
+  "rules": {
+    "PASS_IS_LOCAL_TO_GATE": true,
+    "PASS_IS_PREREQUISITE_ONLY": true,
+    "NO_PASS_INHERITANCE": true,
+    "IMPLEMENTED_IS_NOT_ADMITTED": true,
+    "ADMITTED_IS_NOT_EXECUTABLE": true,
+    "UNKNOWN_IS_NOT_PASS": true,
+    "DEFAULT_DENY": true,
+    "EVIDENCE_MUST_BE_FRESH": true,
+    "EVIDENCE_TTL_SECONDS": 300,
+    "EVIDENCE_MUST_BE_UNIQUE_PER_GATE": true,
+    "CYCLE_ID_MUST_MATCH_CURRENT_RECONCILIATION": true
+  },
+  "gate_result_schema": {
+    "required": ["gate_id", "status", "evidence_hash", "created_at", "cycle_id"],
+    "status_enum": ["PASS", "FAIL", "UNKNOWN", "UNREACHED"]
+  },
+  "execution_policy": {
+    "evaluate_direct_call": "FORBIDDEN",
+    "authorized_runner": "tools/gate_runner.py::GateRunner.run_gate"
+  },
+  "evidence_policy": {
+    "predecessor_evidence_hash_may_authorize": true,
+    "predecessor_evidence_hash_may_prove_current_gate": false,
+    "current_gate_must_emit_own_evidence": true
+  },
+  "promotion_policy": "PROMOTION_REQUIRES_LOCAL_PASS_FOR_EVERY_REQUIRED_GATE"
+}
