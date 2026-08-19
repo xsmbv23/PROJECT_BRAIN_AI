@@ -1,0 +1,17 @@
+{
+  "contract_id": "N103_SOURCE_INDEPENDENCE_V1",
+  "action_id": "BRAIN-N103_SOURCE_INDEPENDENCE_PROOF",
+  "mode": "DATA_ADMISSION",
+  "action_space": 1,
+  "depends_on": ["BRAIN-N101_ORIGIN_METADATA_PROBE", "BRAIN-N102_CANONICAL_SOURCE_IDENTITY_PROOF"],
+  "dependency_rule": "PRIOR_PASSES_ARE_PREREQUISITES_ONLY;NO_PASS_INHERITANCE",
+  "goal": "prove_or_deny that declared source A and source B have sufficiently independent origin infrastructure for forensic quorum",
+  "required_independence_signals": ["resolved_network_path_metadata", "tls_certificate_identity_metadata", "asn_or_network_owner_metadata_where_safely_observable", "server_or_edge_metadata", "fresh_cross_source_comparison"],
+  "insufficient_signals": ["different_hostname", "different_title", "different_canonical_url", "different_html_hash", "different_advertising", "HTTP_200", "TLS_success"],
+  "forbidden": ["credentials", "cookies", "bulk_archive", "source_truth_classification", "application_actions"],
+  "unknown_policy": "UNKNOWN_IS_NOT_PASS",
+  "promotion": "DENY",
+  "canonical_quorum": "DENY_UNTIL_INDEPENDENCE_PROVEN",
+  "oom_guard_bytes": 335544320,
+  "completion": "Fresh bounded cross-source infrastructure evidence is captured. Independence is PASS only if explicit proof criteria are satisfied; otherwise DENY."
+}
