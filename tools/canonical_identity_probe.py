@@ -83,16 +83,7 @@ def probe_identity(url: str, timeout: float = 8.0) -> IdentityReceipt:
     started = time.perf_counter()
 
     for _ in range(MAX_REDIRECTS + 1):
-        req = Request(
-            current,
-            method="GET",
-            headers={
-                "User-Agent": "XSMB-Forensic-CanonicalProbe/1.0",
-                "Accept": "text/html,application/xhtml+xml",
-                "Accept-Encoding": "identity",
-                "Range": f"bytes=0-{MAX_DOCUMENT_BYTES - 1}",
-            },
-        )
+        req = Request(current, method="GET", headers={"User-Agent": "XSMB-Forensic-CanonicalProbe/1.0", "Accept": "text/html,application/xhtml+xml", "Accept-Encoding": "identity", "Range": f"bytes=0-{MAX_DOCUMENT_BYTES - 1}"})
         opener = build_opener(NoRedirect())
         try:
             response = opener.open(req, timeout=timeout)
@@ -132,12 +123,12 @@ def probe_identity(url: str, timeout: float = 8.0) -> IdentityReceipt:
     site_names = _extract(text, r'<meta[^>]+(?:property|name)=["\'](?:og:site_name|application-name)["\'][^>]+content=["\']([^"\']+)')
     site_names += tuple(v for v in _extract(text, r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+(?:property|name)=["\'](?:og:site_name|application-name)["\']') if v not in site_names)
 
-    identity_hosts = {_host(url)}
+    identity_hosts = {requested_host}
     canonical_hosts = {_host(urljoin(final_url, x)) for x in canonical_links if _host(urljoin(final_url, x))}
     og_hosts = {_host(urljoin(final_url, x)) for x in og_urls if _host(urljoin(final_url, x))}
     markers = int(bool(canonical_hosts & identity_hosts)) + int(bool(og_hosts & identity_hosts))
-    if status != 200:
-        decision, reason = "DENY", "HTTP_STATUS_NOT_200"
+    if status not in {200, 206}:
+        decision, reason = "DENY", "HTTP_STATUS_NOT_200_OR_206"
     elif markers >= 2:
         decision, reason = "PASS_LOCAL", "CANONICAL_AND_OG_URL_MATCH_DECLARED_HOST"
     elif markers == 1:
@@ -145,37 +136,12 @@ def probe_identity(url: str, timeout: float = 8.0) -> IdentityReceipt:
     else:
         decision, reason = "DENY", "NO_EXPLICIT_IDENTITY_MARKER"
 
-    return IdentityReceipt(
-        requested_url=url,
-        requested_host=requested_host,
-        final_url=final_url,
-        final_host=_host(final_url),
-        status_code=status,
-        redirect_chain=tuple(chain),
-        response_bytes_observed=len(body),
-        bounded_window_sha256=hashlib.sha256(body).hexdigest(),
-        canonical_links=tuple(canonical_links),
-        og_urls=tuple(og_urls),
-        titles=titles,
-        site_names=site_names,
-        tls_version=tls_version,
-        tls_cipher=tls_cipher,
-        identity_decision=decision,
-        reason=f"{reason}; elapsed_ms={elapsed}",
-    )
+    return IdentityReceipt(requested_url=url, requested_host=requested_host, final_url=final_url, final_host=_host(final_url), status_code=status, redirect_chain=tuple(chain), response_bytes_observed=len(body), bounded_window_sha256=hashlib.sha256(body).hexdigest(), canonical_links=tuple(canonical_links), og_urls=tuple(og_urls), titles=titles, site_names=site_names, tls_version=tls_version, tls_cipher=tls_cipher, identity_decision=decision, reason=f"{reason}; elapsed_ms={elapsed}")
 
 
 def run_probe() -> dict[str, object]:
     receipts = [asdict(probe_identity(url)) for url in DECLARED_SOURCES]
-    return {
-        "probe": "BRAIN-N102_CANONICAL_SOURCE_IDENTITY_PROOF",
-        "mode": "DATA_ADMISSION",
-        "source_count": len(receipts),
-        "receipts": receipts,
-        "promotion": "DENY",
-        "independence": "NOT_PROVEN",
-        "payload_policy": "BOUNDED_METADATA_WINDOW_ONLY",
-    }
+    return {"probe": "BRAIN-N102_CANONICAL_SOURCE_IDENTITY_PROOF", "mode": "DATA_ADMISSION", "source_count": len(receipts), "receipts": receipts, "promotion": "DENY", "independence": "NOT_PROVEN", "payload_policy": "BOUNDED_METADATA_WINDOW_ONLY"}
 
 
 if __name__ == "__main__":
