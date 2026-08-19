@@ -1,0 +1,18 @@
+{
+  "action_id": "BRAIN-N104C.1R.REPAIR",
+  "commit_sha": "2d4415a875df3582aa26df4598f4f409c3c23027",
+  "parent_action": "BRAIN-N104C.1R",
+  "evidence": {
+    "repair_purpose": "fresh action-specific receipt for exact-current runtime commit",
+    "original_receipt_commit_sha": "36a1504594d58ed516bbe3ba0d71d81326d69003",
+    "original_receipt_immutable": true,
+    "original_receipt_rewritten": false,
+    "receipt_inheritance": false,
+    "runtime_commit_match": true,
+    "transport_probe": "LOCKED",
+    "promotion": "DENY"
+  },
+  "receipt_id": "RECEIPT-BRAIN-N104C.1R.REPAIR-EXECUTION",
+  "status": "PASS",
+  "timestamp": "2026-08-19T16:40:00Z"
+}
