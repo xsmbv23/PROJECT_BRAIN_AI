@@ -49,7 +49,7 @@ class SourceEvidenceCandidate:
 
 
 class _TableParser(HTMLParser):
-    """Collect table-cell text; executable/embedded content is ignored."""
+    """Collect bounded text evidence while ignoring executable/embedded content."""
 
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
@@ -84,8 +84,6 @@ class _TableParser(HTMLParser):
         if tag in {"td", "th"} and self._row is not None and self._cell is not None:
             text = " ".join("".join(self._cell).split())
             self._row.append(text)
-            if text:
-                self.text_tokens.append(text)
             self._cell = None
         elif tag == "tr" and self._table is not None and self._row is not None:
             if self._row:
@@ -99,6 +97,13 @@ class _TableParser(HTMLParser):
     def handle_data(self, data: str):
         if self._skip_depth:
             return
+        text = " ".join(data.split())
+        if not text:
+            return
+        # Keep a bounded lexical stream for the fallback selector. This is not
+        # source classification: it is only used to detect the exact ordered
+        # XSMB grade grammar below.
+        self.text_tokens.append(text)
         if self._cell is not None:
             self._cell.append(data)
 
@@ -135,7 +140,7 @@ def _candidate_from_ordered_tokens(tokens: list[str]) -> dict[str, tuple[str, ..
     """Fallback for modern markup where result cells are not enclosed in tables.
 
     Admission requires one contiguous ordered grade sequence and exact XSMB
-    cardinalities. This is still candidate-only and cannot grant canonicality.
+    cardinalities. This remains candidate-only and cannot grant canonicality.
     """
     for start, token in enumerate(tokens):
         if _canonical_grade(token) != "ĐB":
