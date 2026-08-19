@@ -51,8 +51,8 @@ def network_admission_evidence(env: dict[str, str]) -> dict[str, object]:
     return evidence
 
 
-def origin_metadata_evidence() -> dict[str, object]:
-    proc = subprocess.run([sys.executable, str(ROOT / "tools/origin_metadata_probe.py")], cwd=ROOT, capture_output=True, text=True, timeout=24)
+def origin_metadata_evidence(env: dict[str, str]) -> dict[str, object]:
+    proc = subprocess.run([sys.executable, str(ROOT / "tools/origin_metadata_probe.py")], cwd=ROOT, env=env, capture_output=True, text=True, timeout=24)
     raw = proc.stdout.strip().splitlines()
     if raw:
         try:
@@ -132,7 +132,7 @@ def main() -> int:
 
     binding = database_binding_evidence()
     results.append({"name": "database_binding_probe", "exit_code": 0, "evidence": binding})
-    origin = origin_metadata_evidence()
+    origin = origin_metadata_evidence(env)
     results.append({"name": "origin_metadata_probe", "exit_code": int(origin.get("exit_code", 0)), "evidence": origin})
     network = network_admission_evidence(env)
     results.append({"name": "network_admission_probe", "exit_code": int(network.get("exit_code", 0)), "evidence": network})
