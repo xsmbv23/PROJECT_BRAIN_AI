@@ -4,7 +4,7 @@ All checks are metadata-only and subprocess-isolated. Database admission is
 classified without exposing credentials. Durable DB promotion remains a
 separate explicit gate. Room 01 and N104C.1 runtime verification are opt-in
 and one-shot. N101/N102/N103 observations are bounded and never treated as
-downstream truth.
+downstream truth. State drift is a mandatory deny gate.
 """
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from tools.state_reconciliation_admission import evaluate_admission
 
 ROOT = Path(__file__).resolve().parents[1]
 MEMORY_GUARD_BYTES = 320 * 1024 * 1024
-COMMANDS = (("state_consistency", "tools/check_state_consistency.py"), ("foundation", "tools/verify_foundation.py"), ("access_path", "tools/verify_access_path.py"), ("database_admission_contract", "tools/verify_database_binding_contract.py"), ("admission_fsm", "tools/verify_admission_fsm.py"), ("deterministic_replay", "tools/replay_verifier.py"), ("gate_invariant", "tools/verify_gate_invariant.py"))
+COMMANDS = (("state_consistency", "tools/check_state_consistency.py"), ("state_drift", "tools/state_drift_detector.py"), ("foundation", "tools/verify_foundation.py"), ("access_path", "tools/verify_access_path.py"), ("database_admission_contract", "tools/verify_database_binding_contract.py"), ("admission_fsm", "tools/verify_admission_fsm.py"), ("deterministic_replay", "tools/replay_verifier.py"), ("gate_invariant", "tools/verify_gate_invariant.py"))
 
 
 def database_binding_evidence() -> dict[str, object]:
