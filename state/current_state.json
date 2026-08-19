@@ -57,10 +57,11 @@
   "pragmatic_ground_truth_replaces":"ONLY_ORIGINAL_NETWORK_ORIGIN_INDEPENDENCE_PROOF_STRATEGY_AT_CANONICAL_QUORUM",
   "pragmatic_ground_truth_does_not_replace":"N01-N100_DOCTRINE_OR_INDEPENDENT_GATES",
   "next_action_id":"BRAIN-N104A_SOURCE_EVIDENCE_ADAPTER",
-  "last_action_id":"BRAIN-N104_FORENSIC_FSM_ENFORCEMENT",
+  "last_action_id":"BRAIN-N105_FORENSIC_GATE_INDEPENDENCE_DOCTRINE",
   "n103_status":"CLOSED_DENY",
   "n104_status":"READY",
+  "n105_status":"CLOSED_PERSISTED",
   "n064_status":"DOCUMENTED_AND_CODED",
   "ci_status":"UNKNOWN_NO_OBSERVABLE_WORKFLOW_RUN",
-  "state_integrity_note":"Direct JSON state artifact. Transport envelopes are forbidden at the state-consistency boundary. Database and source admission chains are separate domains within one Forensic FSM; each PASS is local evidence and never becomes global authorization or cross-domain evidence."
+  "state_integrity_note":"Direct JSON state artifact. Transport envelopes are forbidden at the state-consistency boundary. Database and source admission chains are separate domains within one Forensic FSM; each PASS is local evidence and never becomes global authorization or cross-domain evidence. N105 doctrine is persisted and regression-tested; N104A remains the only next action."
 }
