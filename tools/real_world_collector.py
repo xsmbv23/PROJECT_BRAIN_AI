@@ -1,9 +1,4 @@
-"""One-shot reality collector with candidate-only admission handoff.
-
-Fetches the target source once. The same response produces transport evidence
-and, when explicitly enabled, candidate-only extraction. No canonical truth,
-quorum, normalization, prediction, or classification is performed.
-"""
+"""One-shot reality collector with candidate-only admission handoff."""
 from __future__ import annotations
 
 import hashlib
@@ -36,14 +31,7 @@ def collect() -> dict[str, object]:
     if not infos:
         raise RuntimeError("NETWORK_ORIGIN_PROOF: unresolved host")
     resolved_ip = infos[0][4][0]
-    request = Request(
-        SOURCE,
-        headers={
-            "User-Agent": "Project_Brain_AI-ForensicCollector/1.1",
-            "Accept": "text/html,application/xhtml+xml",
-        },
-        method="GET",
-    )
+    request = Request(SOURCE, headers={"User-Agent": "Project_Brain_AI-ForensicCollector/1.2", "Accept": "text/html,application/xhtml+xml"}, method="GET")
     raw_bytes = bytearray()
     response_hash = hashlib.sha256()
     tls_version = ""
@@ -60,63 +48,43 @@ def collect() -> dict[str, object]:
         final_url = response.geturl()
         while True:
             chunk = response.read(CHUNK_SIZE)
-            if not chunk:
-                break
+            if not chunk: break
             if len(raw_bytes) + len(chunk) > MAX_CAPTURE_BYTES:
                 raise RuntimeError("N104B: bounded capture exceeded 8MiB")
-            response_hash.update(chunk)
-            raw_bytes.extend(chunk)
-
+            response_hash.update(chunk); raw_bytes.extend(chunk)
     if not tls_version or not cert_hash:
         raise RuntimeError("NETWORK_ORIGIN_PROOF: TLS certificate evidence missing")
-
     raw = bytes(raw_bytes)
     sha256 = response_hash.hexdigest()
     ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
-    filename = f"ketqua16_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}_{sha256[:16]}.raw"
-    artifact = ARTIFACT_DIR / filename
+    artifact = ARTIFACT_DIR / f"ketqua16_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}_{sha256[:16]}.raw"
     artifact.write_bytes(raw)
-
     receipt: dict[str, object] = {
-        "receipt_version": "2",
-        "source": SOURCE,
-        "final_url": final_url,
-        "observed_at_utc": observed_at,
-        "http_status": status,
-        "content_type": content_type,
-        "raw_bytes": len(raw),
-        "sha256": sha256,
-        "resolved_ip": resolved_ip,
-        "tls_version": tls_version,
-        "tls_peer_certificate_sha256": cert_hash,
-        "artifact_path": str(artifact),
-        "artifact_persistence": "EPHEMERAL_RENDER_FILESYSTEM",
-        "parse_performed": False,
-        "normalization_performed": False,
-        "classification_performed": False,
-        "elapsed_seconds": round(time.time() - started, 4),
+        "receipt_version": "2", "source": SOURCE, "final_url": final_url,
+        "observed_at_utc": observed_at, "http_status": status, "content_type": content_type,
+        "raw_bytes": len(raw), "sha256": sha256, "resolved_ip": resolved_ip,
+        "tls_version": tls_version, "tls_peer_certificate_sha256": cert_hash,
+        "artifact_path": str(artifact), "artifact_persistence": "EPHEMERAL_RENDER_FILESYSTEM",
+        "parse_performed": False, "normalization_performed": False,
+        "classification_performed": False, "elapsed_seconds": round(time.time() - started, 4),
     }
-
     if os.environ.get("RUN_N104B_ADAPTER") == "1":
-        html = raw.decode("utf-8", errors="replace")
-        candidate = extract_xsmb_candidate(html, SOURCE, observed_at)
+        candidate = extract_xsmb_candidate(raw.decode("utf-8", errors="replace"), SOURCE, observed_at)
         receipt["candidate"] = {
-            "source_sha256": candidate.source_sha256,
-            "row_count": candidate.row_count,
-            "grade_rows": candidate.grade_rows,
-            "status": candidate.status,
+            "source_sha256": candidate.source_sha256, "row_count": candidate.row_count,
+            "grade_rows": candidate.grade_rows, "status": candidate.status,
+            "selector_diagnostics": candidate.selector_diagnostics,
         }
         receipt["candidate_only"] = True
         receipt["excel_web_match"] = "NOT_RUN"
         receipt["canonical_quorum"] = "DENY"
         receipt["truth_admission"] = "DENY"
-
     return receipt
 
 
 if __name__ == "__main__":
     try:
-        print(json.dumps({"collector": "KETQUA16", "status": "PASS", "receipt": collect()}, ensure_ascii=False, separators=(",", ":")), flush=True)
+        print(json.dumps({"collector":"KETQUA16","status":"PASS","receipt":collect()}, ensure_ascii=False, separators=(",", ":")), flush=True)
     except Exception as exc:
-        print(json.dumps({"collector": "KETQUA16", "status": "DENY", "error_type": type(exc).__name__, "error": str(exc), "canonical_quorum": "DENY", "truth_admission": "DENY"}, ensure_ascii=False), flush=True)
+        print(json.dumps({"collector":"KETQUA16","status":"DENY","error_type":type(exc).__name__,"error":str(exc),"canonical_quorum":"DENY","truth_admission":"DENY"}, ensure_ascii=False), flush=True)
         raise
