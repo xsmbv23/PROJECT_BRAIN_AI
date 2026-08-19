@@ -1,5 +1,6 @@
 {
   "contract_id": "STATE_AUTHORITY_CHAIN_V1",
+  "authority_protocol_version": "1.0",
   "authority": {
     "repository": "xsmbv23/Project_Brain_AI",
     "path": "state/current_state.json",
@@ -20,8 +21,15 @@
   "default_deny": true,
   "runtime_reconciliation": {
     "required": true,
-    "comparison": ["brain_state_authority_identity", "runtime_commit", "runtime_deployment"],
-    "mismatch": "HARD_DENY",
+    "immutable_runtime_identity": "DEPLOYED_COMMIT_SHA",
+    "commit_role": "AUDIT_EVIDENCE_AND_VERSION_PROOF",
+    "commit_mismatch_policy": "RECONCILE_AS_CODE_VERSION_DRIFT;_DO_NOT_TREAT_AS_LOGICAL_STATE_MUTATION",
+    "startup_hard_deny_conditions": [
+      "AUTHORITY_PROTOCOL_INCOMPATIBLE",
+      "STATE_SCHEMA_INCOMPATIBLE",
+      "UNKNOWN_REQUIRED_AUTHORITY_RULE"
+    ],
+    "deployment_id_role": "SUPPLEMENTAL_FORENSIC_EVIDENCE_ONLY",
     "runtime_is_evidence_not_authority": true
   },
   "quant_projection": {
