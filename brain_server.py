@@ -10,6 +10,11 @@ if __name__ == "__main__":
         raise SystemExit("FOUNDATION_BOOT_GATE_DENY")
     print(f"FOUNDATION_BOOT_GATE_PASS commit={os.environ.get('RENDER_GIT_COMMIT', 'UNKNOWN')}", flush=True)
 
+    if os.environ.get("RUN_N104B_CAPTURE") == "1":
+        from tools.n104b_capture import run as run_n104b_capture
+        result = run_n104b_capture()
+        print("N104B_CAPTURE_RESULT " + __import__("json").dumps(result, ensure_ascii=False, separators=(",", ":")), flush=True)
+
     # Durable DB proof is an explicit external action, never an automatic
     # privilege escalation from BOUND_TLS. A failed proof is evidence and must
     # not become a service outage or mutate the promotion state.
