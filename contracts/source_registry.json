@@ -1,0 +1,58 @@
+{
+  "registry_version": "1.0",
+  "promotion_status": "DENY",
+  "sources": [
+    {
+      "source_id": "minh_ngoc",
+      "display_name": "Minh Ngoc",
+      "endpoint_type": "historical_page",
+      "target_date": "2026-08-12",
+      "raw_preservation_policy": "required",
+      "last_verified_status": "pending",
+      "independence_status": "not_proven"
+    },
+    {
+      "source_id": "xoso_phoenix",
+      "display_name": "Xo so Phonix",
+      "endpoint_type": "daily_page",
+      "target_date": "2026-08-12",
+      "raw_preservation_policy": "required",
+      "last_verified_status": "pending",
+      "independence_status": "not_proven"
+    },
+    {
+      "source_id": "ketqua16_net",
+      "display_name": "ketqua16.net",
+      "endpoint_type": "daily_page",
+      "target_date": "2026-08-12",
+      "raw_preservation_policy": "required",
+      "last_verified_status": "pending",
+      "independence_status": "not_proven"
+    },
+    {
+      "source_id": "xsmb_com_vn",
+      "display_name": "XSMB.com.vn",
+      "endpoint_type": "daily_page",
+      "target_date": "2026-08-12",
+      "raw_preservation_policy": "required",
+      "last_verified_status": "pending",
+      "independence_status": "not_proven"
+    },
+    {
+      "source_id": "minh_ngoc_legacy",
+      "display_name": "Minh Ngoc legacy",
+      "endpoint_type": "historical_page",
+      "target_date": "2026-08-12",
+      "raw_preservation_policy": "required",
+      "last_verified_status": "pending",
+      "independence_status": "not_proven"
+    }
+  ],
+  "rules": {
+    "source_registration_is_not_source_verification": true,
+    "source_registration_is_not_quorum": true,
+    "independence_requires_observable_evidence": true,
+    "collision_requires_deny": true,
+    "credentials_in_registry": false
+  }
+}
