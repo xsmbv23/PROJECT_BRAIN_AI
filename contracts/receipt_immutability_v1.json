@@ -1,0 +1,29 @@
+{
+  "contract_id": "RECEIPT_IMMUTABILITY_V1",
+  "scope": "FUTURE_PREDICTION_REPORTING",
+  "status": "INACTIVE_UNTIL_REPORTING_LAYER",
+  "prediction_receipt": {
+    "must_exist_before_result_receipt": true,
+    "must_be_persisted_before_cutoff": "18:15",
+    "must_be_content_addressed": true,
+    "hash_algorithm": "SHA-256",
+    "required_fields": [
+      "receipt_id",
+      "prediction_id",
+      "source_evidence_hash",
+      "prediction_timestamp",
+      "model_or_rule_identity",
+      "input_fingerprint",
+      "decision_hash"
+    ],
+    "mutation_after_commit": "FORBIDDEN"
+  },
+  "result_receipt": {
+    "requires_matching_prediction_receipt": true,
+    "requires_fresh_observation": true,
+    "must_not_overwrite_prediction_receipt": true
+  },
+  "anti_fake_rule": "A report without a persisted immutable prediction receipt is NOT a prediction receipt and MUST NOT be presented as one.",
+  "unknown_policy": "DENY",
+  "successor_rule": "Implement runtime enforcement before enabling reporting; documentation alone never grants receipt validity."
+}
