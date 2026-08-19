@@ -1,0 +1,18 @@
+{
+  "contract_id": "SOURCE_TRANSPORT_ADMISSION_V1",
+  "action_id": "BRAIN-N104C",
+  "purpose": "Identify the result transport before candidate admission",
+  "allowed_transport_states": ["RAW_HTML_RESULT", "EMBEDDED_JSON", "SECONDARY_TRANSPORT_PROVEN"],
+  "hint_state": "SECONDARY_TRANSPORT_HINT",
+  "deny_state": "NO_RESULT_TRANSPORT_PROVEN",
+  "candidate_rule": "transport evidence alone never creates a candidate",
+  "candidate_source": "official_result_panel_only",
+  "excel_match": "blocked_until_candidate_exists",
+  "canonical_quorum": "blocked_until_excel_web_match",
+  "truth_admission": "blocked_until_canonical_quorum",
+  "network_policy": "collector_layer_only",
+  "brain_policy": "no_network_access_for_classifier",
+  "mutation": "DENY",
+  "unknown": "NOT_PASS",
+  "forensic_rule": "CAPTURE_PROVEN != CONTENT_PROVEN != CANDIDATE_PROVEN"
+}
