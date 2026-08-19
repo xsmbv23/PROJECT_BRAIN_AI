@@ -12,6 +12,7 @@ from pathlib import Path
 
 EXPECTED = (1, 1, 2, 6, 4, 6, 3, 4)
 TOTAL = sum(EXPECTED)
+DOMAIN_LENGTHS = [5] * 10 + [4] * 10 + [3] * 3 + [2] * 4
 
 
 def _sha(payload: dict) -> str:
@@ -23,12 +24,13 @@ def admit_manifest(manifest: dict) -> dict:
     prizes = [str(x) for x in manifest.get("source_prizes", [])]
     lengths = [int(x) for x in manifest.get("semantic_lengths", [])]
     draw_date = manifest.get("source_row_date")
+    source_count = int(manifest.get("source_count", 0))
 
     if manifest.get("fixture_status") != "VERIFICATION_ONLY":
         raise ValueError("ROOM01_SOURCE_STATUS_DENY")
     if len(prizes) != TOTAL:
         raise ValueError("ROOM01_CARDINALITY_DENY")
-    if lengths != [5] * 10 + [4] * 10 + [3] * 3 + [2] * 4:
+    if lengths != DOMAIN_LENGTHS:
         raise ValueError("ROOM01_DOMAIN_LENGTH_DENY")
     if not isinstance(draw_date, str):
         raise ValueError("ROOM01_DATE_DENY")
@@ -42,6 +44,7 @@ def admit_manifest(manifest: dict) -> dict:
 
     tails = [p[-2:] for p in prizes]
     receipt = {
+        "receipt_version": "ROOM01-DATA-ADMISSION-V1",
         "room": "ROOM_01_DATA_ADMISSION",
         "admission": "PASS",
         "fixture_id": manifest.get("fixture_id"),
@@ -54,9 +57,14 @@ def admit_manifest(manifest: dict) -> dict:
         "tail27": tails,
         "tail_derivation": "source_prize[-2:]",
         "missing_day_policy": "UNKNOWN_GAP;NEVER_INFER_NON_DRAW",
-        "canonical_eligibility": "DENY_QUORUM_LT_2" if int(manifest.get("source_count", 0)) < 2 else "ELIGIBLE_PENDING_RECONCILIATION",
+        "source_count": source_count,
+        "quorum_required": 2,
+        "canonical_eligibility": "DENY_QUORUM_LT_2" if source_count < 2 else "ELIGIBLE_PENDING_RECONCILIATION",
         "research_admission": "LOCKED",
+        "evidence_analysis": "LOCKED",
+        "reporting": "LOCKED",
         "staircase": "LOCKED",
+        "forensic": "INVARIANT",
     }
     receipt["receipt_sha256"] = _sha(receipt)
     return receipt
