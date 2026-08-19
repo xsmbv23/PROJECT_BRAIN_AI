@@ -6,7 +6,17 @@ This document freezes the meaning and interaction of forensic states so successo
 
 ## One FSM, not multiple forensic systems
 
-All admission states belong to one forensic state machine.
+All admission states belong to one forensic state machine. The database chain and source-data chain are related admission paths inside the same governance model; they are not separate forensic systems.
+
+A gate may expose PASS/FAIL/UNKNOWN, but each PASS is **local to that gate**.
+
+```text
+PASS_IS_LOCAL_TO_GATE
+PASS(G1) != PASS(G2)
+PASS(G1) is only a prerequisite for evaluating G2
+```
+
+## Database admission chain
 
 ```text
 DB_EXISTENCE
@@ -20,50 +30,99 @@ DB_TLS_ADMISSION
     v
 DB_ROUND_TRIP
     |
+    | WRITE -> READ -> REHASH -> MATCH
     v
 PROMOTION
 ```
 
-A gate may expose PASS/FAIL/UNKNOWN, but each PASS is **local to that gate**.
+Meaning:
 
-## Non-inheritance rule
+- `DB_EXISTENCE=PASS` proves only that the database resource exists.
+- `DB_BINDING=PASS` proves only that the service has an explicit runtime binding.
+- `DB_TLS_ADMISSION=PASS` proves only that the binding satisfies the TLS contract.
+- `DB_ROUND_TRIP=PASS` proves an actual compact write/read/re-hash/match event.
+- `PROMOTION=PASS` is a separate authorization decision requiring fresh evidence.
 
-```text
-PASS(G1) != PASS(G2)
-PASS(G1) is only a prerequisite for evaluating G2
-```
-
-No gate may promote another gate by implication.
-
-Examples:
+Therefore:
 
 ```text
 DB_EXISTS = PASS
-    !=
-DB_AUTHORIZED = PASS
-```
+    != DB_BINDING = PASS
 
-```text
+DB_BINDING = PASS
+    != DB_TLS_ADMISSION = PASS
+
 DB_TLS_ADMISSION = PASS
-    !=
+    != DB_ROUND_TRIP = PASS
+
 DB_ROUND_TRIP = PASS
+    != DOMAIN_TRUTH = PASS
 ```
+
+## Source-data admission chain
 
 ```text
-ROUND_TRIP = PASS
-    !=
-DOMAIN_TRUTH = PASS
+SOURCE_REGISTRY
+    |
+    v
+NETWORK_ORIGIN_PROOF
+    |
+    v
+RAW_CAPTURE
+    |
+    v
+L3 MULTI-SOURCE RECONCILIATION
+    |
+    v
+L4 STABILITY / DRIFT
+    |
+    v
+CANONICAL_DATASET
+    |
+    v
+FEATURE -> EDGE -> EV -> P&L/ROI admission
 ```
 
-## Evidence hierarchy
+The source chain follows the same non-inheritance rule:
 
-1. **Existence evidence** proves that a resource exists.
-2. **Binding evidence** proves that the service has an explicit binding.
-3. **TLS admission evidence** proves the binding satisfies the security contract.
-4. **Round-trip evidence** proves an actual compact write/read/hash-match event.
-5. **Promotion evidence** proves the system is authorized to promote the resulting evidence into the next architectural state.
+```text
+NETWORK_REACHABLE
+    != CANONICAL_SOURCE_PROVEN
 
-Each layer requires its own evidence.
+CANONICAL_SOURCE_PROVEN
+    != RAW_SOURCE_TRUTH_ADMITTED
+
+RAW_CAPTURE
+    != CANONICAL_DATASET
+
+CANONICAL_DATASET
+    != FEATURE_ADMITTED
+
+FEATURE_IMPLEMENTED
+    != FEATURE_ADMITTED
+
+EDGE_IMPLEMENTED
+    != EDGE_ADMITTED
+
+EV_IMPLEMENTED
+    != EV_ADMITTED
+
+ANY_CODE_EXISTS
+    != EXECUTABLE_AUTHORITY
+```
+
+## Code-state doctrine
+
+The following are deliberately distinct:
+
+```text
+IMPLEMENTED
+ADMITTED
+AUTHORIZED
+EXECUTABLE
+```
+
+A module may be implemented and still be forbidden to execute because its upstream evidence gate is DENY.
 
 ## Waiting is a valid forensic state
 
@@ -82,7 +141,26 @@ The system must not:
 - substitute a different runtime for the requested runtime;
 - treat an absent execution as a PASS;
 - overwrite earlier failures;
-- infer domain truth from one receipt.
+- infer domain truth from one receipt;
+- use a downstream PASS to retroactively satisfy an upstream gate.
+
+## Advertisement and redirect boundary
+
+Advertisements, promotional links, prediction pages, forums, affiliate destinations, navigation links, and redirect targets are outside the source-truth boundary unless a dedicated contract explicitly admits them.
+
+```text
+AD_PRESENT_ON_SOURCE_PAGE
+    != SOURCE_TRUTH
+
+REDIRECT_TARGET
+    != CANONICAL_SOURCE_IDENTITY
+
+FINAL_HOST
+    != CANONICAL_IDENTITY_WITHOUT_PROOF
+
+HOSTNAME_DIFFERENCE
+    != INDEPENDENCE_PROOF
+```
 
 ## N011 doctrine
 
