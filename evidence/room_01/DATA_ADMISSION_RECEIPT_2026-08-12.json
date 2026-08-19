@@ -20,5 +20,5 @@
   "reporting": "LOCKED",
   "staircase": "LOCKED",
   "forensic": "INVARIANT",
-  "receipt_sha256": "PENDING_DETERMINISTIC_HASH_OF_THIS_RECEIPT_EXCLUDING_receipt_sha256"
+  "receipt_sha256": "ed52d57f9e2b307a679b4fb0fbcc4088c40592e9a66bf786fcec69a97941f468"
 }
