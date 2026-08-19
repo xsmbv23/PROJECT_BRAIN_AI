@@ -7,12 +7,15 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import ssl
 import time
 from dataclasses import asdict, dataclass
 from http.client import HTTPResponse
 from urllib.parse import urlsplit
 from urllib.request import Request, build_opener, HTTPRedirectHandler
+
+from tools.evidence_envelope import build_envelope
 
 DECLARED_SOURCES = (
     "https://ketqua16.net",
@@ -110,8 +113,6 @@ def probe_origin(url: str, timeout: float = 8.0) -> OriginReceipt:
         except Exception:
             pass
 
-    # This is NOT a source hash. It is the fixed digest proving that the probe
-    # downloaded zero source bytes.
     empty_probe_body_sha256 = hashlib.sha256(b"").hexdigest()
     return OriginReceipt(
         requested_url=url,
@@ -132,11 +133,18 @@ def probe_origin(url: str, timeout: float = 8.0) -> OriginReceipt:
 
 def run_probe() -> dict[str, object]:
     receipts = [asdict(probe_origin(url)) for url in DECLARED_SOURCES]
+    cycle_id = os.environ.get("RENDER_DEPLOY_ID", "LOCAL-N101")
+    envelope = build_envelope(
+        action_id="BRAIN-N101_ORIGIN_METADATA_PROBE",
+        cycle_id=cycle_id,
+        receipts=receipts,
+    )
     return {
         "probe": "BRAIN-N101_ORIGIN_METADATA_PROBE",
         "mode": "DATA_ADMISSION",
         "source_count": len(receipts),
         "receipts": receipts,
+        "evidence_envelope": envelope,
         "canonical_identity": "DENY_UNPROVEN",
         "payload_policy": "NO_DOWNLOAD_NO_PARSE_NO_SOURCE_HASH",
     }
