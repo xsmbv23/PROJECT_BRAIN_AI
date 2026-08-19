@@ -1,15 +1,25 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import os
+import secrets
 
 from brain import __version__
 from tools.binding_probe import classify_database_binding
+from tools.transport_probe import run_probe
 
 
 class Handler(BaseHTTPRequestHandler):
+    def _json(self, status: int, payload: dict):
+        body = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def _send_payload(self):
         binding = classify_database_binding()
-        payload = {
+        self._json(200, {
             "status": 200,
             "project": "XSMB_FORENSIC",
             "component": "PROJECT_BRAIN_AI",
@@ -25,28 +35,33 @@ class Handler(BaseHTTPRequestHandler):
             "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
             "database_binding": binding["status"],
             "database_tls": binding["tls"],
-        }
-        body = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        return body
+        })
+
+    def _probe_authorized(self) -> bool:
+        expected = os.environ.get("FORENSIC_PROBE_TOKEN", "")
+        supplied = self.headers.get("X-Forensic-Probe-Token", "")
+        return bool(expected) and secrets.compare_digest(supplied, expected)
 
     def do_GET(self):
-        if self.path not in ("/", "/health", "/governance"):
-            self.send_response(404)
-            self.end_headers()
+        if self.path in ("/", "/health", "/governance"):
+            self._send_payload()
             return
-        body = self._send_payload()
-        self.wfile.write(body)
+        if self.path == "/forensic/run-transport-probe":
+            if not self._probe_authorized():
+                self._json(403, {"status": 403, "verdict": "DENY_AUTHORIZATION"})
+                return
+            receipt = run_probe()
+            payload = {"status": 200, "execution": "IN_CONTAINER", "receipt": receipt.__dict__}
+            self._json(200, payload)
+            return
+        self._json(404, {"status": 404, "verdict": "NOT_FOUND"})
 
     def do_HEAD(self):
-        if self.path not in ("/", "/health", "/governance"):
-            self.send_response(404)
-            self.end_headers()
+        if self.path in ("/", "/health", "/governance"):
+            self._send_payload()
             return
-        self._send_payload()
+        self.send_response(404)
+        self.end_headers()
 
     def log_message(self, *_args):
         return
