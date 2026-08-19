@@ -14,6 +14,7 @@ GRADE_ALIASES = {
     "GIẢI NĂM": "G5", "GIẢI SÁU": "G6", "GIẢI BẢY": "G7",
 }
 NUMBER_RE = re.compile(r"^\d{2,5}$")
+LEXICAL_RE = re.compile(r"ĐẶC\s+BIỆT|GIẢI\s+ĐẶC\s+BIỆT|GIẢI\s+NHẤT|GIẢI\s+NHÌ|GIẢI\s+BA|GIẢI\s+TƯ|GIẢI\s+NĂM|GIẢI\s+SÁU|GIẢI\s+BẢY|\d{2,5}", re.I)
 
 
 @dataclass(frozen=True)
@@ -43,10 +44,8 @@ class _TableParser(HTMLParser):
     def handle_starttag(self, tag: str, attrs):
         tag = tag.lower()
         if tag in {"script", "style", "noscript", "iframe"}:
-            self._skip_depth += 1
-            return
-        if self._skip_depth:
-            return
+            self._skip_depth += 1; return
+        if self._skip_depth: return
         if tag == "table": self._table = []
         elif tag == "tr" and self._table is not None: self._row = []
         elif tag in {"td", "th"} and self._row is not None: self._cell = []
@@ -54,13 +53,10 @@ class _TableParser(HTMLParser):
     def handle_endtag(self, tag: str):
         tag = tag.lower()
         if tag in {"script", "style", "noscript", "iframe"}:
-            self._skip_depth = max(0, self._skip_depth - 1)
-            return
+            self._skip_depth = max(0, self._skip_depth - 1); return
         if self._skip_depth: return
         if tag in {"td", "th"} and self._row is not None and self._cell is not None:
-            text = " ".join("".join(self._cell).split())
-            self._row.append(text)
-            self._cell = None
+            self._row.append(" ".join("".join(self._cell).split())); self._cell = None
         elif tag == "tr" and self._table is not None and self._row is not None:
             if self._row: self._table.append(self._row)
             self._row = None
@@ -70,10 +66,8 @@ class _TableParser(HTMLParser):
 
     def handle_data(self, data: str):
         if self._skip_depth: return
-        text = " ".join(data.split())
-        if not text: return
-        self.text_tokens.append(text)
         if self._cell is not None: self._cell.append(data)
+        self.text_tokens.extend(match.upper() for match in LEXICAL_RE.findall(data))
 
 
 def _canonical_grade(label: str) -> str | None:
@@ -92,18 +86,15 @@ def _candidate_from_table(table: list[list[str]]) -> dict[str, tuple[str, ...]] 
         if not cells: continue
         grade = _canonical_grade(cells[0])
         if grade is None: continue
-        numbers = tuple(cell for cell in cells[1:] if NUMBER_RE.fullmatch(cell))
+        numbers = tuple(n for cell in cells[1:] for n in re.findall(r"\d{2,5}", cell))
         if not numbers: continue
         rows.setdefault(grade, numbers)
     return rows if _validate_counts(rows) else None
 
 
 def _candidate_from_ordered_tokens(tokens: list[str]) -> tuple[dict[str, tuple[str, ...]] | None, dict[str, object]]:
-    grade_hits: list[tuple[int, str]] = []
-    for i, token in enumerate(tokens):
-        grade = _canonical_grade(token)
-        if grade is not None:
-            grade_hits.append((i, grade))
+    grade_hits = [(i, _canonical_grade(t)) for i, t in enumerate(tokens)]
+    grade_hits = [(i, g) for i, g in grade_hits if g is not None]
     diagnostics: dict[str, object] = {
         "grade_token_counts": {grade: sum(1 for _, g in grade_hits if g == grade) for grade in ALLOWED_GRADES},
         "ordered_sequence_candidates": 0,
@@ -125,22 +116,17 @@ def _candidate_from_ordered_tokens(tokens: list[str]) -> tuple[dict[str, tuple[s
                 if len(nums) > EXPECTED_COUNTS[grade]: valid = False; break
             if not valid or len(nums) != EXPECTED_COUNTS[grade]: valid = False; break
             rows[grade] = tuple(nums)
-        if valid and _validate_counts(rows):
-            return rows, diagnostics
+        if valid and _validate_counts(rows): return rows, diagnostics
     return None, diagnostics
 
 
 def extract_xsmb_candidate(html: str, source_url: str, capture_timestamp_utc: str) -> SourceEvidenceCandidate:
-    parser = _TableParser()
-    parser.feed(html); parser.close()
-    selected = None
-    diagnostics: dict[str, object] = {}
+    parser = _TableParser(); parser.feed(html); parser.close()
+    selected = None; diagnostics: dict[str, object] = {}
     for table in parser.tables:
         candidate = _candidate_from_table(table)
-        if candidate is not None:
-            selected = candidate; break
-    if selected is None:
-        selected, diagnostics = _candidate_from_ordered_tokens(parser.text_tokens)
+        if candidate is not None: selected = candidate; break
+    if selected is None: selected, diagnostics = _candidate_from_ordered_tokens(parser.text_tokens)
     source_sha256 = hashlib.sha256(html.encode("utf-8")).hexdigest()
     if selected is None:
         return SourceEvidenceCandidate(source_url, source_sha256, capture_timestamp_utc, {}, 0, "NO_RESULT_TABLE_CANDIDATE", diagnostics)
