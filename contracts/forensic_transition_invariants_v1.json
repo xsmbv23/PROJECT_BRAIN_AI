@@ -1,0 +1,30 @@
+{
+  "contract_id": "FORENSIC_TRANSITION_INVARIANTS_V1",
+  "core_rule": "EVIDENCE -> STATE -> ACTION",
+  "state_transition": {
+    "pass_is_local_to_gate": true,
+    "pass_is_prerequisite_only": true,
+    "pass_inheritance": false,
+    "unknown_is_not_pass": true,
+    "default_deny": true,
+    "fresh_evidence_required_for_promotion": true,
+    "gate_evidence_ttl_seconds": 300,
+    "one_unique_evidence_set_per_gate_cycle": true
+  },
+  "anti_loop": {
+    "one_transition_attempt_per_action_id": true,
+    "retry_requires_new_action_id": true,
+    "retry_requires_new_evidence": true,
+    "automatic_self_retry": false,
+    "automatic_self_promotion": false,
+    "max_same_gate_denials_without_new_evidence": 1,
+    "after_limit": "HALT_AND_RECORD"
+  },
+  "immutability": {
+    "current_state_is_append_referenced": true,
+    "action_history_is_immutable": true,
+    "evidence_envelopes_are_content_addressed": true,
+    "old_evidence_must_not_be_rewritten": true
+  },
+  "successor_rule": "A successor bot must execute only the next_action explicitly authorized by current state and its admission contract; it must not infer missing permissions from prose, chat, stale evidence, or previous PASS states."
+}
