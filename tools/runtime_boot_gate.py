@@ -1,11 +1,10 @@
 """Run lightweight foundation verifiers before Brain serves traffic.
 
-All checks are metadata-only and subprocess-isolated. Database admission is
-classified without exposing credentials. Durable DB promotion remains a
-separate explicit gate. Room 01 and N104C.1 runtime verification are opt-in
-and one-shot. N101/N102/N103 observations are bounded and never treated as
-downstream truth. State drift and action-receipt validation are mandatory deny
-gates.
+Boot/liveness and forensic admission are deliberately different gates.
+A missing historical action receipt must block promotion/transport, but must
+not make the HTTP service unavailable. This lets the exact-current runtime
+be observed so the missing evidence can be diagnosed without manufacturing it.
+All checks are metadata-only and subprocess-isolated.
 """
 from __future__ import annotations
 
@@ -75,14 +74,25 @@ def main() -> int:
     env = os.environ.copy()
     existing_pythonpath = env.get("PYTHONPATH", "")
     env["PYTHONPATH"] = str(ROOT) + (os.pathsep + existing_pythonpath if existing_pythonpath else "")
+    admission_denials: list[str] = []
 
     for name, relpath in COMMANDS:
         proc = subprocess.run([sys.executable, str(ROOT / relpath)], cwd=ROOT, env=env, capture_output=True, text=True, timeout=120)
         result = {"name": name, "exit_code": proc.returncode, "stdout_tail": proc.stdout[-4000:], "stderr_tail": proc.stderr[-2000:]}
         results.append(result)
+
+        # Action receipts are an admission gate, not a service-liveness gate.
+        # Missing/invalid historical evidence must remain DENY and must never
+        # be manufactured just to make Render boot green.
+        if proc.returncode != 0 and name == "action_receipt":
+            admission_denials.append("ACTION_RECEIPT")
+            result["gate_role"] = "ADMISSION_DENY_ONLY"
+            continue
+
         if proc.returncode != 0:
             print(json.dumps({"runtime_boot_gate": "DENY", "failed": name, "results": results}, ensure_ascii=False), flush=True)
             return 1
+
         if name == "foundation":
             try:
                 report = ast.literal_eval(proc.stdout.strip().splitlines()[-1])
@@ -115,7 +125,27 @@ def main() -> int:
     reconciliation = evaluate_admission(runtime_commit=os.environ.get("RENDER_GIT_COMMIT"), deployment_id=os.environ.get("RENDER_DEPLOY_ID"), quant_projection=None)
     results.append({"name": "state_reconciliation_admission", "exit_code": 0, "evidence": reconciliation})
 
-    print(json.dumps({"runtime_boot_gate": "PASS", "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"), "memory_guard_bytes": MEMORY_GUARD_BYTES, "origin_metadata": origin, "canonical_identity": canonical, "source_independence": independence, "database_admission_chain": admission_summary(str(binding["status"]), str(network.get("status", "DISABLED")), round_trip_proven=False), "n104c1_transport": n104c1, "state_reconciliation_admission": reconciliation, "room01_runtime": room01, "external_event_path": "ISOLATED; NO_SELF_MANUFACTURED_EVENT", "foundation_path": "ADVANCE_ALLOWED; EXTERNAL_STATE_UNCHANGED", "room_02": "LOCKED", "staircase": "LOCKED", "elapsed_seconds": round(time.time() - started, 4), "results": results}, ensure_ascii=False), flush=True)
+    admission_status = "DENY" if admission_denials else "PASS"
+    print(json.dumps({
+        "runtime_boot_gate": "PASS",
+        "admission_gate": admission_status,
+        "admission_denials": admission_denials,
+        "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
+        "memory_guard_bytes": MEMORY_GUARD_BYTES,
+        "origin_metadata": origin,
+        "canonical_identity": canonical,
+        "source_independence": independence,
+        "database_admission_chain": admission_summary(str(binding["status"]), str(network.get("status", "DISABLED")), round_trip_proven=False),
+        "n104c1_transport": n104c1,
+        "state_reconciliation_admission": reconciliation,
+        "room01_runtime": room01,
+        "external_event_path": "ISOLATED; NO_SELF_MANUFACTURED_EVENT",
+        "foundation_path": "ADVANCE_ALLOWED; EXTERNAL_STATE_UNCHANGED",
+        "room_02": "LOCKED",
+        "staircase": "LOCKED",
+        "elapsed_seconds": round(time.time() - started, 4),
+        "results": results,
+    }, ensure_ascii=False), flush=True)
     return 0
 
 
