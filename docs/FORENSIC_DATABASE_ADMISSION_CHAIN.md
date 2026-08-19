@@ -9,6 +9,7 @@ A PASS at an earlier gate is only a prerequisite for evaluating the next gate. *
 > UNKNOWN_IS_NOT_PASS
 > DEFAULT_DENY
 > NO_INFERENCE_ACROSS_GATES
+> ONE_FORENSIC_FSM
 
 ## Chain
 
@@ -101,6 +102,86 @@ DB_ROUND_TRIP MATCH
 
 A failure/unknown at any stage terminates admission and does not contaminate earlier observations.
 
+## Why the states are not two separate Forensic systems
+
+The phrases `DATABASE EXISTS` and `SERVICE IS BOUND` describe different questions inside the same admission chain:
+
+```text
+Question A: Is the resource real?
+Question B: Does this service possess an admitted key?
+Question C: Is that key transport-safe?
+Question D: Is the exact-current route proven?
+Question E: Did the durable forensic round-trip really happen?
+Question F: Is promotion therefore allowed?
+```
+
+They must remain separate because each is independently observable. They interact strictly through **permission to evaluate the next gate**, not by state inheritance.
+
+Therefore this is valid:
+
+```text
+DB_EXISTENCE = PASS
+DB_BINDING = NOT_BOUND
+DB_TLS_ADMISSION = NOT_EVALUATED
+DB_ROUND_TRIP = NOT_PROVEN
+PROMOTION = DENY
+```
+
+It is not contradictory. It means:
+
+> The room exists, but the service does not possess an admitted key, so downstream doors are intentionally not evaluated.
+
+## Separation from Ground Truth data admission
+
+The practical web-data path is a different evidence domain, but it belongs to the same overall Forensic FSM. It must not be merged into the DB admission chain.
+
+```text
+DATA CONTENT DOMAIN
+
+Excel Ground Truth
+        |
+        +---- Web scraper
+        |
+        v
+EXCEL_VS_WEB_GATE
+        |
+     MATCH?
+      /   \
+    YES    NO
+     |      |
+   PASS    HARD DENY
+     |
+ Canonical Data
+```
+
+The Ground Truth gate answers:
+
+> Are the scraped results consistent with the declared content anchor?
+
+The DB admission chain answers:
+
+> Is the infrastructure authorized and proven to persist forensic evidence?
+
+Therefore:
+
+```text
+GROUND_TRUTH_PASS
+    !=
+DATABASE_PROMOTION
+```
+
+and:
+
+```text
+DATABASE_PROMOTION
+    !=
+GROUND_TRUTH_PASS
+```
+
+Both evidence domains must remain independently observable.
+
+The pragmatic Ground-Truth direction is intentional: the old RDAP/ASN hardening path is not to be resurrected merely because it is theoretically stronger. The system's goal is trustworthy usable data, not endless infrastructure verification. fileciteturn757file5L351-L370
+
 ## Exact-current truth priority
 
 ```text
@@ -182,19 +263,22 @@ Each transition requires its own observable evidence.
 
 1. `UNKNOWN_IS_NOT_PASS`.
 2. `DEFAULT_DENY`.
-3. No credential is stored in GitHub.
-4. No credential is emitted in logs or evidence envelopes.
-5. `psycopg` remains outside Brain `core/`.
-6. Compact metadata only for admission probes.
-7. Real write/read/hash evidence is required for durable round-trip PASS.
-8. Layer 1 remains locked until the foundation promotion gate is explicitly satisfied.
-9. The successor action log is authoritative for continuation.
-10. A database resource's existence is never treated as an authorization grant.
-11. A successful binding is never treated as proof of TLS admission.
-12. TLS admission is never treated as proof of network reachability.
-13. Network reachability is never treated as proof of durable evidence persistence.
-14. Exact-current evidence outranks historical deployment descriptions.
-15. A waiting safety state permits documentation/observation only; it does not authorize operational mutation.
+3. `NO_INFERENCE_ACROSS_GATES`.
+4. `ONE_FORENSIC_FSM`.
+5. No credential is stored in GitHub.
+6. No credential is emitted in logs or evidence envelopes.
+7. `psycopg` remains outside Brain `core/`.
+8. Compact metadata only for admission probes.
+9. Real write/read/hash evidence is required for durable round-trip PASS.
+10. Layer 1 remains locked until the foundation promotion gate is explicitly satisfied.
+11. The successor action log is authoritative for continuation.
+12. A database resource's existence is never treated as an authorization grant.
+13. A successful binding is never treated as proof of TLS admission.
+14. TLS admission is never treated as proof of network reachability.
+15. Network reachability is never treated as proof of durable evidence persistence.
+16. Exact-current evidence outranks historical deployment descriptions.
+17. A waiting safety state permits documentation/observation only; it does not authorize operational mutation.
+18. Ground Truth content validation and database admission remain separate evidence domains.
 
 ## Successor instruction
 
