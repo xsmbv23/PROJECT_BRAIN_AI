@@ -83,6 +83,81 @@ DB_ROUND_TRIP = PASS
 
 A gate may only be marked PASS by evidence belonging to that gate.
 
+## Gate interaction semantics — one FSM, not multiple Forensic states
+
+The system has **one Forensic FSM**. Terms such as `DB_EXISTS`, `BOUND_TLS`, and `ROUND_TRIP_MATCH` are local observations/states of sequential gates inside that one FSM. They are not separate Forensic systems and must never be treated as peer permissions.
+
+```text
+                         ONE FORENSIC FSM
+                               |
+                       DB_EXISTENCE PASS?
+                               |
+                         prerequisite only
+                               v
+                        DB_BINDING PASS?
+                               |
+                         prerequisite only
+                               v
+                      SECRET + TLS ADMISSION
+                               |
+                         prerequisite only
+                               v
+                       NETWORK ORIGIN PROOF
+                               |
+                         prerequisite only
+                               v
+                        DB_ROUND_TRIP MATCH
+                               |
+                               v
+                           PROMOTION
+```
+
+For any evaluation, the first `FAIL` or `UNKNOWN` stops downstream reachability. Later gates are `UNREACHED`; they are not silently converted to `FAIL`, and never to `PASS`.
+
+### Three meanings that must remain distinct
+
+```text
+RESOURCE EXISTENCE
+= the secured room actually exists
+
+SERVICE AUTHORIZATION / BINDING
+= the service has a candidate key and is admitted through the required corridor
+
+ROUND-TRIP PROOF
+= the exact runtime demonstrably entered the room and preserved evidence integrity
+```
+
+Therefore:
+
+```text
+DATABASE EXISTS
+    !=
+SERVICE IS AUTHORIZED
+
+SERVICE IS AUTHORIZED
+    !=
+DURABLE EVIDENCE ROUND-TRIP IS PROVEN
+```
+
+This is a **single chain of evidence**, not two or more independent Forensic state machines.
+
+### No PASS inheritance
+
+A successor Bot must never perform inference such as:
+
+```text
+DB_EXISTS = PASS
+    -> "therefore DB_ACCESS = PASS"       INVALID
+
+DB_BINDING = PASS
+    -> "therefore DB_ROUND_TRIP = PASS"   INVALID
+
+ROUND_TRIP = PASS
+    -> "therefore every downstream room is open" INVALID
+```
+
+A PASS grants exactly one thing: **reachability to the next declared gate**.
+
 ## Deny transitions
 
 Any of the following is an immediate DENY and later gates become `UNREACHED` for that evaluation:
@@ -219,28 +294,3 @@ Contracts, diagrams, schemas, tests, and local results are design/local evidence
 LOCAL PASS != RENDER PASS
 DOCUMENTED TARGET != EXECUTED PROOF
 ```
-
-Exact-current runtime evidence has priority over old deployment descriptions or hypotheses.
-
-## Temporal round-trip
-
-The final durable evidence gate requires a real temporal nonce A/B protocol, not a static self-check:
-
-```text
-A: generate compact nonce + metadata envelope
-B: write to durable PostgreSQL through TLS
-C: read back
-D: verify nonce / envelope identity
-E: SHA-256 match
-F: persist receipt without secrets
-```
-
-A documented target is not a completed round-trip.
-
-## OOM constraint
-
-Render Free has a hard 512 MB boundary. Foundation runtime keeps a 320 MiB conservative guard. Database round-trip tests must remain compact and must never load source datasets or bulk evidence into memory.
-
-## Successor instruction
-
-The phrase **FORENSIC DATABASE ADMISSION CHAIN** always refers to this ONE FSM. Never describe the gates as separate forensic systems. Never infer a deeper PASS from a shallower PASS. Preserve the chain, its ordering, its deny semantics, and its mandatory-no-op state across generations.
