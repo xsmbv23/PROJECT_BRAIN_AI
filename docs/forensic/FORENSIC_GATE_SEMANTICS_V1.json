@@ -12,12 +12,15 @@
     "unknown_is_not_pass": true,
     "default_deny": true,
     "historical_records_append_only": true,
+    "historical_deny_meaning_is_immutable": true,
     "blocked_is_valid_forensic_state": true,
     "blocked_is_success_state": true,
     "blocked_state_mutation_without_required_primitive": "FORBIDDEN",
     "proxy_evidence": "FORBIDDEN",
     "local_substitution_for_exact_runtime": "FORBIDDEN",
-    "hypothesis_as_evidence": "FORBIDDEN"
+    "hypothesis_as_evidence": "FORBIDDEN",
+    "state_transition_requires_own_gate_evidence": true,
+    "one_gate_cannot_set_another_gate_pass": true
   },
   "database_chain": [
     "DB_EXISTENCE",
@@ -26,18 +29,18 @@
     "DB_ROUND_TRIP",
     "PROMOTION"
   ],
+  "database_gate_meanings": {
+    "DB_EXISTENCE": "resource existence only",
+    "DB_BINDING": "actual exact-runtime service binding only",
+    "DB_TLS_ADMISSION": "binding policy compliance only",
+    "DB_ROUND_TRIP": "exact-runtime write/read/hash evidence only",
+    "PROMOTION": "authorization to promote durable evidence only"
+  },
   "non_implication": [
     "DB_EXISTENCE(PASS) !=> DB_BINDING(PASS)",
     "DB_BINDING(PASS) !=> DB_TLS_ADMISSION(PASS)",
     "DB_TLS_ADMISSION(PASS) !=> DB_ROUND_TRIP(PASS)",
     "DB_ROUND_TRIP(PASS) !=> PROMOTION(PASS)"
-  ],
-  "transport_non_equivalence": [
-    "CODE_EXISTS != CODE_EXECUTED",
-    "CODE_EXECUTED != EXACT_RUNTIME_EVIDENCE",
-    "DEPLOYMENT_IDENTITY != RUNTIME_RECEIPT",
-    "LOCAL_CURL != EXACT_RUNTIME_EVIDENCE",
-    "PROXY_RESULT != AUTHENTIC_TRANSPORT_RECEIPT"
   ],
   "source_admission_chain": [
     "SOURCE_INDEPENDENCE",
@@ -48,6 +51,32 @@
     "EXCEL_VS_WEB_MATCH",
     "CANONICAL_QUORUM",
     "TRUTH_ADMISSION"
+  ],
+  "source_gate_meanings": {
+    "SOURCE_INDEPENDENCE": "source is independently identified from Brain expectation",
+    "NETWORK_ORIGIN_PROOF": "transport origin is attributable to the intended source",
+    "RESULT_TRANSPORT": "result bytes/content actually crossed the audited transport boundary",
+    "OFFICIAL_RESULT_PANEL": "the transported result is identified as an official result panel",
+    "CANDIDATE": "a parser extracted a candidate without claiming truth",
+    "EXCEL_VS_WEB_MATCH": "candidate agrees with the independent Excel/EOD evidence",
+    "CANONICAL_QUORUM": "required independent sources agree",
+    "TRUTH_ADMISSION": "the canonical truth admission gate accepted the evidence"
+  },
+  "source_non_implication": [
+    "SOURCE_INDEPENDENCE(PASS) !=> NETWORK_ORIGIN_PROOF(PASS)",
+    "NETWORK_ORIGIN_PROOF(PASS) !=> RESULT_TRANSPORT(PASS)",
+    "RESULT_TRANSPORT(PASS) !=> OFFICIAL_RESULT_PANEL(PASS)",
+    "OFFICIAL_RESULT_PANEL(PASS) !=> CANDIDATE(PASS)",
+    "CANDIDATE(PASS) !=> EXCEL_VS_WEB_MATCH(PASS)",
+    "EXCEL_VS_WEB_MATCH(PASS) !=> CANONICAL_QUORUM(PASS)",
+    "CANONICAL_QUORUM(PASS) !=> TRUTH_ADMISSION(PASS)"
+  ],
+  "transport_non_equivalence": [
+    "CODE_EXISTS != CODE_EXECUTED",
+    "CODE_EXECUTED != EXACT_RUNTIME_EVIDENCE",
+    "DEPLOYMENT_IDENTITY != RUNTIME_RECEIPT",
+    "LOCAL_CURL != EXACT_RUNTIME_EVIDENCE",
+    "PROXY_RESULT != AUTHENTIC_TRANSPORT_RECEIPT"
   ],
   "hard_deny_states": [
     "UNKNOWN",
