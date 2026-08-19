@@ -3,6 +3,8 @@
 All checks are metadata-only and subprocess-isolated. Database admission is
 classified without exposing credentials. Durable DB promotion remains a
 separate explicit gate. Room 01 runtime verification is opt-in and one-shot.
+State reconciliation is also surfaced at the admission boundary; it never
+silently converts missing projection evidence into PASS.
 """
 from __future__ import annotations
 
@@ -15,6 +17,7 @@ import time
 from pathlib import Path
 
 from tools.database_admission import AdmissionState, evaluate
+from tools.state_reconciliation_admission import evaluate_admission
 
 ROOT = Path(__file__).resolve().parents[1]
 MEMORY_GUARD_BYTES = 320 * 1024 * 1024
@@ -36,10 +39,7 @@ def database_binding_evidence() -> dict[str, object]:
 def network_admission_evidence(env: dict[str, str]) -> dict[str, object]:
     if env.get("FORENSIC_NETWORK_PROBE") != "1":
         return {"status": "DISABLED"}
-    proc = subprocess.run(
-        [sys.executable, str(ROOT / "tools/network_admission_probe.py")],
-        cwd=ROOT, env=env, capture_output=True, text=True, timeout=30,
-    )
+    proc = subprocess.run([sys.executable, str(ROOT / "tools/network_admission_probe.py")], cwd=ROOT, env=env, capture_output=True, text=True, timeout=30)
     try:
         evidence = ast.literal_eval(proc.stdout.strip().splitlines()[-1])
         if not isinstance(evidence, dict):
@@ -53,10 +53,7 @@ def network_admission_evidence(env: dict[str, str]) -> dict[str, object]:
 def room01_runtime_evidence(env: dict[str, str]) -> dict[str, object]:
     if env.get("FORENSIC_ROOM01_RUNTIME_VERIFY") != "1":
         return {"status": "DISABLED"}
-    proc = subprocess.run(
-        [sys.executable, str(ROOT / "tools/runtime_room01_verify.py")],
-        cwd=ROOT, env=env, capture_output=True, text=True, timeout=45,
-    )
+    proc = subprocess.run([sys.executable, str(ROOT / "tools/runtime_room01_verify.py")], cwd=ROOT, env=env, capture_output=True, text=True, timeout=45)
     if proc.returncode != 0:
         return {"status": "DENY", "exit_code": proc.returncode, "output": proc.stdout[-2000:]}
     try:
@@ -118,12 +115,19 @@ def main() -> int:
     results.append({"name": "network_admission_probe", "exit_code": int(network.get("exit_code", 0)), "evidence": network})
     room01 = room01_runtime_evidence(env)
     results.append({"name": "room01_runtime_verify", "exit_code": int(room01.get("exit_code", 0)), "evidence": room01})
+    reconciliation = evaluate_admission(
+        runtime_commit=os.environ.get("RENDER_GIT_COMMIT"),
+        deployment_id=os.environ.get("RENDER_DEPLOY_ID"),
+        quant_projection=None,
+    )
+    results.append({"name": "state_reconciliation_admission", "exit_code": 0, "evidence": reconciliation})
 
     print(json.dumps({
         "runtime_boot_gate": "PASS",
         "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
         "memory_guard_bytes": MEMORY_GUARD_BYTES,
         "database_admission_chain": admission_summary(str(binding["status"]), str(network.get("status", "DISABLED")), round_trip_proven=False),
+        "state_reconciliation_admission": reconciliation,
         "room01_runtime": room01,
         "external_event_path": "ISOLATED; NO_SELF_MANUFACTURED_EVENT",
         "foundation_path": "ADVANCE_ALLOWED; EXTERNAL_STATE_UNCHANGED",
