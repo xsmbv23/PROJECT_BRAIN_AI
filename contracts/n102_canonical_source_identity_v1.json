@@ -1,0 +1,17 @@
+{
+  "contract_id": "N102_CANONICAL_SOURCE_IDENTITY_PROOF_V1",
+  "action_id": "BRAIN-N102_CANONICAL_SOURCE_IDENTITY_PROOF",
+  "mode": "DATA_ADMISSION",
+  "action_space": 1,
+  "depends_on": "BRAIN-N101_ORIGIN_METADATA_PROBE",
+  "dependency_rule": "N101_PASS_IS_PREREQUISITE_ONLY;NO_PASS_INHERITANCE",
+  "goal": "prove_or_deny_canonical_source_identity_without treating transport success as identity proof",
+  "allowed_observations": ["bounded_document_metadata", "canonical_link_metadata", "og_url_metadata", "declared_site_identity", "bounded_content_type"],
+  "forbidden": ["bulk_download", "full_page_archive", "credentials", "cookies", "application_actions", "redirect_as_canonical_proof", "hostname_difference_as_independence_proof"],
+  "advertising_policy": "ADS_ARE_NON_TRUTH_CONTENT;AD_REDIRECTS_NOT_SOURCE",
+  "independence_policy": "HOSTNAME_DIFFERENCE_IS_NOT_INDEPENDENCE_PROOF",
+  "unknown_policy": "UNKNOWN_IS_NOT_PASS",
+  "promotion": "DENY",
+  "oom_guard_bytes": 335544320,
+  "completion": "Each declared source receives a fresh bounded identity evidence receipt; canonical identity is PASS only if explicit identity proof contract is satisfied, otherwise DENY."
+}
