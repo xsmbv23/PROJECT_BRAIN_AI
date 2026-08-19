@@ -1,0 +1,19 @@
+{
+  "contract_id": "KETQUA16_SOURCE_ADAPTER_V1",
+  "domain": "SOURCE",
+  "authority": "NETWORK_EVIDENCE_ONLY_UNTIL_MATCH_GATE",
+  "origin": "https://ketqua16.net",
+  "source_type": "XSMB_RESULT_PAGE",
+  "selector_policy": "EXPLICIT_ALLOWLIST_ONLY",
+  "selector_status": "UNPROVEN_UNTIL_LIVE_HTML_CAPTURE",
+  "allowed_semantic_region": "OFFICIAL_RESULT_PANEL_ONLY",
+  "forbidden_regions": ["advertisement", "banner", "popup", "forum", "prediction", "soi_cau", "statistics", "affiliate", "navigation", "footer", "news"],
+  "candidate_fields": ["draw_date", "special", "giai_1", "giai_2", "giai_3", "giai_4", "giai_5", "giai_6", "giai_7"],
+  "scraper_may": ["fetch_bytes", "hash_bytes", "record_network_receipt", "emit_raw_evidence"],
+  "adapter_may": ["extract_candidate_records_from_allowlisted_region"],
+  "adapter_may_not": ["judge", "approve", "promote", "infer_truth", "compare_excel", "write_status_pass"],
+  "next_gate": "EXCEL_VS_WEB_MATCH",
+  "failure_policy": "DEFAULT_DENY",
+  "unknown_policy": "NOT_PASS",
+  "ads_policy": "NON_TRUTH_CONTENT"
+}
