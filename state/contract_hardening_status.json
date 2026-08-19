@@ -1,0 +1,20 @@
+{
+  "action_id": "BRAIN-CONTRACT-HARDENING",
+  "status": "IMPLEMENTED_PERSISTED",
+  "canonical_state_mutation": "DEFERRED_UNTIL_STATE_WRITER_OWNS_NEXT_COMMIT",
+  "promotion": "DENY",
+  "layer_1": "LOCKED",
+  "staircase": "LOCKED",
+  "next_action_id": "BRAIN-N101_ORIGIN_METADATA_PROBE",
+  "roadmap_activation": "INACTIVE",
+  "contracts": [
+    "contracts/quant_roadmap_activation_v1.json",
+    "contracts/receipt_immutability_v1.json",
+    "contracts/forensic_transition_invariants_v1.json",
+    "docs/forensic/ORIGIN_METADATA_PROBE_V1.md"
+  ],
+  "critical_rule": "PASS_IS_LOCAL_TO_GATE;PASS_IS_PREREQUISITE_ONLY;NO_PASS_INHERITANCE;UNKNOWN_IS_NOT_PASS;DEFAULT_DENY",
+  "retry_rule": "NEW_ACTION_ID_AND_NEW_EVIDENCE_REQUIRED",
+  "report_receipt_rule": "PREDICTION_RECEIPT_MUST_EXIST_AND_BE_IMMUTABLE_BEFORE_RESULT_RECEIPT",
+  "origin_probe_rule": "ORIGIN_METADATA_PROBE_REQUIRES_EXPLICIT_CANONICALITY_AND_INDEPENDENCE_EVIDENCE"
+}
