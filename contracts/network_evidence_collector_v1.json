@@ -1,0 +1,41 @@
+{
+  "contract_id": "NETWORK_EVIDENCE_COLLECTOR_V1",
+  "doctrine": "ONE_FORENSIC_FSM",
+  "role": "EVIDENCE_COLLECTOR_ONLY",
+  "authority": "NONE_TO_JUDGE_CANONICAL_TRUTH",
+  "source_truth_owner": "DATA_DOMAIN",
+  "comparison_gate": "EXCEL_VS_WEB_GATE",
+  "canonical_data_permission": "PRODUCE_CANDIDATE_ONLY",
+  "legacy_scrape_mode": "FORBIDDEN",
+  "allowed_outputs": ["raw_payload_reference", "capture_timestamp_utc", "request_metadata", "response_metadata", "network_origin_receipt", "payload_sha256", "transport_status"],
+  "forbidden_outputs": ["PASS", "FAIL", "CANONICAL_TRUTH", "SIGNAL", "PREDICTION", "RISK_DECISION", "BUY", "SELL"],
+  "network_origin_proof": {
+    "required": true,
+    "minimum": ["resolved_ip", "tls_peer_certificate_sha256", "tls_version", "response_sha256", "capture_timestamp_utc"],
+    "missing_policy": "HARD_DENY_AT_NETWORK_ORIGIN_PROOF"
+  },
+  "payload_policy": {
+    "raw_payload": "STREAM_TO_CHUNKED_EVIDENCE_STORE",
+    "in_memory_bulk_payload": false,
+    "max_chunk_bytes": 65536,
+    "payload_hash": "SHA256",
+    "never_rewrite_receipt": true
+  },
+  "domain_isolation": {
+    "database_admission": "SEPARATE_CHAIN",
+    "brain_governance": "SEPARATE_CHAIN",
+    "quant_engine": "DOWNSTREAM_ONLY",
+    "sensor_layer": "DOWNSTREAM_ONLY"
+  },
+  "source_policy": {
+    "primary_sources": ["https://ketqua16.net/"],
+    "additional_sources": "CONFIGURED_EXPLICITLY_AND_VERSIONED",
+    "ads": "NON_EVIDENCE_DOM_ELEMENTS_MUST_BE_IGNORED",
+    "anti_advertisement_rule": "NEVER_CLASSIFY_AD_CONTENT_AS_RESULT_DATA",
+    "parser": "SELECTOR_ALLOWLIST_ONLY"
+  },
+  "promotion_rule": "NETWORK_ORIGIN_PROOF AND EXCEL_VS_WEB_GATE MUST PASS",
+  "failure_policy": "DEFAULT_DENY",
+  "unknown_policy": "NOT_PASS",
+  "oom_policy": "STREAM_AND_CHUNK; NEVER_LOAD_BULK_HISTORY_INTO_RENDER_MEMORY"
+}
