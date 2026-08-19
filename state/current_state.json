@@ -33,8 +33,8 @@
   "edge_tracing": "MANDATORY",
   "edge_admission": "SOURCE_AND_TARGET_AND_OBSERVABLE_EVIDENCE_REQUIRED",
   "unknown_edge": "DENY",
-  "last_action_id": "BRAIN-N093_EXACT_CURRENT_RUNTIME_VERIFICATION",
-  "last_action_status": "CLOSED_FOUNDATION_HARDENING",
+  "last_action_id": "BRAIN-N094_CANONICAL_SOURCE_QUORUM",
+  "last_action_status": "CLOSED_WITH_DENY",
   "last_verified_deploy": "dep-da2h8g2jnfac73dk82cg",
   "last_verified_runtime_commit": "b4debec0d38b9749fcce39570ccb755437d4fe56",
   "last_runtime_reconciliation": "RECONCILE_REQUIRED",
@@ -66,6 +66,8 @@
   "room01_canonical_eligibility": "DENY_QUORUM_LT_2",
   "room01_source_count": 1,
   "room01_quorum_required": 2,
+  "room01_source_a_full27": "NOT_PROVEN",
+  "room01_source_b_xsmb": "IMPLEMENTED_NOT_OBSERVED",
   "room01_runtime_verified": true,
   "room01_runtime_commit": "b4debec0d38b9749fcce39570ccb755437d4fe56",
   "room01_runtime_verification_vector_sha256": "9d1e6eb5ca4bae60792dc95f66593c9f05e3c2fd2150401cd5770f858c8ea343",
@@ -76,5 +78,5 @@
   "runtime_role": "EVIDENCE_ONLY",
   "historical_log_role": "IMMUTABLE_HISTORY_ONLY",
   "state_reconciliation": "PROTOCOL_COMPATIBILITY_PLUS_RUNTIME_VERSION_EVIDENCE",
-  "next_action_id": "BRAIN-N094_CANONICAL_SOURCE_QUORUM"
+  "next_action_id": "BRAIN-N095_SOURCE_A_FULL27_RECOVERY"
 }
