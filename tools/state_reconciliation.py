@@ -1,8 +1,8 @@
 """Fail-closed reconciliation of Brain authority against runtime evidence.
 
-Runtime commit SHA is immutable audit evidence, not a self-referential logical
-state key. Logical-state compatibility is governed by the authority protocol
-version and state schema version.
+A gate PASS is local evidence only. It is never inherited by the next gate.
+Logical state is authoritative in state/current_state.json; runtime commit and
+deployment identifiers are evidence, never logical-state authorities.
 """
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 STATE_PATH = ROOT / "state" / "current_state.json"
 CONTRACT_PATH = ROOT / "contracts" / "state_authority_chain_v1.json"
 SUPPORTED_PROTOCOL = "1.0"
+SUPPORTED_STATE_MODES = {"FOUNDATION_LOCKED", "DATA_ADMISSION"}
 
 
 def _read_wrapped(path: Path) -> dict:
@@ -22,6 +23,38 @@ def _read_wrapped(path: Path) -> dict:
     if isinstance(content, str):
         return json.loads(content)
     return outer
+
+
+def _semantic_errors(state: dict) -> list[str]:
+    errors: list[str] = []
+    mode = state.get("state_mode")
+    if mode not in SUPPORTED_STATE_MODES:
+        errors.append(f"unknown state_mode: {mode}")
+        return errors
+    if state.get("pass_inheritance") is not False:
+        errors.append("pass_inheritance must be false")
+    if state.get("unknown_is_not_pass") is not True:
+        errors.append("unknown_is_not_pass must be true")
+    if state.get("default_deny") is not True:
+        errors.append("default_deny must be true")
+    if state.get("database_admission_chain") != "ONE_FORENSIC_FSM":
+        errors.append("database admission chain must be ONE_FORENSIC_FSM")
+    if state.get("database_gate_noninheritance") is not True:
+        errors.append("database gate noninheritance must be true")
+    if state.get("database_promotion_requires_fresh_evidence") is not True:
+        errors.append("database promotion must require fresh evidence")
+    if mode == "DATA_ADMISSION":
+        if state.get("action_space") != 1:
+            errors.append("DATA_ADMISSION requires action_space=1")
+        if state.get("action") != "RUNTIME_PROVENANCE_EXECUTION":
+            errors.append("DATA_ADMISSION requires runtime provenance action")
+        if state.get("layer_1") != "ROOM_01_DATA_ADMISSION":
+            errors.append("DATA_ADMISSION requires Room 01 only")
+        if state.get("staircase") != "LOCKED":
+            errors.append("DATA_ADMISSION requires staircase LOCKED")
+        if state.get("promotion") != "PASS_TO_ROOM_01_ONLY;CANONICAL_QUORUM_DENY":
+            errors.append("DATA_ADMISSION promotion scope is invalid")
+    return errors
 
 
 def reconcile(runtime_commit: str | None = None, deployment_id: str | None = None) -> dict:
@@ -36,11 +69,8 @@ def reconcile(runtime_commit: str | None = None, deployment_id: str | None = Non
     )
     protocol = contract.get("authority_protocol_version", "UNKNOWN")
     protocol_compatible = protocol == SUPPORTED_PROTOCOL
+    semantic_errors = _semantic_errors(state)
 
-    # A runtime may legitimately execute a newer deployed commit containing a
-    # logical-state change. That is code/version evidence, not proof that the
-    # logical state has mutated outside Brain. Never require commit == state
-    # commit; that creates a self-referential deployment loop.
     observed_runtime = runtime_commit or os.environ.get("RENDER_GIT_COMMIT", "")
     runtime_known = bool(observed_runtime and observed_runtime != "UNKNOWN")
     expected_runtime = state.get("last_verified_runtime_commit") or state.get("promotion_runtime_commit")
@@ -55,14 +85,9 @@ def reconcile(runtime_commit: str | None = None, deployment_id: str | None = Non
         "identity_rule": "DEPLOYMENT_ID_IS_EVIDENCE_ONLY",
     }
 
-    state_mode = state.get("state_mode") or state.get("state")
-    promotion = state.get("promotion")
     schema_version = state.get("state_schema_version", "UNDECLARED")
     schema_known = schema_version != "UNDECLARED"
-
-    # Hard-deny only on authority/protocol uncertainty. Runtime commit drift is
-    # reported as version drift and requires an explicit reconciliation action.
-    status = "VERIFIED" if (authority_ok and protocol_compatible) else "HARD_DENY"
+    status = "VERIFIED" if (authority_ok and protocol_compatible and not semantic_errors) else "HARD_DENY"
     if status == "VERIFIED" and runtime_known and expected_runtime and not runtime_is_same_as_last_verified:
         status = "RECONCILE_REQUIRED"
 
@@ -73,8 +98,12 @@ def reconcile(runtime_commit: str | None = None, deployment_id: str | None = Non
         "protocol_compatible": protocol_compatible,
         "state_schema_version": schema_version,
         "state_schema_known": schema_known,
-        "state_mode": state_mode,
-        "promotion": promotion,
+        "state_mode": state.get("state_mode"),
+        "state": state.get("state"),
+        "promotion": state.get("promotion"),
+        "action_space": state.get("action_space"),
+        "action": state.get("action"),
+        "semantic_errors": semantic_errors,
         "runtime_commit_known": runtime_known,
         "runtime_commit": observed_runtime or "UNKNOWN",
         "runtime_last_verified_commit": expected_runtime or "UNKNOWN",
