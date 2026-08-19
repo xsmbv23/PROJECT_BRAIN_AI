@@ -3,8 +3,8 @@
 All checks are metadata-only and subprocess-isolated. Database admission is
 classified without exposing credentials. Durable DB promotion remains a
 separate explicit gate. Room 01 runtime verification is opt-in and one-shot.
-N101 origin observation is bounded to HEAD metadata and never downloads or
-parses source-truth payloads.
+N101 origin observation is bounded to HEAD metadata and N102 canonical identity
+observation is bounded to a small document metadata window.
 """
 from __future__ import annotations
 
@@ -62,13 +62,21 @@ def origin_metadata_evidence(env: dict[str, str]) -> dict[str, object]:
                 return evidence
         except (ValueError, json.JSONDecodeError):
             pass
-    return {
-        "status": "DENY_ORIGIN_METADATA",
-        "exit_code": proc.returncode,
-        "evidence_parse": "DENY",
-        "stderr_class": "NON_SECRET_RUNTIME_DIAGNOSTIC",
-        "stderr_tail": proc.stderr[-1200:],
-    }
+    return {"status": "DENY_ORIGIN_METADATA", "exit_code": proc.returncode, "evidence_parse": "DENY", "stderr_class": "NON_SECRET_RUNTIME_DIAGNOSTIC", "stderr_tail": proc.stderr[-1200:]}
+
+
+def canonical_identity_evidence(env: dict[str, str]) -> dict[str, object]:
+    proc = subprocess.run([sys.executable, str(ROOT / "tools/canonical_identity_probe.py")], cwd=ROOT, env=env, capture_output=True, text=True, timeout=24)
+    raw = proc.stdout.strip().splitlines()
+    if raw:
+        try:
+            evidence = json.loads(raw[-1])
+            if isinstance(evidence, dict):
+                evidence["exit_code"] = proc.returncode
+                return evidence
+        except (ValueError, json.JSONDecodeError):
+            pass
+    return {"status": "DENY_CANONICAL_IDENTITY", "exit_code": proc.returncode, "evidence_parse": "DENY", "stderr_class": "NON_SECRET_RUNTIME_DIAGNOSTIC", "stderr_tail": proc.stderr[-1200:]}
 
 
 def room01_runtime_evidence(env: dict[str, str]) -> dict[str, object]:
@@ -92,15 +100,7 @@ def admission_summary(binding_status: str, network_status: str, round_trip_prove
     network_pass = network_status == "PASS"
     state = AdmissionState(existence=False, binding=binding_status == "BOUND_TLS", tls=binding_status == "BOUND_TLS", round_trip=round_trip_proven)
     evaluated = evaluate(state)
-    return {
-        "db_existence": "PREREQUISITE_EXTERNAL_EVIDENCE",
-        "db_binding": binding_status,
-        "db_tls_admission": "PASS" if binding_status == "BOUND_TLS" else "DENY",
-        "network_origin_proof": "PASS" if network_pass else "NOT_PROVEN",
-        "db_round_trip": "PASS" if round_trip_proven else "NOT_PROVEN",
-        "promotion": "ALLOW" if (network_pass and evaluated["promotion"]) else "DENY",
-        "rule": "PASS_IS_LOCAL_TO_GATE;PASS_IS_PREREQUISITE_ONLY;NO_PASS_INHERITANCE",
-    }
+    return {"db_existence": "PREREQUISITE_EXTERNAL_EVIDENCE", "db_binding": binding_status, "db_tls_admission": "PASS" if binding_status == "BOUND_TLS" else "DENY", "network_origin_proof": "PASS" if network_pass else "NOT_PROVEN", "db_round_trip": "PASS" if round_trip_proven else "NOT_PROVEN", "promotion": "ALLOW" if (network_pass and evaluated["promotion"]) else "DENY", "rule": "PASS_IS_LOCAL_TO_GATE;PASS_IS_PREREQUISITE_ONLY;NO_PASS_INHERITANCE"}
 
 
 def main() -> int:
@@ -134,6 +134,8 @@ def main() -> int:
     results.append({"name": "database_binding_probe", "exit_code": 0, "evidence": binding})
     origin = origin_metadata_evidence(env)
     results.append({"name": "origin_metadata_probe", "exit_code": int(origin.get("exit_code", 0)), "evidence": origin})
+    canonical = canonical_identity_evidence(env)
+    results.append({"name": "canonical_identity_probe", "exit_code": int(canonical.get("exit_code", 0)), "evidence": canonical})
     network = network_admission_evidence(env)
     results.append({"name": "network_admission_probe", "exit_code": int(network.get("exit_code", 0)), "evidence": network})
     room01 = room01_runtime_evidence(env)
@@ -141,21 +143,7 @@ def main() -> int:
     reconciliation = evaluate_admission(runtime_commit=os.environ.get("RENDER_GIT_COMMIT"), deployment_id=os.environ.get("RENDER_DEPLOY_ID"), quant_projection=None)
     results.append({"name": "state_reconciliation_admission", "exit_code": 0, "evidence": reconciliation})
 
-    print(json.dumps({
-        "runtime_boot_gate": "PASS",
-        "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
-        "memory_guard_bytes": MEMORY_GUARD_BYTES,
-        "origin_metadata": origin,
-        "database_admission_chain": admission_summary(str(binding["status"]), str(network.get("status", "DISABLED")), round_trip_proven=False),
-        "state_reconciliation_admission": reconciliation,
-        "room01_runtime": room01,
-        "external_event_path": "ISOLATED; NO_SELF_MANUFACTURED_EVENT",
-        "foundation_path": "ADVANCE_ALLOWED; EXTERNAL_STATE_UNCHANGED",
-        "room_02": "LOCKED",
-        "staircase": "LOCKED",
-        "elapsed_seconds": round(time.time() - started, 4),
-        "results": results,
-    }, ensure_ascii=False), flush=True)
+    print(json.dumps({"runtime_boot_gate": "PASS", "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"), "memory_guard_bytes": MEMORY_GUARD_BYTES, "origin_metadata": origin, "canonical_identity": canonical, "database_admission_chain": admission_summary(str(binding["status"]), str(network.get("status", "DISABLED")), round_trip_proven=False), "state_reconciliation_admission": reconciliation, "room01_runtime": room01, "external_event_path": "ISOLATED; NO_SELF_MANUFACTURED_EVENT", "foundation_path": "ADVANCE_ALLOWED; EXTERNAL_STATE_UNCHANGED", "room_02": "LOCKED", "staircase": "LOCKED", "elapsed_seconds": round(time.time() - started, 4), "results": results}, ensure_ascii=False), flush=True)
     return 0
 
 
