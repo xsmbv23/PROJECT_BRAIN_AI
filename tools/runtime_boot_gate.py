@@ -3,8 +3,7 @@
 All checks are metadata-only and subprocess-isolated. Database admission is
 classified without exposing credentials. Durable DB promotion remains a
 separate explicit gate. Room 01 runtime verification is opt-in and one-shot.
-N101 origin observation is bounded to HEAD metadata and N102 canonical identity
-observation is bounded to a small document metadata window.
+N101/N102/N103 observations are bounded and never treated as downstream truth.
 """
 from __future__ import annotations
 
@@ -21,20 +20,26 @@ from tools.state_reconciliation_admission import evaluate_admission
 
 ROOT = Path(__file__).resolve().parents[1]
 MEMORY_GUARD_BYTES = 320 * 1024 * 1024
-COMMANDS = (
-    ("state_consistency", "tools/check_state_consistency.py"),
-    ("foundation", "tools/verify_foundation.py"),
-    ("access_path", "tools/verify_access_path.py"),
-    ("database_admission_contract", "tools/verify_database_binding_contract.py"),
-    ("admission_fsm", "tools/verify_admission_fsm.py"),
-    ("deterministic_replay", "tools/replay_verifier.py"),
-    ("gate_invariant", "tools/verify_gate_invariant.py"),
-)
+COMMANDS = (("state_consistency", "tools/check_state_consistency.py"), ("foundation", "tools/verify_foundation.py"), ("access_path", "tools/verify_access_path.py"), ("database_admission_contract", "tools/verify_database_binding_contract.py"), ("admission_fsm", "tools/verify_admission_fsm.py"), ("deterministic_replay", "tools/replay_verifier.py"), ("gate_invariant", "tools/verify_gate_invariant.py"))
 
 
 def database_binding_evidence() -> dict[str, object]:
     from tools.binding_probe import classify_database_binding
     return classify_database_binding()
+
+
+def _run_json_tool(env: dict[str, str], filename: str, timeout: int, deny_status: str) -> dict[str, object]:
+    proc = subprocess.run([sys.executable, str(ROOT / filename)], cwd=ROOT, env=env, capture_output=True, text=True, timeout=timeout)
+    raw = proc.stdout.strip().splitlines()
+    if raw:
+        try:
+            evidence = json.loads(raw[-1])
+            if isinstance(evidence, dict):
+                evidence["exit_code"] = proc.returncode
+                return evidence
+        except (ValueError, json.JSONDecodeError):
+            pass
+    return {"status": deny_status, "exit_code": proc.returncode, "evidence_parse": "DENY", "stderr_class": "NON_SECRET_RUNTIME_DIAGNOSTIC", "stderr_tail": proc.stderr[-1200:]}
 
 
 def network_admission_evidence(env: dict[str, str]) -> dict[str, object]:
@@ -51,49 +56,10 @@ def network_admission_evidence(env: dict[str, str]) -> dict[str, object]:
     return evidence
 
 
-def origin_metadata_evidence(env: dict[str, str]) -> dict[str, object]:
-    proc = subprocess.run([sys.executable, str(ROOT / "tools/origin_metadata_probe.py")], cwd=ROOT, env=env, capture_output=True, text=True, timeout=24)
-    raw = proc.stdout.strip().splitlines()
-    if raw:
-        try:
-            evidence = json.loads(raw[-1])
-            if isinstance(evidence, dict):
-                evidence["exit_code"] = proc.returncode
-                return evidence
-        except (ValueError, json.JSONDecodeError):
-            pass
-    return {"status": "DENY_ORIGIN_METADATA", "exit_code": proc.returncode, "evidence_parse": "DENY", "stderr_class": "NON_SECRET_RUNTIME_DIAGNOSTIC", "stderr_tail": proc.stderr[-1200:]}
-
-
-def canonical_identity_evidence(env: dict[str, str]) -> dict[str, object]:
-    proc = subprocess.run([sys.executable, str(ROOT / "tools/canonical_identity_probe.py")], cwd=ROOT, env=env, capture_output=True, text=True, timeout=24)
-    raw = proc.stdout.strip().splitlines()
-    if raw:
-        try:
-            evidence = json.loads(raw[-1])
-            if isinstance(evidence, dict):
-                evidence["exit_code"] = proc.returncode
-                return evidence
-        except (ValueError, json.JSONDecodeError):
-            pass
-    return {"status": "DENY_CANONICAL_IDENTITY", "exit_code": proc.returncode, "evidence_parse": "DENY", "stderr_class": "NON_SECRET_RUNTIME_DIAGNOSTIC", "stderr_tail": proc.stderr[-1200:]}
-
-
 def room01_runtime_evidence(env: dict[str, str]) -> dict[str, object]:
     if env.get("FORENSIC_ROOM01_RUNTIME_VERIFY") != "1":
         return {"status": "DISABLED"}
-    proc = subprocess.run([sys.executable, str(ROOT / "tools/runtime_room01_verify.py")], cwd=ROOT, env=env, capture_output=True, text=True, timeout=45)
-    if proc.returncode != 0:
-        return {"status": "DENY", "exit_code": proc.returncode, "output": proc.stdout[-2000:]}
-    try:
-        evidence = json.loads(proc.stdout.strip().splitlines()[-1])
-        if not isinstance(evidence, dict):
-            raise ValueError("non-dict")
-    except (ValueError, json.JSONDecodeError, IndexError):
-        return {"status": "DENY", "exit_code": proc.returncode, "evidence_parse": "DENY"}
-    evidence["status"] = "PASS"
-    evidence["exit_code"] = proc.returncode
-    return evidence
+    return _run_json_tool(env, "tools/runtime_room01_verify.py", 45, "DENY")
 
 
 def admission_summary(binding_status: str, network_status: str, round_trip_proven: bool = False) -> dict[str, object]:
@@ -131,11 +97,15 @@ def main() -> int:
                 return 1
 
     binding = database_binding_evidence()
-    results.append({"name": "database_binding_probe", "exit_code": 0, "evidence": binding})
-    origin = origin_metadata_evidence(env)
-    results.append({"name": "origin_metadata_probe", "exit_code": int(origin.get("exit_code", 0)), "evidence": origin})
-    canonical = canonical_identity_evidence(env)
-    results.append({"name": "canonical_identity_probe", "exit_code": int(canonical.get("exit_code", 0)), "evidence": canonical})
+    origin = _run_json_tool(env, "tools/origin_metadata_probe.py", 24, "DENY_ORIGIN_METADATA")
+    canonical = _run_json_tool(env, "tools/canonical_identity_probe.py", 24, "DENY_CANONICAL_IDENTITY")
+    independence = _run_json_tool(env, "tools/source_independence_probe.py", 24, "DENY_INDEPENDENCE")
+    results.extend([
+        {"name": "database_binding_probe", "exit_code": 0, "evidence": binding},
+        {"name": "origin_metadata_probe", "exit_code": int(origin.get("exit_code", 0)), "evidence": origin},
+        {"name": "canonical_identity_probe", "exit_code": int(canonical.get("exit_code", 0)), "evidence": canonical},
+        {"name": "source_independence_probe", "exit_code": int(independence.get("exit_code", 0)), "evidence": independence},
+    ])
     network = network_admission_evidence(env)
     results.append({"name": "network_admission_probe", "exit_code": int(network.get("exit_code", 0)), "evidence": network})
     room01 = room01_runtime_evidence(env)
@@ -143,7 +113,7 @@ def main() -> int:
     reconciliation = evaluate_admission(runtime_commit=os.environ.get("RENDER_GIT_COMMIT"), deployment_id=os.environ.get("RENDER_DEPLOY_ID"), quant_projection=None)
     results.append({"name": "state_reconciliation_admission", "exit_code": 0, "evidence": reconciliation})
 
-    print(json.dumps({"runtime_boot_gate": "PASS", "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"), "memory_guard_bytes": MEMORY_GUARD_BYTES, "origin_metadata": origin, "canonical_identity": canonical, "database_admission_chain": admission_summary(str(binding["status"]), str(network.get("status", "DISABLED")), round_trip_proven=False), "state_reconciliation_admission": reconciliation, "room01_runtime": room01, "external_event_path": "ISOLATED; NO_SELF_MANUFACTURED_EVENT", "foundation_path": "ADVANCE_ALLOWED; EXTERNAL_STATE_UNCHANGED", "room_02": "LOCKED", "staircase": "LOCKED", "elapsed_seconds": round(time.time() - started, 4), "results": results}, ensure_ascii=False), flush=True)
+    print(json.dumps({"runtime_boot_gate": "PASS", "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"), "memory_guard_bytes": MEMORY_GUARD_BYTES, "origin_metadata": origin, "canonical_identity": canonical, "source_independence": independence, "database_admission_chain": admission_summary(str(binding["status"]), str(network.get("status", "DISABLED")), round_trip_proven=False), "state_reconciliation_admission": reconciliation, "room01_runtime": room01, "external_event_path": "ISOLATED; NO_SELF_MANUFACTURED_EVENT", "foundation_path": "ADVANCE_ALLOWED; EXTERNAL_STATE_UNCHANGED", "room_02": "LOCKED", "staircase": "LOCKED", "elapsed_seconds": round(time.time() - started, 4), "results": results}, ensure_ascii=False), flush=True)
     return 0
 
 
