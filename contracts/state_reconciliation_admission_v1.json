@@ -1,0 +1,35 @@
+{
+  "contract_id": "STATE_RECONCILIATION_ADMISSION_V1",
+  "purpose": "Prevent logical state drift from crossing an admission boundary",
+  "authority": "xsmbv23/Project_Brain_AI/state/current_state.json",
+  "runtime_is_authority": false,
+  "quant_projection_is_authority": false,
+  "action_log_is_history": true,
+  "rules": {
+    "pass_locality": true,
+    "no_pass_inheritance": true,
+    "unknown_is_not_pass": true,
+    "default_deny": true,
+    "runtime_commit_is_code_evidence_only": true,
+    "runtime_commit_mismatch_requires_reconciliation": true,
+    "logical_state_drift_is_hard_deny": true,
+    "projection_drift_is_hard_deny": true,
+    "missing_projection_evidence_is_not_pass": true
+  },
+  "evidence_chain": [
+    "BRAIN_STATE",
+    "QUANT_PROJECTION",
+    "RUNTIME_EVIDENCE"
+  ],
+  "decisions": {
+    "VERIFIED": "ALLOW_CURRENT_GATE",
+    "RECONCILE_REQUIRED": "DENY_PROMOTION_UNTIL_EXPLICIT_RECONCILIATION",
+    "HARD_DENY": "DENY_ACTION"
+  },
+  "prohibited_shortcuts": [
+    "runtime_commit_equals_logical_state",
+    "projection_equals_authority",
+    "missing_projection_evidence_equals_pass",
+    "previous_pass_inherited_to_next_gate"
+  ]
+}
