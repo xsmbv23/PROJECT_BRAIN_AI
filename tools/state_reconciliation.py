@@ -74,7 +74,8 @@ def reconcile(runtime_commit: str | None = None, deployment_id: str | None = Non
     observed_runtime = runtime_commit or os.environ.get("RENDER_GIT_COMMIT", "")
     runtime_known = bool(observed_runtime and observed_runtime != "UNKNOWN")
     expected_runtime = state.get("last_verified_runtime_commit") or state.get("promotion_runtime_commit")
-    runtime_is_same_as_last_verified = bool(runtime_known and expected_runtime and observed_runtime == expected_runtime)
+    runtime_baseline_known = bool(expected_runtime and expected_runtime != "UNKNOWN")
+    runtime_is_same_as_last_verified = bool(runtime_known and runtime_baseline_known and observed_runtime == expected_runtime)
 
     observed_deploy = deployment_id or os.environ.get("RENDER_DEPLOY_ID", "")
     expected_deploy = state.get("last_verified_deploy") or state.get("promotion_runtime_deploy")
@@ -88,7 +89,9 @@ def reconcile(runtime_commit: str | None = None, deployment_id: str | None = Non
     schema_version = state.get("state_schema_version", "UNDECLARED")
     schema_known = schema_version != "UNDECLARED"
     status = "VERIFIED" if (authority_ok and protocol_compatible and not semantic_errors) else "HARD_DENY"
-    if status == "VERIFIED" and runtime_known and expected_runtime and not runtime_is_same_as_last_verified:
+    if status == "VERIFIED" and runtime_known and not runtime_baseline_known:
+        status = "RECONCILE_REQUIRED"
+    elif status == "VERIFIED" and runtime_known and runtime_baseline_known and not runtime_is_same_as_last_verified:
         status = "RECONCILE_REQUIRED"
 
     return {
@@ -106,6 +109,7 @@ def reconcile(runtime_commit: str | None = None, deployment_id: str | None = Non
         "semantic_errors": semantic_errors,
         "runtime_commit_known": runtime_known,
         "runtime_commit": observed_runtime or "UNKNOWN",
+        "runtime_baseline_known": runtime_baseline_known,
         "runtime_last_verified_commit": expected_runtime or "UNKNOWN",
         "runtime_commit_same_as_last_verified": runtime_is_same_as_last_verified,
         "deployment_evidence": deploy_evidence,
