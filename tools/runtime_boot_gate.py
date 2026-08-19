@@ -3,8 +3,8 @@
 All checks are metadata-only and subprocess-isolated. Database admission is
 classified without exposing credentials. Durable DB promotion remains a
 separate explicit gate. Room 01 runtime verification is opt-in and one-shot.
-State reconciliation and PASS-local gate invariants are surfaced at the
-admission boundary; missing evidence never becomes PASS by inference.
+N101 origin observation is bounded to HEAD metadata and never downloads or
+parses source-truth payloads.
 """
 from __future__ import annotations
 
@@ -47,6 +47,33 @@ def network_admission_evidence(env: dict[str, str]) -> dict[str, object]:
             raise ValueError("non-dict")
     except (ValueError, SyntaxError, IndexError):
         evidence = {"status": "DENY_NETWORK_ORIGIN", "evidence_parse": "DENY"}
+    evidence["exit_code"] = proc.returncode
+    return evidence
+
+
+def origin_metadata_evidence() -> dict[str, object]:
+    """N101: metadata-only observation of every declared source."""
+    proc = subprocess.run(
+        [sys.executable, str(ROOT / "tools/origin_metadata_probe.py")],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=24,
+    )
+    if proc.returncode != 0:
+        return {"status": "DENY_ORIGIN_METADATA", "exit_code": proc.returncode}
+    try:
+        evidence = json.loads(proc.stdout.strip().splitlines()[-1])
+        if not isinstance(evidence, dict):
+            raise ValueError("non-dict")
+    except (ValueError, json.JSONDecodeError, IndexError):
+        return {"status": "DENY_ORIGIN_METADATA", "exit_code": proc.returncode, "evidence_parse": "DENY"}
+    receipts = evidence.get("receipts", [])
+    if not isinstance(receipts, list) or len(receipts) != 2:
+        return {"status": "DENY_ORIGIN_METADATA", "exit_code": proc.returncode, "receipt_quorum": "DENY"}
+    if any(item.get("payload_downloaded") is not False for item in receipts if isinstance(item, dict)):
+        return {"status": "DENY_ORIGIN_METADATA", "exit_code": proc.returncode, "payload_policy": "DENY"}
+    evidence["status"] = "OBSERVED_NON_SECRET"
     evidence["exit_code"] = proc.returncode
     return evidence
 
@@ -112,6 +139,8 @@ def main() -> int:
 
     binding = database_binding_evidence()
     results.append({"name": "database_binding_probe", "exit_code": 0, "evidence": binding})
+    origin = origin_metadata_evidence()
+    results.append({"name": "origin_metadata_probe", "exit_code": int(origin.get("exit_code", 0)), "evidence": origin})
     network = network_admission_evidence(env)
     results.append({"name": "network_admission_probe", "exit_code": int(network.get("exit_code", 0)), "evidence": network})
     room01 = room01_runtime_evidence(env)
@@ -127,6 +156,7 @@ def main() -> int:
         "runtime_boot_gate": "PASS",
         "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
         "memory_guard_bytes": MEMORY_GUARD_BYTES,
+        "origin_metadata": origin,
         "database_admission_chain": admission_summary(str(binding["status"]), str(network.get("status", "DISABLED")), round_trip_proven=False),
         "state_reconciliation_admission": reconciliation,
         "room01_runtime": room01,
