@@ -1,0 +1,28 @@
+{
+  "contract_id": "N101_ORIGIN_METADATA_PROBE_V1",
+  "action_id": "BRAIN-N101_ORIGIN_METADATA_PROBE",
+  "mode": "DATA_ADMISSION",
+  "action_space": 1,
+  "declared_sources": ["https://ketqua16.net", "https://xsmb.com.vn"],
+  "transport": {
+    "method": "HEAD",
+    "max_redirects": 6,
+    "timeout_seconds": 8,
+    "https_required": true
+  },
+  "observable_fields": ["status_code", "requested_host", "final_host", "redirect_chain", "transfer_ms", "tls_version", "tls_cipher", "safe_headers"],
+  "forbidden_fields": ["credentials", "cookies", "authorization", "raw_payload", "source_payload_hash", "application_links"],
+  "payload_policy": "NO_DOWNLOAD_NO_PARSE_NO_SOURCE_HASH",
+  "redirect_policy": "REQUESTED_HOST != FINAL_HOST PROOF; FINAL_HOST != CANONICAL_SOURCE PROOF",
+  "independence_policy": "HOSTNAME_DIFFERENCE_IS_NOT_INDEPENDENCE_PROOF",
+  "ad_policy": "ADS_ARE_NON_TRUTH_CONTENT;AD_REDIRECTS_NOT_SOURCE",
+  "evidence": {
+    "envelope": "tools/evidence_envelope.py",
+    "hash": "SHA-256(canonical metadata envelope)",
+    "cycle_id_required": true,
+    "freshness_ttl_seconds": 300
+  },
+  "promotion": "DENY",
+  "oom_guard_bytes": 335544320,
+  "completion": "Two non-secret origin receipts are observed and emitted; canonical identity remains DENY until explicit proof contract passes."
+}
