@@ -1,0 +1,21 @@
+{
+  "receipt_type": "RECONCILIATION_RECEIPT",
+  "action_id": "BRAIN-N104C.1R",
+  "parent_action_id": "BRAIN-N104C.1",
+  "status": "DENY",
+  "runtime_commit_sha": "a1bf6f813c613edcdff638f5db831af7c9716c02",
+  "deployment_id": "dep-da2per7qj5pc7389c90g",
+  "runtime_boot_gate": "DENY",
+  "state_consistency": "PASS",
+  "state_drift": "PASS",
+  "action_receipt_validator": "DENY",
+  "action_receipt_validator_reason": "RECEIPT_MISSING",
+  "n104c1_transport_probe": "NOT_RUN",
+  "promotion": "DENY",
+  "layer_1": "ROOM_01_DATA_ADMISSION",
+  "staircase": "LOCKED",
+  "evidence_source": "RENDER_RUNTIME_LOG",
+  "evidence_policy": "COMPACT_NON_SECRET_ONLY",
+  "next_required_condition": "PERSIST_REAL_N104C1_ACTION_RECEIPT_FROM_RUNTIME_EXECUTION_BEFORE_TRANSPORT_PROBE",
+  "note": "This receipt records the reconciliation result only. It is not an N104C.1 action receipt and must never be used as one."
+}
