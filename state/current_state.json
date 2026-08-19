@@ -37,6 +37,8 @@
   "target_date": "2026-08-12",
   "last_action_id": "BRAIN-P0-GATE-INVARIANT-HARDENING",
   "last_action_status": "IMPLEMENTED_BOOT_ENFORCED",
+  "last_verified_runtime_commit": "b4debec0d38b9749fcce39570ccb755437d4fe56",
+  "last_verified_deploy": "dep-da2h8g2jnfac73dk82cg",
   "source_registry": "PASS_STRUCTURE_ONLY",
   "raw_provenance_a": "NOT_PROVEN",
   "raw_provenance_b": "NOT_PROVEN",
