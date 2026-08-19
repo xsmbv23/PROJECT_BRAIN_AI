@@ -17,13 +17,13 @@ class StateReconciliationTests(unittest.TestCase):
     def test_current_verified_commit_passes(self):
         result = reconcile(runtime_commit=self.expected_commit, deployment_id="new-deploy-id")
         self.assertEqual(result["state_consistency"], "VERIFIED")
-        self.assertTrue(result["runtime_commit_match"])
+        self.assertTrue(result["runtime_commit_same_as_last_verified"])
         self.assertFalse(result["runtime_is_authority"])
 
-    def test_wrong_runtime_commit_hard_denies(self):
-        result = reconcile(runtime_commit="WRONG_COMMIT", deployment_id="whatever")
-        self.assertEqual(result["state_consistency"], "HARD_DENY")
-        self.assertFalse(result["runtime_commit_match"])
+    def test_new_runtime_commit_requires_reconciliation_not_false_hard_deny(self):
+        result = reconcile(runtime_commit="NEW_RUNTIME_COMMIT", deployment_id="new-deploy-id")
+        self.assertEqual(result["state_consistency"], "RECONCILE_REQUIRED")
+        self.assertFalse(result["runtime_commit_same_as_last_verified"])
 
     def test_deployment_id_is_not_identity(self):
         result = reconcile(runtime_commit=self.expected_commit, deployment_id="different-but-valid-redeploy-id")
