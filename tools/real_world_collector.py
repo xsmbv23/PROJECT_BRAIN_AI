@@ -17,7 +17,10 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
-from tools.source_evidence_adapter import extract_xsmb_candidate
+try:
+    from tools.source_evidence_adapter import extract_xsmb_candidate
+except ModuleNotFoundError:
+    from source_evidence_adapter import extract_xsmb_candidate
 
 SOURCE = "https://ketqua16.net/"
 ARTIFACT_DIR = Path(os.environ.get("FORENSIC_ARTIFACT_DIR", "/tmp/forensic_artifacts"))
