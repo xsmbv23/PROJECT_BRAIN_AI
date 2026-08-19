@@ -1,16 +1,8 @@
-"""Check that persistent state and next-action pointers cannot silently drift.
+"""Fail-closed reconciliation of persistent Brain state and next action.
 
-State files are forensic artifacts, not transport envelopes. A valid state file
-must be direct JSON with the required keys at the top level.
-
-There are two explicit modes:
-
-* FOUNDATION_LOCKED: promotion denied, action space zero, mandatory no-op.
-* PROMOTED_DATA_ADMISSION: promotion passed by fresh local evidence, Room 01
-  is the only admitted downstream room, staircase remains locked, and the next
-  action is explicitly DATA_ADMISSION.
-
-No PASS is inherited between gates.
+State artifacts are forensic truth, not transport envelopes. The verifier never
+infers a gate transition from another gate's PASS. Every downstream admission
+requires its own explicit evidence/state/action tuple.
 """
 from __future__ import annotations
 
@@ -21,9 +13,10 @@ ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_CURRENT = (
     "next_action_id", "promotion", "layer_1", "staircase", "ci_status",
     "last_action_id", "pass_inheritance", "unknown_is_not_pass", "default_deny",
-    "action_space", "action",
+    "action_space", "action", "state_mode", "state",
 )
 REQUIRED_NEXT = ("action_id", "status", "mode", "action_space", "promotion", "layer_1", "staircase")
+VALID_CI = {"PENDING", "UNKNOWN_NO_OBSERVABLE_WORKFLOW_RUN", "PASS", "FAIL"}
 
 
 def _read_direct_json(path: Path) -> dict:
@@ -35,6 +28,10 @@ def _read_direct_json(path: Path) -> dict:
     return value
 
 
+def _promotion_is_room01_only(value: object) -> bool:
+    return value == "PASS_TO_ROOM_01_ONLY;CANONICAL_QUORUM_DENY"
+
+
 def main() -> int:
     try:
         current = _read_direct_json(ROOT / "state/current_state.json")
@@ -43,7 +40,7 @@ def main() -> int:
         print({"status": "FAIL", "errors": [f"state integrity failure: {exc}"]})
         return 1
 
-    errors = []
+    errors: list[str] = []
     missing = [key for key in REQUIRED_CURRENT if key not in current]
     if missing:
         errors.append(f"missing required current_state keys: {','.join(missing)}")
@@ -51,10 +48,21 @@ def main() -> int:
     if missing_next:
         errors.append(f"missing required next_action keys: {','.join(missing_next)}")
 
-    if not errors and current["next_action_id"] != nxt["action_id"]:
-        errors.append(f"next_action mismatch: current={current['next_action_id']} state={nxt['action_id']}")
+    if not errors:
+        if current["next_action_id"] != nxt["action_id"]:
+            errors.append(f"next_action mismatch: current={current['next_action_id']} state={nxt['action_id']}")
+        if current["action_space"] != nxt["action_space"]:
+            errors.append("action_space mismatch between current_state and next_action")
+        if current["state_mode"] != nxt["mode"]:
+            errors.append("state_mode/mode mismatch between current_state and next_action")
+        if current["promotion"] != nxt["promotion"]:
+            errors.append("promotion mismatch between current_state and next_action")
+        if current["layer_1"] != nxt["layer_1"]:
+            errors.append("layer_1 mismatch between current_state and next_action")
+        if current["staircase"] != nxt["staircase"]:
+            errors.append("staircase mismatch between current_state and next_action")
 
-    mode = current.get("state_mode", "FOUNDATION_LOCKED")
+    mode = current.get("state_mode")
     if mode == "FOUNDATION_LOCKED":
         if current.get("promotion") != "DENY" or nxt.get("promotion") != "HARD_DENY":
             errors.append("foundation mode requires promotion DENY/HARD_DENY")
@@ -66,19 +74,23 @@ def main() -> int:
             errors.append("foundation mode requires action_space zero")
         if current.get("action") != "MANDATORY_NO_OP" or nxt.get("mode") != "MANDATORY_NO_OP":
             errors.append("foundation mode requires MANDATORY_NO_OP")
-    elif mode == "PROMOTED_DATA_ADMISSION":
-        if current.get("promotion") != "PASS" or nxt.get("promotion") != "PASS":
-            errors.append("promoted mode requires promotion PASS")
+    elif mode == "DATA_ADMISSION":
+        if current.get("promotion") != "PASS_TO_ROOM_01_ONLY;CANONICAL_QUORUM_DENY":
+            errors.append("DATA_ADMISSION requires promotion limited to Room 01 with canonical quorum denied")
+        if nxt.get("promotion") != current.get("promotion"):
+            errors.append("DATA_ADMISSION promotion must remain locally scoped")
         if current.get("layer_1") != "ROOM_01_DATA_ADMISSION" or nxt.get("layer_1") != "ROOM_01_DATA_ADMISSION":
-            errors.append("promoted mode requires Room 01 DATA_ADMISSION")
+            errors.append("DATA_ADMISSION requires Room 01 only")
         if current.get("staircase") != "LOCKED" or nxt.get("staircase") != "LOCKED":
-            errors.append("promoted mode still requires staircase LOCKED")
+            errors.append("DATA_ADMISSION requires staircase LOCKED")
         if current.get("action_space") != 1 or nxt.get("action_space") != 1:
-            errors.append("promoted mode requires exactly one admitted action slot")
-        if current.get("action") != "DATA_ADMISSION" or nxt.get("mode") != "DATA_ADMISSION":
-            errors.append("promoted mode requires DATA_ADMISSION action")
-        if nxt.get("status") != "READY":
-            errors.append("promoted mode requires next action READY")
+            errors.append("DATA_ADMISSION requires exactly one admitted action slot")
+        if current.get("action") != "RUNTIME_PROVENANCE_EXECUTION":
+            errors.append("DATA_ADMISSION current action must be RUNTIME_PROVENANCE_EXECUTION")
+        if nxt.get("mode") != "DATA_ADMISSION" or nxt.get("status") != "READY":
+            errors.append("DATA_ADMISSION next action must be READY in DATA_ADMISSION mode")
+        if current.get("state") != "SOURCE_PROVENANCE_CAPTURE":
+            errors.append("DATA_ADMISSION current state must be SOURCE_PROVENANCE_CAPTURE")
     else:
         errors.append(f"unknown state_mode: {mode}")
 
@@ -88,13 +100,24 @@ def main() -> int:
         errors.append("unknown_is_not_pass must be true")
     if current.get("default_deny") is not True:
         errors.append("default_deny must be true")
-    if current.get("ci_status") not in {"PENDING", "UNKNOWN_NO_OBSERVABLE_WORKFLOW_RUN", "PASS", "FAIL"}:
+    if current.get("ci_status") not in VALID_CI:
         errors.append("invalid ci_status")
 
     if errors:
         print({"status": "FAIL", "errors": errors})
         return 1
-    print({"status": "PASS", "state_mode": mode, "last_action_id": current["last_action_id"], "next_action_id": current["next_action_id"], "promotion": current["promotion"], "layer_1": current["layer_1"], "staircase": current["staircase"], "action_space": current["action_space"]})
+    print({
+        "status": "PASS",
+        "state_mode": mode,
+        "state": current["state"],
+        "last_action_id": current["last_action_id"],
+        "next_action_id": current["next_action_id"],
+        "promotion": current["promotion"],
+        "layer_1": current["layer_1"],
+        "staircase": current["staircase"],
+        "action_space": current["action_space"],
+        "action": current["action"],
+    })
     return 0
 
 
