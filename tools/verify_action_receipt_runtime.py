@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 from pathlib import Path
 
 from tools.action_receipt_validator import validate_action_receipt
@@ -44,7 +43,11 @@ def main() -> int:
 
         path, receipt = candidates[0]
         runtime_commit = os.environ.get("RENDER_GIT_COMMIT", "")
-        result = validate_action_receipt(receipt, {"last_action": action, "next_action": next_action}, {"commit_sha": runtime_commit})
+        canonical_state = {
+            "last_action_id": action,
+            "next_action_id": next_action,
+        }
+        result = validate_action_receipt(receipt, canonical_state, {"commit_sha": runtime_commit})
         result["receipt_path"] = str(path.relative_to(ROOT))
         print(json.dumps(result, ensure_ascii=False))
         return 0 if result.get("status") == "PASS" else 1
