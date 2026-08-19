@@ -1,24 +1,25 @@
 {
-  "action_id": "BRAIN-N102_CANONICAL_SOURCE_IDENTITY_PROOF",
-  "title": "Bounded canonical source identity proof",
+  "action_id": "BRAIN-N103_SOURCE_INDEPENDENCE_PROOF",
+  "title": "Bounded source independence proof",
   "status": "READY",
   "mode": "DATA_ADMISSION",
   "action_space": 1,
-  "action": "CANONICAL_SOURCE_IDENTITY_PROOF",
+  "action": "SOURCE_INDEPENDENCE_PROOF",
   "promotion": "PASS_TO_ROOM_01_ONLY;CANONICAL_QUORUM_DENY",
   "layer_1": "ROOM_01_DATA_ADMISSION",
   "staircase": "LOCKED",
-  "previous": "BRAIN-N101_ORIGIN_METADATA_PROBE completed local origin observation with two fresh HTTPS/TLS receipts; canonical identity remained DENY_UNPROVEN",
-  "current_gate": "CANONICAL_SOURCE_IDENTITY_PROOF",
+  "previous": "BRAIN-N102_CANONICAL_SOURCE_IDENTITY_PROOF produced PASS_LOCAL identity evidence for both declared hosts; independence remained NOT_PROVEN",
+  "current_gate": "SOURCE_INDEPENDENCE_PROOF",
   "scope": [
-    "perform bounded document-metadata observation only",
-    "observe canonical link metadata where present",
-    "observe og:url and bounded site identity metadata where present",
-    "cap response bytes and never archive the page",
-    "do not treat ads, ad redirects, or application links as source identity",
+    "compare fresh bounded infrastructure metadata for both declared sources",
+    "observe resolved network path metadata where safely observable",
+    "observe TLS certificate identity metadata without credentials",
+    "observe ASN/network-owner metadata where safely observable",
+    "compare edge/server metadata",
     "do not treat hostname difference as independence proof",
-    "do not infer canonicality from HTTP 200 or TLS success",
-    "emit compact gate-local evidence envelope",
+    "do not treat HTML/content differences as independence proof",
+    "do not perform application actions",
+    "emit compact cross-source evidence envelope",
     "keep 320MiB guard"
   ],
   "rules": [
@@ -27,11 +28,10 @@
     "PASS_IS_LOCAL_TO_GATE",
     "NO_PASS_INHERITANCE",
     "ADS_ARE_NON_TRUTH_CONTENT",
-    "REDIRECT_TARGETS_ARE_NOT_AUTOMATIC_SOURCE_IDENTITY",
     "HOSTNAME_DIFFERENCE_IS_NOT_INDEPENDENCE_PROOF",
     "NO_CREDENTIALS_IN_REPOSITORY",
     "NO_CREDENTIALS_IN_EVIDENCE",
     "OOM_GUARD_320MB"
   ],
-  "completion_gate": "Fresh bounded identity evidence exists for both declared sources; canonical identity is PASS only when explicit proof criteria are satisfied, otherwise DENY. No downstream promotion."
+  "completion_gate": "Fresh bounded infrastructure evidence exists for both sources and explicit independence criteria are satisfied; otherwise independence and canonical quorum remain DENY."
 }
