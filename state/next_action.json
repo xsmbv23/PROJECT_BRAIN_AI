@@ -1,1 +1,40 @@
-{"action_id":"BRAIN-N118","title":"Continue parallel-safe foundation engineering without promotion","status":"READY","phase":"FOUNDATION_HARDENING","mode":"DATA_ADMISSION","action_space":0,"promotion":"DENY","previous":"BRAIN-N117 packaged the parallel-bot coordination boundary while the exact-current external governance receipt remains unproven","scope":["validate immutable successor documentation","monitor exact-current runtime evidence","package safe Quant registry/collector drift repair for admission by the single Forensic FSM","verify memory/OOM guard remains intact","do not unlock Room 02 or staircase","do not claim independent governance receipt until externally observable"],"resume_external_gate":"INDEPENDENT_EXACT_CURRENT_GOVERNANCE_RECEIPT","constraints":["ONE_FORENSIC_FSM","PASS_IS_LOCAL","PASS_IS_PREREQUISITE_ONLY","NO_PASS_INHERITANCE","UNKNOWN_IS_NOT_PASS","DEFAULT_DENY","FRESH_EVIDENCE_REQUIRED_FOR_PROMOTION","FORENSIC_IMMUTABILITY","320MB_RENDER_GUARD","CHAT_IS_INTERFACE_ONLY","NO_CREDENTIAL_EXPOSURE"]}
+{
+  "action_id":"BRAIN-N120",
+  "title":"Audit governance/evidence contracts for stale identity, freshness ambiguity, and self-attestation paths",
+  "status":"READY",
+  "phase":"FOUNDATION_HARDENING",
+  "mode":"DATA_ADMISSION",
+  "action_space":0,
+  "promotion":"DENY",
+  "previous":"BRAIN-N119 completed contract lifecycle hardening; exact-current runtime action admission remains separately blocked",
+  "scope":[
+    "audit governance/evidence contracts for stale runtime identity",
+    "audit evidence freshness semantics",
+    "audit self-attestation paths that could masquerade as independent observation",
+    "preserve immutable historical evidence",
+    "continue safe engineering without unlocking Runtime Action Admission",
+    "do not manufacture external observation",
+    "do not unlock Room 02 or staircase",
+    "do not promote evidence"
+  ],
+  "resume_external_gate":"INDEPENDENT_EXACT_CURRENT_GOVERNANCE_RECEIPT",
+  "constraints":[
+    "ONE_FORENSIC_FSM",
+    "PASS_IS_LOCAL",
+    "PASS_IS_PREREQUISITE_ONLY",
+    "NO_PASS_INHERITANCE",
+    "UNKNOWN_IS_NOT_PASS",
+    "DEFAULT_DENY",
+    "OWN_GATE_EVIDENCE_REQUIRED",
+    "FRESH_EVIDENCE_REQUIRED_FOR_PROMOTION",
+    "FORENSIC_IMMUTABILITY",
+    "320MB_RENDER_GUARD",
+    "CHAT_IS_INTERFACE_ONLY",
+    "NO_CREDENTIAL_EXPOSURE",
+    "HUMAN_INPUT_IS_EVIDENCE_CARRIER_NOT_STATE_AUTHORITY",
+    "INDEPENDENT_OBSERVATION_CANNOT_BE_SELF_ATTESTED"
+  ],
+  "other_bot_required_next_action":"QUANT-N007",
+  "other_bot_dependency":"CI observation and source-specific semantic extraction for ketqua16.net and xsmb.com.vn; no canonical promotion",
+  "completion_gate":"Governance/evidence contracts have no unresolved stale-identity, freshness, or self-attestation ambiguity, or each remaining issue is explicitly classified UNKNOWN/BLOCKED with no unsafe bypass"
+}
