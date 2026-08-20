@@ -1,0 +1,14 @@
+{
+  "contract_id":"EVIDENCE_LINEAGE_V1",
+  "fsm":"ONE_FORENSIC_FSM",
+  "raw_hash":{"name":"raw_sha256","meaning":"exact_source_payload_integrity"},
+  "semantic_hash":{"name":"semantic_sha256","meaning":"normalized_parser_output_integrity","cannot_replace_raw_hash":true},
+  "required_provenance":["source_id","source_observation_id","raw_sha256","observed_at","source_date","freshness_class","parent_evidence_ids","producer_component"],
+  "conditional_provenance":["semantic_sha256","parser_version","collector_version"],
+  "non_masquerading_rules":["DERIVED_CANNOT_BE_SOURCE_TRUTH","LOCAL_RECEIPT_CANNOT_BE_INDEPENDENT_EXTERNAL_OBSERVATION","SEMANTIC_HASH_CANNOT_BE_RAW_HASH","STALE_LOG_CANNOT_BE_FRESH_EVIDENCE","CHAT_ASSERTION_CANNOT_BE_RUNTIME_EVIDENCE"],
+  "gate_rules":["PASS_IS_LOCAL","PASS_IS_PREREQUISITE_ONLY","NO_PASS_INHERITANCE","UNKNOWN_IS_NOT_PASS","DEFAULT_DENY","OWN_GATE_EVIDENCE_REQUIRED","FRESH_EVIDENCE_REQUIRED_FOR_PROMOTION"],
+  "current_action_space":0,
+  "promotion":"DENY",
+  "room_02":"LOCKED",
+  "staircase":"LOCKED"
+}
