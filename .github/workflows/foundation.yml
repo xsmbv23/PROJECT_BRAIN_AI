@@ -30,6 +30,8 @@ jobs:
         run: python -m unittest tests/test_evidence_lineage_contract_registry.py -v
       - name: Run source observation lineage bridge tests
         run: python -m unittest tests/test_lineage_bridge.py -v
+      - name: Run CI receipt semantics tests
+        run: python -m unittest tests/test_emit_ci_execution_receipt.py -v
       - name: Run integrated deterministic foundation verifier
         run: python tools/verify_foundation.py
       - name: Run focused two-key protected-room verifier
