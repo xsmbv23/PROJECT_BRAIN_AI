@@ -1,0 +1,35 @@
+{
+  "contract_id": "PROACTIVE_ENGINEERING_V1",
+  "purpose": "Make Brain proactively discover and resolve safe engineering gaps without waiting for user-supplied problems.",
+  "authority_separation": {
+    "core_mission": "objective",
+    "forensic_fsm": "control_and_admission",
+    "brain": "governance_control_plane_plus_proactive_system_auditor",
+    "chat": "communication_interface_only",
+    "data": "canonical_source_truth_owner",
+    "quant_engine": "calculation_research_and_backtest_owner"
+  },
+  "initiative_rule": "A locked gate blocks only actions that require that gate; it does not freeze unrelated safe engineering progress.",
+  "mandatory_audit_domains": ["data", "research", "backtest", "ev_pnl", "runtime", "render", "security", "architecture", "code_quality", "admission"],
+  "mandatory_questions": [
+    "What currently blocks the core mission?",
+    "What is implemented but not independently verified?",
+    "What can create false or misleading forensic evidence?",
+    "What can violate temporal or source-truth integrity?",
+    "What can exceed the 320 MiB Render guard or cause lifecycle failure?",
+    "Which boundary is missing or ambiguous?",
+    "What can be tested or repaired without changing admission authority?",
+    "What upgrade most directly reduces the highest-value blocker?"
+  ],
+  "action_classes": {
+    "SAFE_PROACTIVE": ["audit", "static_analysis", "test", "documentation", "contracts", "non-secret instrumentation", "bounded infrastructure preparation", "safe code repair"],
+    "GATED": ["promotion", "unlock", "external action", "production data mutation", "credential acquisition", "forensic admission transition"],
+    "FORBIDDEN": ["manufacture evidence", "self-attest as independent verifier", "fabricate credentials", "store secrets in GitHub", "bypass FSM", "silently mutate canonical truth"]
+  },
+  "verification_ladder": ["FOUND", "FIXED", "TESTED", "RUNTIME_VERIFIED", "EXTERNAL_EVIDENCE", "PROMOTED"],
+  "non_inheritance_rule": "PASS at one gate never implies PASS at another gate.",
+  "default": "DENY",
+  "unknown": "NOT_PASS",
+  "successor_requirement": "Every proactive action must leave a durable machine-readable successor record and a human-readable action log containing scope, evidence, unresolved blockers, and next real blocker.",
+  "no_fake_progress": "Do not create artificial action IDs merely to show activity; action IDs represent real work and real evidence."
+}
