@@ -1,0 +1,33 @@
+{
+  "schema_id": "FORENSIC_CATEGORY_SEPARATION_V1",
+  "categories": {
+    "DOCTRINE": {"role":"stable rule/invariant","may_promote_state":false,"may_be_current_evidence":false},
+    "EVIDENCE": {"role":"attributable observation","requires_provenance":true,"replayable":true},
+    "STATE": {"role":"exact current condition","requires_current_observation":true,"inherits_from_history":false},
+    "HISTORY": {"role":"immutable past record","is_current_state":false,"may_trigger_replay":true},
+    "HYPOTHESIS": {"role":"unproven proposition","may_be_edge":false,"may_be_ev":false}
+  },
+  "invariants": [
+    "DOCTRINE != EVIDENCE",
+    "EVIDENCE != STATE",
+    "STATE != HISTORY",
+    "HISTORY != CURRENT_STATE",
+    "HYPOTHESIS != EDGE",
+    "EDGE != EV_PLUS",
+    "UNKNOWN != PASS",
+    "NO_PASS_INHERITANCE",
+    "SUCCESSOR_INHERITS_VERIFICATION_METHOD_NOT_TRUST"
+  ],
+  "hypothesis_promotion": [
+    "HYPOTHESIS",
+    "CONTROLLED_TEST",
+    "REPLAY",
+    "OOS",
+    "STABILITY",
+    "EDGE",
+    "PROBABILITY",
+    "PAYOUT_COST",
+    "EV"
+  ],
+  "negative_gate": "EV < 0 => DENY"
+}
