@@ -3,6 +3,10 @@
 The verifier only reads receipts emitted by a prior runtime execution boundary.
 It never creates or modifies evidence/state. Durable receipts are preferred;
 legacy repository receipts remain a compatibility path.
+
+Render application runtime does not expose the dashboard deploy id in the
+observed environment, so the exact runtime instance id is accepted as the
+deployment identity. A new deployment creates a new instance identity.
 """
 from __future__ import annotations
 
@@ -17,15 +21,25 @@ ROOT = Path(__file__).resolve().parents[1]
 RECEIPTS = ROOT / "evidence" / "receipts"
 
 
+def deployment_identity() -> tuple[str, str]:
+    deploy_id = os.environ.get("RENDER_DEPLOY_ID", "")
+    if deploy_id:
+        return deploy_id, "RENDER_DEPLOY_ID"
+    instance_id = os.environ.get("RENDER_INSTANCE_ID", "")
+    if instance_id:
+        return instance_id, "RENDER_INSTANCE_ID"
+    return "", "NONE"
+
+
 def main() -> int:
     try:
         state = json.loads((ROOT / "state" / "current_state.json").read_text(encoding="utf-8"))
         action = state.get("last_action_id")
         next_action = state.get("next_action_id")
         runtime_commit = os.environ.get("RENDER_GIT_COMMIT", "")
-        deployment_id = os.environ.get("RENDER_DEPLOY_ID", "")
+        deployment_id, identity_type = deployment_identity()
         if not action or not next_action or not runtime_commit or not deployment_id:
-            print(json.dumps({"status": "DENY", "reason": "RUNTIME_ACTION_IDENTITY_MISSING"}, ensure_ascii=False))
+            print(json.dumps({"status": "DENY", "reason": "RUNTIME_ACTION_IDENTITY_MISSING", "deployment_identity_type": identity_type}, ensure_ascii=False))
             return 1
 
         receipt = None
@@ -54,13 +68,16 @@ def main() -> int:
                 return 1
 
         if receipt is None:
-            print(json.dumps({"status": "DENY", "reason": "RECEIPT_MISSING", "action_id": action, "commit_sha": runtime_commit, "deployment_id": deployment_id}, ensure_ascii=False))
+            print(json.dumps({"status": "DENY", "reason": "RECEIPT_MISSING", "action_id": action, "commit_sha": runtime_commit, "deployment_id": deployment_id, "deployment_identity_type": identity_type}, ensure_ascii=False))
             return 1
 
         canonical_state = {"last_action_id": action, "next_action_id": next_action}
         result = validate_action_receipt(receipt, canonical_state, {"commit_sha": runtime_commit})
+        if receipt.get("deployment_id") != deployment_id:
+            result = {"status": "DENY", "reason": "RECEIPT_DEPLOYMENT_ID_MISMATCH"}
         result["receipt_origin"] = receipt_origin
         result["deployment_id"] = deployment_id
+        result["deployment_identity_type"] = identity_type
         result["pass_is_local"] = True
         result["promotes"] = False
         print(json.dumps(result, ensure_ascii=False))
