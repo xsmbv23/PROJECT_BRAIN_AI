@@ -1,0 +1,42 @@
+{
+  "contract_id": "CONTRACT_LIFECYCLE_INDEX_V1",
+  "purpose": "Prevent historical or superseded contracts from being mistaken for current runtime authority while preserving immutable evidence.",
+  "classification_values": [
+    "CURRENT_AUTHORITY",
+    "HISTORICAL_EVIDENCE",
+    "SUPERSEDED",
+    "PROPOSAL",
+    "UNKNOWN"
+  ],
+  "rules": {
+    "current_runtime_evidence_requires": [
+      "exact_current_runtime_identity",
+      "exact_runtime_commit",
+      "exact_deployment_identity",
+      "fresh_evidence",
+      "admission_by_own_gate"
+    ],
+    "historical_contract_policy": "PRESERVE_IMMUTABLY; NEVER TREAT AS CURRENT WITHOUT FRESH EXACT-CURRENT EVIDENCE",
+    "supersession_policy": "CLASSIFY_EXPLICITLY; DO_NOT_DELETE_HISTORY",
+    "unknown_policy": "UNKNOWN_IS_NOT_CURRENT",
+    "chat_policy": "CHAT_REQUEST_IS_NOT_STATE_AUTHORITY",
+    "pass_policy": "PASS_IS_LOCAL_AND_NOT_INHERITED"
+  },
+  "current_runtime_anchor": {
+    "repository": "xsmbv23/Project_Brain_AI",
+    "commit": "e23a5baa645753306a1a829a2ffcf72015a8f07c",
+    "deployment": "dep-da38hngu01pc73854hh0",
+    "instance": "srv-da0506u1egvs73ftsdng-7wgsv"
+  },
+  "known_historical_contracts": [
+    {
+      "path": "contracts/exact_runtime_execution_primitive_v1.json",
+      "classification": "HISTORICAL_EVIDENCE",
+      "historical_runtime_commit": "2d4415a875df3582aa26df4598f4f409c3c23027",
+      "historical_deployment": "dep-da2tjk7qj5pc738ht64g",
+      "reason": "The contract records an earlier exact-runtime primitive and does not match the current canonical runtime anchor. It must remain preserved as history and must not be used as current runtime evidence."
+    }
+  ],
+  "promotion_rule": "A contract classification never grants promotion. Promotion requires fresh evidence owned by the relevant admission gate.",
+  "immutability_rule": "Do not rewrite historical action logs or historical contract evidence to make them appear current. Add a new classification/index record instead."
+}
