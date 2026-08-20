@@ -60,8 +60,8 @@ class Handler(BaseHTTPRequestHandler):
             check=False,
         )
         raw = proc.stdout.strip()
-        # Persist the probe's exact stdout as the raw receipt. The bridge does
-        # not parse, rewrite, or manufacture receipt fields.
+        # The bridge stores the probe's stdout as an immutable per-execution
+        # evidence artifact. It does not parse or rewrite the probe result.
         stamp = str(int(time.time() * 1000))
         raw_path = RECEIPT_DIR / f"transport_{stamp}.json"
         raw_path.write_text(raw + "\n", encoding="utf-8")
@@ -71,23 +71,35 @@ class Handler(BaseHTTPRequestHandler):
         if self.path in ("/", "/health", "/governance"):
             self._send_payload()
             return
-        if self.path == "/forensic/run-transport-probe":
-            if not self._probe_authorized():
-                self._json(403, {"status": 403, "verdict": "DENY_AUTHORIZATION"})
-                return
-            passed, receipt_name = self._run_fixed_probe()
-            # Trigger response only. Never return the receipt itself.
-            self._json(202 if passed else 409, {
-                "status": 202 if passed else 409,
-                "execution": "IN_CONTAINER",
-                "action": "FIXED_TRANSPORT_PROBE",
-                "probe": "tools/transport_probe.py",
-                "receipt": "PERSISTED_SEPARATELY",
-                "receipt_name": receipt_name,
-                "verdict": "EXECUTED" if passed else "EXECUTED_DENY",
-            })
-            return
+        # Probe execution is deliberately NOT available over GET. This keeps
+        # safe/read-only health paths separate from privileged execution.
         self._json(404, {"status": 404, "verdict": "NOT_FOUND"})
+
+    def do_POST(self):
+        if self.path != "/forensic/trigger-transport-probe":
+            self._json(404, {"status": 404, "verdict": "NOT_FOUND"})
+            return
+        if not self._probe_authorized():
+            self._json(401, {"status": 401, "verdict": "UNAUTHORIZED_FORENSIC_TRIGGER"})
+            return
+        try:
+            passed, receipt_name = self._run_fixed_probe()
+        except Exception:
+            # Do not expose exception details through the privileged boundary.
+            self._json(500, {"status": 500, "verdict": "EXECUTION_FAILED"})
+            return
+        # This response is dispatch/execution evidence only. It is never a
+        # forensic PASS and never returns receipt contents.
+        self._json(202 if passed else 409, {
+            "status": 202 if passed else 409,
+            "execution": "IN_CONTAINER",
+            "action": "FIXED_TRANSPORT_PROBE",
+            "probe": "tools/transport_probe.py",
+            "receipt": "PERSISTED_SEPARATELY",
+            "receipt_name": receipt_name,
+            "verdict": "EXECUTED" if passed else "EXECUTED_DENY",
+            "promotion": "DENY_UNTIL_INDEPENDENT_VERIFIER_PASS",
+        })
 
     def do_HEAD(self):
         if self.path in ("/", "/health", "/governance"):
