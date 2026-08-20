@@ -57,6 +57,36 @@ def _current_action_receipt_evidence() -> dict:
         return {"status": "DENY", "reason": f"ACTION_RECEIPT_READ_FAILED:{type(exc).__name__}", "pass_is_local": True, "promotes": False}
 
 
+def _governance_payload() -> dict:
+    state = json.loads((ROOT / "state" / "current_state.json").read_text(encoding="utf-8"))
+    binding = classify_database_binding()
+    return {
+        "status": 200,
+        "project": "XSMB_FORENSIC",
+        "component": "PROJECT_BRAIN_AI",
+        "version": __version__,
+        "role": "GOVERNANCE_CONTROL_PLANE",
+        "forensic_fsm": "ONE_FORENSIC_FSM",
+        "core_mission": "REAL_DATA->VALID_RESEARCH->VALID_BACKTEST->EDGE->EV_PNL_ROI->ROBUSTNESS_RISK_DRIFT->CONTROLLED_ACTION",
+        "foundation": "IMPLEMENTED",
+        "promotion": "DENY",
+        "action_space": state.get("action_space", 0),
+        "action": state.get("action", "MANDATORY_NO_OP"),
+        "next_action_id": state.get("next_action_id"),
+        "layer_1": "LOCKED",
+        "room_02": state.get("room_02", "LOCKED"),
+        "staircase": state.get("staircase", "LOCKED"),
+        "mutation": "DENY",
+        "evidence": "COMPACT_ENVELOPE_ONLY",
+        "render": "READONLY_HEALTH_BOUNDARY",
+        "liveness": "LIVE",
+        "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
+        "database_binding": binding["status"],
+        "database_tls": binding["tls"],
+        "action_receipt": _current_action_receipt_evidence(),
+    }
+
+
 class Handler(BaseHTTPRequestHandler):
     def _json(self, status: int, payload: dict):
         body = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
@@ -67,25 +97,7 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def _send_payload(self):
-        binding = classify_database_binding()
-        self._json(200, {
-            "status": 200,
-            "project": "XSMB_FORENSIC",
-            "component": "PROJECT_BRAIN_AI",
-            "version": __version__,
-            "role": "GOVERNANCE_CONTROL_PLANE",
-            "foundation": "IMPLEMENTED",
-            "promotion": "DENY",
-            "layer_1": "LOCKED",
-            "mutation": "DENY",
-            "evidence": "COMPACT_ENVELOPE_ONLY",
-            "render": "READONLY_HEALTH_BOUNDARY",
-            "liveness": "LIVE",
-            "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
-            "database_binding": binding["status"],
-            "database_tls": binding["tls"],
-            "action_receipt": _current_action_receipt_evidence(),
-        })
+        self._json(200, _governance_payload())
 
     def _probe_authorized(self) -> bool:
         expected = os.environ.get("FORENSIC_PROBE_TOKEN", "")
