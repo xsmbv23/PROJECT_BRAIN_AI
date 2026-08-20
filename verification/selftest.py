@@ -1,4 +1,5 @@
 from brain.security import Denied, default_gate
+from tools.evidence_lineage_validator import validate_evidence
 
 
 def expect_denied(fn, expected: str) -> bool:
@@ -89,6 +90,21 @@ def run() -> dict:
         "CAPABILITY_SCOPE_MISMATCH",
     )
 
+    lineage_source = {
+        "source_identity": "ketqua16.net",
+        "observation_timestamp": "2026-08-21T00:00:00Z",
+        "observation_origin": "external_source",
+    }
+    lineage_source_pass = validate_evidence(lineage_source)["status"] == "PASS"
+    lineage_derived_denied = validate_evidence(lineage_source | {"derived": True})["status"] == "DENY"
+    lineage_hashes_distinct = validate_evidence(
+        lineage_source | {
+            "raw_artifact_sha256": "raw",
+            "semantic_fingerprint": "meaning",
+            "semantic_quorum": True,
+        }
+    )["status"] == "PASS"
+
     result = {
         "status": "RUNTIME_VERIFIED",
         "promotion": "DENY",
@@ -98,6 +114,9 @@ def run() -> dict:
         "layer_mismatch_denied": layer_mismatch_denied,
         "missing_lineage_denied": lineage_denied,
         "capability_scope_denied": capability_denied,
+        "lineage_source_pass": lineage_source_pass,
+        "lineage_derived_denied": lineage_derived_denied,
+        "lineage_hashes_distinct": lineage_hashes_distinct,
         "audit_append_only": isinstance(gate.audit, list) and len(gate.audit) >= 2,
         "secret_policy": "NO_SECRET_VALUES_IN_EVIDENCE",
     }
