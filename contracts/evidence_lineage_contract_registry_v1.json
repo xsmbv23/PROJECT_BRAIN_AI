@@ -1,0 +1,22 @@
+{
+  "contract_id": "EVIDENCE_LINEAGE_CONTRACT_REGISTRY_V1",
+  "purpose": "Classify lineage contracts so historical schemas remain immutable evidence and only one lineage admission schema is current authority.",
+  "classification_values": ["CURRENT_AUTHORITY", "HISTORICAL_EVIDENCE", "SUPERSEDED", "PROPOSAL", "UNKNOWN"],
+  "current_authority": "contracts/evidence_lineage_admission_v1.json",
+  "contracts": [
+    {
+      "path": "contracts/evidence_lineage_admission_v1.json",
+      "classification": "CURRENT_AUTHORITY",
+      "field_names": ["raw_artifact_sha256", "semantic_fingerprint", "canonical_payload_sha256", "upstream_evidence_ids", "derivation_contract", "runtime_identity", "gate_evidence_id"]
+    },
+    {
+      "path": "contracts/evidence_lineage_v1.json",
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Older lineage schema uses raw_sha256/semantic_sha256 naming. Preserve unchanged; do not treat it as current runtime authority."
+    }
+  ],
+  "authority_rule": "Exactly one lineage contract may be CURRENT_AUTHORITY. Historical or superseded contracts remain immutable and cannot satisfy a current gate merely by existence.",
+  "validator_rule": "tools/evidence_lineage_validator.py validates against CURRENT_AUTHORITY field semantics and may read legacy aliases only for backward-readable fixtures.",
+  "promotion_rule": "Contract classification never grants promotion. Fresh gate-owned evidence is still required.",
+  "forensic_rule": "Do not rewrite historical contracts to match the current schema. Add a new classification record instead."
+}
