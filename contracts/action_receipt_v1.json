@@ -1,0 +1,19 @@
+{
+  "contract_id": "ACTION_RECEIPT_V1",
+  "proposition": "ONE_EXACT_RUNTIME_ACTION_EXECUTED",
+  "required_identity": ["action_id", "commit_sha", "deployment_id", "execution_nonce", "evidence_sha", "issued_at"],
+  "receipt_scope": "LOCAL_ACTION_EXECUTION_ONLY",
+  "proves": ["exact_action_identity", "exact_commit_identity", "exact_deployment_identity", "exact_execution_nonce", "fresh_issue_time", "binding_to_existing_evidence_sha"],
+  "does_not_prove": ["source_truth", "network_origin_truth", "canonical_quorum", "truth_admission", "edge", "ev_pnl", "global_promotion"],
+  "replay_policy": "NONCE_AND_EXACT_COMMIT_AND_DEPLOYMENT_MUST_MATCH",
+  "freshness_seconds": 900,
+  "issuer": "RUNTIME_EXECUTION_BOUNDARY",
+  "verifier": "CORE_FORENSIC_ADMISSION",
+  "verifier_must_not_issue": true,
+  "missing_policy": "DENY",
+  "mismatch_policy": "DENY",
+  "stale_policy": "DENY",
+  "unknown_policy": "DENY",
+  "pass_semantics": "PASS_LOCAL_ONLY",
+  "downstream_promotion": "FORBIDDEN"
+}
