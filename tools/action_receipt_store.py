@@ -14,11 +14,26 @@ from typing import Any
 from tools.durable_postgres import DurableEvidenceDeny, _canonical, _load_psycopg, _require_tls_database_url
 
 
-def issue_action_receipt(*, action_id: str, commit_sha: str, deployment_id: str, evidence_sha: str) -> dict[str, Any]:
-    if not all((action_id, commit_sha, deployment_id, evidence_sha)):
+def latest_evidence_sha() -> str:
+    url = _require_tls_database_url(os.environ.get("DATABASE_URL", ""))
+    psycopg = _load_psycopg()
+    try:
+        with psycopg.connect(url, connect_timeout=5) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT envelope_sha FROM brain_forensic_evidence ORDER BY recorded_at DESC LIMIT 1")
+                row = cur.fetchone()
+    except Exception as exc:
+        raise DurableEvidenceDeny(f"ACTION_RECEIPT_EVIDENCE_HEAD_READ_FAILED:{type(exc).__name__}") from exc
+    if not row or not row[0]:
+        raise DurableEvidenceDeny("ACTION_RECEIPT_EVIDENCE_HEAD_MISSING")
+    return str(row[0])
+
+
+def issue_action_receipt(*, action_id: str, commit_sha: str, deployment_id: str, evidence_sha: str | None = None) -> dict[str, Any]:
+    if not all((action_id, commit_sha, deployment_id)):
         raise DurableEvidenceDeny("ACTION_RECEIPT_IDENTITY_INCOMPLETE")
+    evidence_sha = evidence_sha or latest_evidence_sha()
     issued_at = datetime.now(timezone.utc).isoformat()
-    # A fresh runtime execution nonce is deliberately generated at the execution boundary.
     nonce_seed = f"{action_id}|{commit_sha}|{deployment_id}|{issued_at}"
     import hashlib
     execution_nonce = hashlib.sha256(nonce_seed.encode("utf-8")).hexdigest()
