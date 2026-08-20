@@ -6,15 +6,23 @@ This document freezes the database-admission and general Forensic gate semantics
 
 The system has **one Forensic state machine**, not multiple independent Forensic systems.
 
+The individual PASS / UNKNOWN / FAIL values below are **gate-local evidence states**, not separate Forensic state machines.
+
+## One Forensic FSM
+
 The database admission chain is one ordered chain of independent evidence gates:
 
 ```text
 DB_EXISTENCE
     -> DB_BINDING
-        -> DB_TLS_ADMISSION
-            -> DB_ROUND_TRIP
-                -> PROMOTION
+        -> SECRET_RESOLUTION
+            -> DB_TLS_ADMISSION
+                -> NETWORK_ORIGIN_PROOF
+                    -> DB_ROUND_TRIP
+                        -> PROMOTION
 ```
+
+These gates interact directionally. A successful gate makes the next gate reachable; it never passes the next gate automatically.
 
 ## Core law
 
@@ -52,6 +60,22 @@ does not imply a durable evidence round-trip.
 
 Only a real compact metadata write -> read -> SHA-256 match can satisfy the round-trip gate.
 
+## Gate ownership
+
+Each gate owns exactly one narrow question and its own evidence.
+
+```text
+DB_EXISTENCE          = resource existence evidence
+DB_BINDING            = service binding evidence
+SECRET_RESOLUTION     = authorized secret-boundary evidence
+DB_TLS_ADMISSION      = TLS-policy evidence
+NETWORK_ORIGIN_PROOF  = authorized-runtime-origin evidence
+DB_ROUND_TRIP          = real write/read/hash evidence
+PROMOTION              = explicit authority decision
+```
+
+A gate may not borrow another gate's evidence merely because the evidence appears related.
+
 ## Evidence hierarchy
 
 ```text
@@ -61,7 +85,13 @@ resource existence
 service binding
       |
       v
+secret resolution
+      |
+      v
 TLS admission
+      |
+      v
+network origin
       |
       v
 real write/read/hash verification
@@ -70,7 +100,7 @@ real write/read/hash verification
 promotion authority
 ```
 
-Every transition requires evidence belonging to that transition.
+Every transition requires fresh evidence belonging to that transition.
 
 ## Hard boundaries
 
@@ -85,10 +115,35 @@ STRUCTURALLY_VALID    != DOMAIN_TRUE
 ROUNDTRIP_VALID       != DOMAIN_UNDERSTANDING
 READINESS             != AUTHORITY
 LOG                   != EVIDENCE
-RULE                   != AUTHORITY
-ARTIFACT               != PROGRESS
+RULE                  != AUTHORITY
+ARTIFACT              != PROGRESS
 SIMULATION             != EVIDENCE
 ```
+
+## Room / door interpretation
+
+The room metaphor maps onto the same FSM:
+
+```text
+corridor key
+    -> reach the corridor
+room key
+    -> reach the room door
+inner latch / host approval
+    -> protected-room admission
+own gate evidence
+    -> prove what actually happened inside
+promotion
+    -> authority to use the result downstream
+```
+
+`DB_EXISTENCE=PASS` means the room exists. It does not mean the visitor has the corridor key, room key, inner release, or proof of a valid transaction.
+
+## Quant Engine boundary
+
+`xsmbv23/Quant_Engine` is Layer 1 research/execution infrastructure. It may prepare local prerequisites, source adapters, feature calculations, replay contracts, and compact evidence.
+
+It may **not** reopen a Brain gate, reinterpret Brain evidence, promote itself into Brain authority, or convert a candidate edge into trade authorization.
 
 ## External-event law
 
@@ -138,23 +193,23 @@ Before taking any action, a successor Bot MUST:
 2. Read `state/next_action.json`.
 3. Treat the current state as authoritative persistent state, not the chat transcript.
 4. Determine whether the next action requires an external event.
-5. If the event is absent, perform NO-OP.
-6. Never infer a later gate from an earlier PASS.
-7. Never convert observability/readiness into authority.
-8. Never manufacture evidence to advance the FSM.
-9. Record every completed action and its evidence before changing `next_action.json`.
-10. Keep Layer 1 and the staircase locked until their explicit promotion gates are proven.
+5. If the event is absent, perform NO-OP on the blocked gate.
+6. Continue only explicitly allowed parallel prerequisite work.
+7. Never infer a later gate from an earlier PASS.
+8. Never convert observability/readiness into authority.
+9. Never manufacture evidence to advance the FSM.
+10. Record every completed action and its evidence before changing `next_action.json`.
+11. Keep Layer 1 and the staircase locked until their explicit promotion gates are proven.
 
 ## Current frozen position
-
-At the time this contract was written:
 
 ```text
 FOUNDATION = FROZEN
 REALITY_BOUNDARY = FROZEN
 DB_PROMOTION = DENY
-LAYER_1 = LOCKED
+LAYER_1 = ROOM_01_DATA_ADMISSION
+ROOM_02 = LOCKED_FOR_PROMOTION
 STAIRCASE = LOCKED
-NEXT = REALITY-N011-STABILITY-QUORUM
-NEXT_STATUS = WAIT_EXTERNAL_EVENT
+BRAIN_ACTION_SPACE = 0
+PARALLEL_QUANT_WORK = LOCAL_PREREQUISITE_ONLY
 ```
