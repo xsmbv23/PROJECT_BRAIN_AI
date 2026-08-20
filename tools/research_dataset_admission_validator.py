@@ -1,10 +1,20 @@
 """Validate Quant Engine research-dataset admission receipts.
 
-This is a consumer-side evidence gate. A valid receipt proves only research
-eligibility at this gate; it never proves canonical truth, edge, EV/P&L, or
-action authorization.
+Consumer-side gate only: admission proves research eligibility at this gate;
+it never proves canonical truth, edge, EV/P&L, or action authorization.
 """
 from __future__ import annotations
+
+from datetime import date
+
+MIN_REQUIRED_DAYS = 41
+MIN_TRAIN_OBSERVATIONS = 20
+MIN_TEST_OBSERVATIONS = 20
+
+
+def _nonempty_string(receipt: dict[str, object], key: str) -> bool:
+    value = receipt.get(key)
+    return isinstance(value, str) and bool(value.strip())
 
 
 def validate_research_dataset_receipt(receipt: dict[str, object]) -> dict[str, object]:
@@ -18,20 +28,35 @@ def validate_research_dataset_receipt(receipt: dict[str, object]) -> dict[str, o
     if missing:
         return {"status": "DENY", "reason": "RECEIPT_FIELDS_MISSING", "missing": missing}
 
+    for key in ("dataset_identity", "source_provenance_reference", "canonical_input_reference", "code_version"):
+        if not _nonempty_string(receipt, key):
+            return {"status": "DENY", "reason": "IDENTITY_OR_PROVENANCE_EMPTY", "field": key}
+
     if receipt["temporal_policy"] != "DATE_ALIGNED_NO_LOOKAHEAD":
         return {"status": "DENY", "reason": "TEMPORAL_POLICY_INVALID"}
     if receipt["contiguous"] is not True:
         return {"status": "DENY", "reason": "TEMPORAL_CONTIGUITY_NOT_PROVEN"}
     if receipt["missing_days"] != []:
         return {"status": "DENY", "reason": "MISSING_DAYS_PRESENT"}
-    if not isinstance(receipt["actual_days"], int) or not isinstance(receipt["required_days"], int):
-        return {"status": "DENY", "reason": "DAY_COUNTS_INVALID"}
+
+    for key in ("actual_days", "required_days", "train_observations", "test_observations"):
+        if type(receipt[key]) is not int:
+            return {"status": "DENY", "reason": "COUNT_TYPE_INVALID", "field": key}
+
+    if receipt["required_days"] < MIN_REQUIRED_DAYS:
+        return {"status": "DENY", "reason": "REQUIRED_HISTORY_BELOW_POLICY_MINIMUM"}
     if receipt["actual_days"] < receipt["required_days"]:
         return {"status": "DENY", "reason": "INSUFFICIENT_REAL_HISTORY"}
-    if not isinstance(receipt["train_observations"], int) or receipt["train_observations"] < 20:
+    if receipt["train_observations"] < MIN_TRAIN_OBSERVATIONS:
         return {"status": "DENY", "reason": "TRAIN_MINIMUM_NOT_MET"}
-    if not isinstance(receipt["test_observations"], int) or receipt["test_observations"] < 20:
+    if receipt["test_observations"] < MIN_TEST_OBSERVATIONS:
         return {"status": "DENY", "reason": "TEST_MINIMUM_NOT_MET"}
+
+    for key in ("start_date", "end_date"):
+        try:
+            date.fromisoformat(receipt[key])
+        except (TypeError, ValueError):
+            return {"status": "DENY", "reason": "DATE_FORMAT_INVALID", "field": key}
 
     return {
         "status": "ADMITTED",
