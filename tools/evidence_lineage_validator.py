@@ -1,0 +1,60 @@
+"""Validate evidence lineage against EVIDENCE_LINEAGE_ADMISSION_V1.
+
+Non-authoritative by design: this validator never creates evidence, advances
+state, promotes data, or treats chat assertions as evidence. It only evaluates
+an already-emitted evidence object for provenance completeness and forbidden
+masquerading shortcuts.
+"""
+from __future__ import annotations
+
+from typing import Any
+
+
+REQUIRED_PROVENANCE = {
+    "source_identity",
+    "observation_timestamp",
+    "observation_origin",
+}
+
+FOR_DERIVED = {
+    "upstream_evidence_ids",
+    "derivation_contract",
+}
+
+FOR_RUNTIME = {"runtime_identity", "gate_evidence_id"}
+
+FOR_CANONICAL = {"canonical_payload_sha256"}
+
+
+def validate_evidence(evidence: dict[str, Any]) -> dict[str, Any]:
+    """Return PASS/UNKNOWN/DENY without mutating the supplied evidence."""
+    missing = sorted(k for k in REQUIRED_PROVENANCE if not evidence.get(k))
+    if missing:
+        return {"status": "DENY", "reason": "REQUIRED_PROVENANCE_MISSING", "missing": missing}
+
+    if evidence.get("authority") == "source_truth" and evidence.get("derived", False):
+        return {"status": "DENY", "reason": "DERIVED_CANNOT_BE_SOURCE_TRUTH"}
+
+    if evidence.get("observation_origin") == "local_receipt" and evidence.get("independent_external", False):
+        return {"status": "DENY", "reason": "LOCAL_RECEIPT_CANNOT_BE_INDEPENDENT_EXTERNAL_OBSERVATION"}
+
+    if evidence.get("raw_sha256") and evidence.get("semantic_sha256"):
+        if evidence["raw_sha256"] == evidence["semantic_sha256"] and evidence.get("hashes_explicitly_distinct") is not True:
+            return {"status": "DENY", "reason": "RAW_AND_SEMANTIC_HASH_CONFLATED"}
+
+    if evidence.get("derived", False):
+        missing_derived = sorted(k for k in FOR_DERIVED if not evidence.get(k))
+        if missing_derived:
+            return {"status": "DENY", "reason": "DERIVED_PROVENANCE_MISSING", "missing": missing_derived}
+
+    if evidence.get("runtime_admission", False):
+        missing_runtime = sorted(k for k in FOR_RUNTIME if not evidence.get(k))
+        if missing_runtime:
+            return {"status": "DENY", "reason": "RUNTIME_ADMISSION_PROVENANCE_MISSING", "missing": missing_runtime}
+
+    if evidence.get("promoted_canonical", False):
+        missing_canonical = sorted(k for k in FOR_CANONICAL if not evidence.get(k))
+        if missing_canonical:
+            return {"status": "DENY", "reason": "CANONICAL_PROVENANCE_MISSING", "missing": missing_canonical}
+
+    return {"status": "PASS", "reason": "EVIDENCE_LINEAGE_COMPLETE_FOR_DECLARED_SCOPE"}
