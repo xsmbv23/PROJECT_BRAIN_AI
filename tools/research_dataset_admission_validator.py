@@ -45,18 +45,28 @@ def validate_research_dataset_receipt(receipt: dict[str, object]) -> dict[str, o
 
     if receipt["required_days"] < MIN_REQUIRED_DAYS:
         return {"status": "DENY", "reason": "REQUIRED_HISTORY_BELOW_POLICY_MINIMUM"}
-    if receipt["actual_days"] < receipt["required_days"]:
-        return {"status": "DENY", "reason": "INSUFFICIENT_REAL_HISTORY"}
+    expected_required = receipt["train_observations"] + receipt["test_observations"] + 1
+    if receipt["required_days"] != expected_required:
+        return {"status": "DENY", "reason": "REQUIRED_HISTORY_INCONSISTENT_WITH_OOS_SPLIT"}
     if receipt["train_observations"] < MIN_TRAIN_OBSERVATIONS:
         return {"status": "DENY", "reason": "TRAIN_MINIMUM_NOT_MET"}
     if receipt["test_observations"] < MIN_TEST_OBSERVATIONS:
         return {"status": "DENY", "reason": "TEST_MINIMUM_NOT_MET"}
+    if receipt["actual_days"] < receipt["required_days"]:
+        return {"status": "DENY", "reason": "INSUFFICIENT_REAL_HISTORY"}
 
+    parsed_dates: list[date] = []
     for key in ("start_date", "end_date"):
         try:
-            date.fromisoformat(receipt[key])
+            parsed_dates.append(date.fromisoformat(receipt[key]))
         except (TypeError, ValueError):
             return {"status": "DENY", "reason": "DATE_FORMAT_INVALID", "field": key}
+    start, end = parsed_dates
+    if end < start:
+        return {"status": "DENY", "reason": "DATE_RANGE_REVERSED"}
+    span_days = (end - start).days + 1
+    if receipt["actual_days"] != span_days:
+        return {"status": "DENY", "reason": "DAY_COUNT_DOES_NOT_MATCH_DATE_SPAN"}
 
     return {
         "status": "ADMITTED",
