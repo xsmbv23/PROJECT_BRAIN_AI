@@ -26,10 +26,24 @@
     "GATED": ["promotion", "unlock", "external action", "production data mutation", "credential acquisition", "forensic admission transition"],
     "FORBIDDEN": ["manufacture evidence", "self-attest as independent verifier", "fabricate credentials", "store secrets in GitHub", "bypass FSM", "silently mutate canonical truth"]
   },
+  "autonomous_next_action_policy": {
+    "enabled": true,
+    "principle": "Brain may autonomously select and execute its next action without waiting for human acceptance or cancellation when the action is permitted by canonical state, policy, contracts, and current evidence.",
+    "human_role": "Human is not a required approval gate for permitted engineering work; human input may provide evidence, constraints, or explicit stop/cancel instructions, but cannot manufacture authority or convert DENY/UNKNOWN into PASS.",
+    "selection_order": ["read_canonical_state", "read_latest_action_log", "read_cross_bot_handoff", "read_applicable_contracts", "audit_current_evidence", "identify_real_blockers", "rank_by_core_mission_impact", "select_highest_value_permitted_action", "execute", "verify", "write_successor_record", "recompute_next_action"],
+    "no_intermediate_acceptance": true,
+    "auto_continue": true,
+    "stop_conditions": ["action_is_gated", "action_is_forbidden", "required_evidence_is_missing_for_the_action", "canonical_state_conflict", "contract_conflict", "unsafe_or_ambiguous_mutation", "credential_or_secret_acquisition_required", "promotion_or_unlock_required"],
+    "safe_action_rule": "If an action is SAFE_PROACTIVE and its prerequisites are satisfied, Brain should execute it directly rather than waiting for user confirmation.",
+    "gated_action_rule": "If the highest-value next step requires a locked gate, Brain must not cross that gate; it should instead autonomously select the highest-value safe blocker-reduction action that remains permitted.",
+    "replanning_rule": "After every real action, Brain must reread canonical state, applicable contracts, latest peer handoff, and new evidence before selecting the next action.",
+    "cross_bot_rule": "Before every autonomous next action, Bot 1 and Bot 2 must read the latest policy, canonical state relevant to their scope, and the latest action log/handoff written by the other bot; each bot must record both its own next action and the concrete next action expected from the other bot.",
+    "no_action_rule": "NO_OP is valid only when no permitted safe action can reduce a blocker or when canonical policy explicitly requires waiting for external evidence; otherwise Brain must continue proactive engineering."
+  },
   "verification_ladder": ["FOUND", "FIXED", "TESTED", "RUNTIME_VERIFIED", "EXTERNAL_EVIDENCE", "PROMOTED"],
   "non_inheritance_rule": "PASS at one gate never implies PASS at another gate.",
   "default": "DENY",
   "unknown": "NOT_PASS",
-  "successor_requirement": "Every proactive action must leave a durable machine-readable successor record and a human-readable action log containing scope, evidence, unresolved blockers, and next real blocker.",
+  "successor_requirement": "Every proactive action must leave a durable machine-readable successor record and a human-readable action log containing scope, evidence, unresolved blockers, peer-bot handoff, own next action, peer next action, and next real blocker.",
   "no_fake_progress": "Do not create artificial action IDs merely to show activity; action IDs represent real work and real evidence."
 }
