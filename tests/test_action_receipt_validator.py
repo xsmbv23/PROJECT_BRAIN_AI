@@ -5,7 +5,18 @@ from tools.action_receipt_validator import expected_receipt_sha, validate_action
 
 class ActionReceiptValidatorTests(unittest.TestCase):
     def make_receipt(self, action="N104C.1", commit="1b337d9e", status="HOLD"):
-        receipt = {"action_id": action, "commit_sha": commit, "status": status, "evidence_type": "RUNTIME"}
+        receipt = {
+            "action_id": action,
+            "commit_sha": commit,
+            "deployment_id": "deploy-123",
+            "execution_nonce": "",
+            "issued_at": "2026-08-20T19:00:00+00:00",
+            "status": status,
+            "evidence_type": "RUNTIME",
+        }
+        import hashlib
+        seed = f"{action}|{commit}|deploy-123|{receipt['issued_at']}"
+        receipt["execution_nonce"] = hashlib.sha256(seed.encode("utf-8")).hexdigest()
         receipt["receipt_sha256"] = expected_receipt_sha(receipt)
         return receipt
 
@@ -29,6 +40,20 @@ class ActionReceiptValidatorTests(unittest.TestCase):
     def test_runtime_commit_mismatch_denies(self):
         result = validate_action_receipt(self.make_receipt(), self.state(), {"commit_sha": "different"})
         self.assertEqual(result["reason"], "RUNTIME_COMMIT_MISMATCH")
+
+    def test_missing_issued_at_denies(self):
+        receipt = self.make_receipt()
+        del receipt["issued_at"]
+        receipt["receipt_sha256"] = expected_receipt_sha(receipt)
+        result = validate_action_receipt(receipt, self.state(), {"commit_sha": "1b337d9e"})
+        self.assertEqual(result["reason"], "RECEIPT_ISSUED_AT_MISSING")
+
+    def test_nonce_mismatch_denies(self):
+        receipt = self.make_receipt()
+        receipt["execution_nonce"] = "wrong"
+        receipt["receipt_sha256"] = expected_receipt_sha(receipt)
+        result = validate_action_receipt(receipt, self.state(), {"commit_sha": "1b337d9e"})
+        self.assertEqual(result["reason"], "RECEIPT_NONCE_MISMATCH")
 
     def test_legacy_pointer_names_are_not_accepted(self):
         legacy = {"last_action": "N104C.1", "next_action": "N104C.1R"}
