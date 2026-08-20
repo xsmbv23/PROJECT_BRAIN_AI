@@ -21,9 +21,6 @@ def _deployment_identity() -> tuple[str, str]:
     value = os.environ.get("RENDER_DEPLOY_ID", "")
     if value:
         return value, "RENDER_DEPLOY_ID"
-    value = os.environ.get("RENDER_INSTANCE_ID", "")
-    if value:
-        return value, "RENDER_INSTANCE_ID"
     return "", "NONE"
 
 
