@@ -79,6 +79,31 @@ class EvidenceLineageValidatorTests(unittest.TestCase):
         self.assertEqual(result["status"], "DENY")
         self.assertEqual(result["reason"], "RAW_AND_SEMANTIC_HASH_CONFLATED")
 
+    def test_legacy_alias_requires_explicit_fixture(self):
+        evidence = self.base() | {
+            "raw_artifact_exists": True,
+            "raw_sha256": "legacy-raw",
+        }
+        result = validate_evidence(evidence)
+        self.assertEqual(result["status"], "DENY")
+        self.assertEqual(result["reason"], "LEGACY_ALIAS_REQUIRES_EXPLICIT_FIXTURE")
+
+    def test_legacy_fixture_can_be_read_without_becoming_canonical(self):
+        evidence = self.base() | {
+            "raw_artifact_exists": True,
+            "raw_sha256": "legacy-raw",
+            "legacy_fixture": True,
+        }
+        self.assertEqual(validate_evidence(evidence)["status"], "PASS")
+
+    def test_canonical_field_wins_over_legacy_alias(self):
+        evidence = self.base() | {
+            "raw_artifact_exists": True,
+            "raw_artifact_sha256": "canonical",
+            "raw_sha256": "legacy",
+        }
+        self.assertEqual(validate_evidence(evidence)["status"], "PASS")
+
     def test_validator_does_not_mutate_evidence(self):
         evidence = self.base() | {
             "derived": True,
