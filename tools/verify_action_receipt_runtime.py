@@ -1,12 +1,9 @@
-"""Exact-current read-only action receipt gate.
+"""Boot-time ACTION_RECEIPT gate.
 
-The verifier only reads receipts emitted by a prior runtime execution boundary.
-It never creates or modifies evidence/state. Durable receipts are preferred;
-legacy repository receipts remain a compatibility path.
-
-Render application runtime does not expose the dashboard deploy id in the
-observed environment, so the exact runtime instance id is accepted as the
-deployment identity. A new deployment creates a new instance identity.
+Boot must never depend on a durable receipt query. It reads only repository
+historical receipts and remains DENY when the exact prior runtime receipt is
+not present there. The live read-only governance boundary performs the durable
+same-deployment receipt verification after the service is up.
 """
 from __future__ import annotations
 
@@ -15,19 +12,18 @@ import os
 from pathlib import Path
 
 from tools.action_receipt_validator import validate_action_receipt
-from tools.action_receipt_store import find_exact_action_receipt
 
 ROOT = Path(__file__).resolve().parents[1]
 RECEIPTS = ROOT / "evidence" / "receipts"
 
 
 def deployment_identity() -> tuple[str, str]:
-    deploy_id = os.environ.get("RENDER_DEPLOY_ID", "")
-    if deploy_id:
-        return deploy_id, "RENDER_DEPLOY_ID"
-    instance_id = os.environ.get("RENDER_INSTANCE_ID", "")
-    if instance_id:
-        return instance_id, "RENDER_INSTANCE_ID"
+    value = os.environ.get("RENDER_DEPLOY_ID", "")
+    if value:
+        return value, "RENDER_DEPLOY_ID"
+    value = os.environ.get("RENDER_INSTANCE_ID", "")
+    if value:
+        return value, "RENDER_INSTANCE_ID"
     return "", "NONE"
 
 
@@ -42,17 +38,8 @@ def main() -> int:
             print(json.dumps({"status": "DENY", "reason": "RUNTIME_ACTION_IDENTITY_MISSING", "deployment_identity_type": identity_type}, ensure_ascii=False))
             return 1
 
-        receipt = None
-        receipt_origin = "NONE"
-        try:
-            receipt = find_exact_action_receipt(action_id=action, commit_sha=runtime_commit, deployment_id=deployment_id)
-            if receipt:
-                receipt_origin = "DURABLE_POSTGRES_PRIOR_RUNTIME"
-        except Exception:
-            receipt = None
-
-        if receipt is None and RECEIPTS.exists():
-            candidates = []
+        candidates = []
+        if RECEIPTS.exists():
             for path in RECEIPTS.rglob("*.json"):
                 try:
                     obj = json.loads(path.read_text(encoding="utf-8"))
@@ -60,23 +47,18 @@ def main() -> int:
                     continue
                 if isinstance(obj, dict) and obj.get("action_id") == action:
                     candidates.append((path, obj))
-            if len(candidates) == 1:
-                receipt_origin = "REPOSITORY_LEGACY"
-                receipt = candidates[0][1]
-            elif len(candidates) > 1:
-                print(json.dumps({"status": "DENY", "reason": "RECEIPT_AMBIGUOUS", "action_id": action, "count": len(candidates)}, ensure_ascii=False))
-                return 1
-
-        if receipt is None:
+        if not candidates:
             print(json.dumps({"status": "DENY", "reason": "RECEIPT_MISSING", "action_id": action, "commit_sha": runtime_commit, "deployment_id": deployment_id, "deployment_identity_type": identity_type}, ensure_ascii=False))
             return 1
+        if len(candidates) != 1:
+            print(json.dumps({"status": "DENY", "reason": "RECEIPT_AMBIGUOUS", "action_id": action, "count": len(candidates)}, ensure_ascii=False))
+            return 1
 
-        canonical_state = {"last_action_id": action, "next_action_id": next_action}
-        result = validate_action_receipt(receipt, canonical_state, {"commit_sha": runtime_commit})
+        _, receipt = candidates[0]
+        result = validate_action_receipt(receipt, {"last_action_id": action, "next_action_id": next_action}, {"commit_sha": runtime_commit})
         if receipt.get("deployment_id") != deployment_id:
             result = {"status": "DENY", "reason": "RECEIPT_DEPLOYMENT_ID_MISMATCH"}
-        result["receipt_origin"] = receipt_origin
-        result["deployment_id"] = deployment_id
+        result["receipt_origin"] = "REPOSITORY_LEGACY"
         result["deployment_identity_type"] = identity_type
         result["pass_is_local"] = True
         result["promotes"] = False
