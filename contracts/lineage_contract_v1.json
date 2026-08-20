@@ -1,0 +1,22 @@
+{
+  "contract_id": "FORENSIC_LINEAGE_V1",
+  "purpose": "100_percent_replayable_prediction_lineage",
+  "chain": [
+    "PREDICTION_ID",
+    "FEATURE_SNAPSHOT_SHA",
+    "CANONICAL_SHA",
+    "RAW_RECEIPT_SHA"
+  ],
+  "causal_window": "T-30..T-1",
+  "hard_deny": "ANY_BROKEN_OR_MISSING_SHA => PREDICTION_STATUS=NOT_PROVEN => EXECUTION=CANCEL",
+  "epistemic_rule": "ONLY_EVIDENCE_ARTIFACTS_CAN_SATISFY_EVIDENCE_CLAIMS",
+  "gate_rule": "PASS_IS_LOCAL; NO_PASS_INHERITANCE; EACH_GATE_OWNS_OWN_EVIDENCE",
+  "raw_receipt": "RAW_BYTES_PLUS_TRANSPORT_METADATA",
+  "canonical": "QUORUM_ADMITTED_SOURCE_TRUTH",
+  "feature": "CAUSAL_T_MINUS_1_OR_EARLIER_SNAPSHOT",
+  "prediction": "FROZEN_BEFORE_RESULT_REVEAL",
+  "result_reveal": "AFTER_TEMPORAL_FIREWALL_RELEASE",
+  "execution_rule": "NO_LINEAGE_PROOF_NO_EXECUTION",
+  "credential_policy": "NO_CREDENTIALS_IN_LINEAGE",
+  "mutation_policy": "APPEND_ONLY_RECEIPTS"
+}
