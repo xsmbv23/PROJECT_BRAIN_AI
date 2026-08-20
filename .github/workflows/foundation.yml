@@ -26,6 +26,8 @@ jobs:
         run: python -m unittest tests/test_durable_postgres.py -v
       - name: Run evidence lineage validator tests
         run: python -m unittest tests/test_evidence_lineage_validator_unittest.py -v
+      - name: Run lineage contract authority regression
+        run: python -m unittest tests/test_evidence_lineage_contract_registry.py -v
       - name: Run integrated deterministic foundation verifier
         run: python tools/verify_foundation.py
       - name: Run focused two-key protected-room verifier
