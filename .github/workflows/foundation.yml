@@ -34,3 +34,16 @@ jobs:
         run: python tools/verify_foundation.py
       - name: Run focused two-key protected-room verifier
         run: python tools/verify_access_path.py
+      - name: Emit repository execution receipt
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+          GITHUB_RUN_STARTED_AT: ${{ github.run_started_at }}
+        run: python tools/emit_ci_execution_receipt.py ci_execution_receipt.json
+      - name: Upload repository execution receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: foundation-ci-execution-receipt
+          path: ci_execution_receipt.json
+          if-no-files-found: error
