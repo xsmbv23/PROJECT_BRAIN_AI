@@ -1,0 +1,49 @@
+{
+  "contract": "RESEARCH_DATASET_ADMISSION_CONSUMER_V1",
+  "purpose": "Define the evidence boundary Brain expects from Quant Engine before research execution can be treated as eligible.",
+  "authority": {
+    "data_truth": "xsmb-quant",
+    "research_execution": "Quant_Engine",
+    "governance": "Project_Brain_AI"
+  },
+  "required_evidence": [
+    "dataset_identity",
+    "source_provenance_reference",
+    "canonical_input_reference",
+    "start_date",
+    "end_date",
+    "actual_days",
+    "required_days",
+    "contiguous",
+    "missing_days",
+    "train_observations",
+    "test_observations",
+    "temporal_policy",
+    "code_version"
+  ],
+  "hard_rules": [
+    "REAL_SOURCE_ONLY",
+    "NO_SYNTHETIC_HISTORY",
+    "NO_BACKFILL",
+    "NO_INTERPOLATION",
+    "NO_SILENT_FILL",
+    "NO_LOOKAHEAD",
+    "UNKNOWN_IS_NOT_PASS",
+    "PASS_IS_LOCAL",
+    "NO_PASS_INHERITANCE",
+    "RESEARCH_ADMISSION_IS_NOT_CANONICAL_DATA_PROMOTION",
+    "RESEARCH_ADMISSION_IS_NOT_EDGE_PROOF",
+    "RESEARCH_ADMISSION_IS_NOT_EV_PROOF",
+    "RESEARCH_ADMISSION_IS_NOT_ACTION_AUTHORIZATION"
+  ],
+  "minimum_current_room_02": {
+    "train_observations": 20,
+    "test_observations": 20,
+    "required_contiguous_calendar_days": 41
+  },
+  "status_semantics": {
+    "ADMITTED": "Eligible to be considered by the research execution layer; no promotion implied.",
+    "DENY": "Research execution must not consume the dataset as admitted evidence.",
+    "UNKNOWN": "No admission claim may be inferred."
+  }
+}
