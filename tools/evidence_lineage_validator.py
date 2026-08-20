@@ -21,13 +21,7 @@ FOR_CANONICAL = {"canonical_payload_sha256"}
 
 
 def _canonical_or_legacy(evidence: dict[str, Any], canonical: str, legacy: str) -> tuple[str | None, bool]:
-    """Return the canonical value, or a legacy value only for explicit fixtures.
-
-    Canonical contract fields are authoritative. A legacy alias can never make
-    a production evidence object pass merely because the canonical field is
-    absent. Backward-readable fixtures must explicitly declare
-    ``legacy_fixture=true`` so schema drift cannot silently pass admission.
-    """
+    """Return the canonical value, or a legacy value only for explicit fixtures."""
     if evidence.get(canonical):
         return evidence[canonical], False
     if evidence.get(legacy) and evidence.get("legacy_fixture") is True:
@@ -56,8 +50,13 @@ def validate_evidence(evidence: dict[str, Any]) -> dict[str, Any]:
     if evidence.get("semantic_quorum", False) and not semantic_fp:
         return {"status": "DENY", "reason": "SEMANTIC_FINGERPRINT_MISSING"}
 
-    # Legacy aliases are readable only for explicitly marked historical fixtures.
-    # They cannot be silently mixed with canonical production evidence.
+    # Semantic fingerprints are meaningful only after the source result has
+    # been validated against the canonical domain. This prevents arbitrary
+    # page numbers, advertising, navigation, or other numeric page content
+    # from being treated as semantic truth merely because it was hashed.
+    if semantic_fp and not evidence.get("validated_canonical_domain", False):
+        return {"status": "DENY", "reason": "SEMANTIC_HASH_REQUIRES_VALIDATED_DOMAIN"}
+
     if (raw_legacy or semantic_legacy) and evidence.get("legacy_fixture") is not True:
         return {"status": "DENY", "reason": "LEGACY_ALIAS_REQUIRES_EXPLICIT_FIXTURE"}
 
