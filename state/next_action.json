@@ -1,19 +1,20 @@
 {
-  "action_id":"BRAIN-N120",
-  "title":"Audit governance/evidence contracts for stale identity, freshness ambiguity, and self-attestation paths",
+  "action_id":"BRAIN-N121",
+  "title":"Audit cross-repository admission contracts for implicit trust and directionality violations",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
   "mode":"DATA_ADMISSION",
   "action_space":0,
   "promotion":"DENY",
-  "previous":"BRAIN-N119 completed contract lifecycle hardening; exact-current runtime action admission remains separately blocked",
+  "previous":"BRAIN-N120 defined exact-current independent /governance observation admission without opening the runtime gate",
   "scope":[
-    "audit governance/evidence contracts for stale runtime identity",
-    "audit evidence freshness semantics",
-    "audit self-attestation paths that could masquerade as independent observation",
-    "preserve immutable historical evidence",
+    "audit Brain/Data/Quant cross-repository contracts",
+    "detect implicit trust edges",
+    "detect derived-data-to-source-truth escalation paths",
+    "detect computation-to-governance authority escalation paths",
+    "preserve one-way dependency direction",
     "continue safe engineering without unlocking Runtime Action Admission",
-    "do not manufacture external observation",
+    "do not manufacture evidence",
     "do not unlock Room 02 or staircase",
     "do not promote evidence"
   ],
@@ -32,9 +33,11 @@
     "CHAT_IS_INTERFACE_ONLY",
     "NO_CREDENTIAL_EXPOSURE",
     "HUMAN_INPUT_IS_EVIDENCE_CARRIER_NOT_STATE_AUTHORITY",
-    "INDEPENDENT_OBSERVATION_CANNOT_BE_SELF_ATTESTED"
+    "INDEPENDENT_OBSERVATION_CANNOT_BE_SELF_ATTESTED",
+    "SOURCE_TRUTH_CANNOT_BE_OVERWRITTEN_BY_DERIVED_DATA",
+    "BRAIN_CANNOT_BECOME_DATA_OR_QUANT_ENGINE"
   ],
   "other_bot_required_next_action":"QUANT-N007",
   "other_bot_dependency":"CI observation and source-specific semantic extraction for ketqua16.net and xsmb.com.vn; no canonical promotion",
-  "completion_gate":"Governance/evidence contracts have no unresolved stale-identity, freshness, or self-attestation ambiguity, or each remaining issue is explicitly classified UNKNOWN/BLOCKED with no unsafe bypass"
+  "completion_gate":"Cross-repository contracts have no unresolved implicit trust or authority-escalation path, or each remaining issue is explicitly classified UNKNOWN/BLOCKED with no unsafe bypass"
 }
