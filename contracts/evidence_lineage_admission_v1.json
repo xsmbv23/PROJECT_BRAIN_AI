@@ -1,0 +1,54 @@
+{
+  "contract_id": "EVIDENCE_LINEAGE_ADMISSION_V1",
+  "purpose": "Make evidence provenance explicit from external/source observation through derived Quant evidence into Brain admission without allowing derived artifacts or local receipts to masquerade as source truth or independent external evidence.",
+  "authority": {
+    "source_observation": "external_source_or_independent_observer",
+    "source_truth": "xsmb-quant",
+    "derived_research": "Quant_Engine",
+    "admission": "Project_Brain_AI"
+  },
+  "lineage": [
+    "SOURCE_OBSERVATION",
+    "RAW_ARTIFACT",
+    "RAW_SHA256",
+    "VALIDATED_CANONICAL_DOMAIN",
+    "SEMANTIC_FINGERPRINT",
+    "CANONICAL_ENVELOPE",
+    "QUANT_DERIVED_EVIDENCE",
+    "BRAIN_ADMISSION_EVIDENCE"
+  ],
+  "invariants": {
+    "raw_sha256_is_byte_identity_only": true,
+    "semantic_hash_requires_validated_domain": true,
+    "derived_cannot_be_source_truth": true,
+    "local_receipt_cannot_be_independent_external_observation": true,
+    "historical_receipt_cannot_satisfy_exact_current_gate": true,
+    "pass_is_local": true,
+    "unknown_is_not_pass": true,
+    "no_pass_inheritance": true,
+    "canonical_truth_is_immutable": true
+  },
+  "required_provenance": {
+    "source_identity": "required",
+    "observation_timestamp": "required",
+    "observation_origin": "required",
+    "raw_artifact_sha256": "required_when_raw_artifact_exists",
+    "semantic_fingerprint": "required_for_semantic_quorum",
+    "canonical_payload_sha256": "required_for_promoted_canonical_envelope",
+    "upstream_evidence_ids": "required_for_derived_evidence",
+    "derivation_contract": "required_for_derived_evidence",
+    "runtime_identity": "required_for_runtime_admission",
+    "gate_evidence_id": "required_for_admission"
+  },
+  "forbidden_shortcuts": [
+    "derived_to_source_truth",
+    "local_receipt_to_external_observation",
+    "startup_log_to_http_receipt",
+    "historical_receipt_to_exact_current_evidence",
+    "aggregate_to_repair_invalid_child_evidence",
+    "chat_assertion_to_admission"
+  ],
+  "admission_rule": "An evidence object may support only the gate for which its required provenance and evidence semantics are satisfied; it never grants PASS to another gate.",
+  "promotion_rule": "Promotion requires fresh evidence owned by the promotion gate and complete upstream lineage; no inherited PASS is sufficient.",
+  "memory_rule": "This contract is policy metadata only and must not cause historical datasets to be loaded into Brain runtime."
+}
