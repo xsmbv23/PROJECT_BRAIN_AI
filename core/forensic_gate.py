@@ -4,10 +4,9 @@ PASS is local to a gate. No gate may inherit PASS from another gate.
 UNKNOWN and any unmet prerequisite are DENY. This module contains no I/O,
 network access, credentials, or source data.
 
-DOMAIN SEPARATION:
-- Database admission proves whether durable infrastructure may be used.
-- Source admission proves whether network evidence may enter the data domain.
-- NETWORK_ORIGIN_PROOF is a SOURCE-domain gate and is never a DB gate.
+ACTION_RECEIPT is intentionally separate from truth admission. It proves only
+that one exact runtime action was executed for one exact commit/deployment.
+It never proves source truth, canonical quorum, Edge, EV/P&L, or promotion.
 """
 from __future__ import annotations
 from dataclasses import dataclass
@@ -25,17 +24,29 @@ class SourceEvidence: gate: SourceGate; status: GateStatus; receipt_id: str
 @dataclass(frozen=True)
 class ForensicDecision: status: GateStatus; gate: str; reason: str
 
+
 def admit_gate(evidence: GateEvidence, *, prerequisites: tuple[GateEvidence,...]=())->ForensicDecision:
     if evidence.status is not GateStatus.PASS: return ForensicDecision(evidence.status,evidence.gate.value,"LOCAL_GATE_NOT_PROVEN")
     if any(prior.status is not GateStatus.PASS for prior in prerequisites): return ForensicDecision(GateStatus.DENY,evidence.gate.value,"PREREQUISITE_NOT_PROVEN")
     if not evidence.receipt_id: return ForensicDecision(GateStatus.DENY,evidence.gate.value,"EVIDENCE_RECEIPT_MISSING")
     return ForensicDecision(GateStatus.PASS,evidence.gate.value,"LOCAL_PROPOSITION_PROVEN")
 
+
+def admit_action_receipt(*, receipt_status: str, receipt_id: str) -> ForensicDecision:
+    """Admit an exact action receipt locally; never promote downstream truth."""
+    if receipt_status != "PASS_LOCAL":
+        return ForensicDecision(GateStatus.DENY, "ACTION_RECEIPT", "ACTION_RECEIPT_NOT_PROVEN")
+    if not receipt_id:
+        return ForensicDecision(GateStatus.DENY, "ACTION_RECEIPT", "ACTION_RECEIPT_ID_MISSING")
+    return ForensicDecision(GateStatus.PASS, "ACTION_RECEIPT", "LOCAL_ACTION_EXECUTION_PROVEN")
+
+
 def admit_source_gate(evidence: SourceEvidence, *, prerequisites: tuple[SourceEvidence,...]=())->ForensicDecision:
     if evidence.status is not GateStatus.PASS: return ForensicDecision(evidence.status,evidence.gate.value,"LOCAL_SOURCE_GATE_NOT_PROVEN")
     if any(prior.status is not GateStatus.PASS for prior in prerequisites): return ForensicDecision(GateStatus.DENY,evidence.gate.value,"SOURCE_PREREQUISITE_NOT_PROVEN")
     if not evidence.receipt_id: return ForensicDecision(GateStatus.DENY,evidence.gate.value,"SOURCE_EVIDENCE_RECEIPT_MISSING")
     return ForensicDecision(GateStatus.PASS,evidence.gate.value,"LOCAL_SOURCE_PROPOSITION_PROVEN")
+
 
 def promote(evidence_chain: tuple[GateEvidence,...])->ForensicDecision:
     """Promote only the DATABASE domain. Source gates can never satisfy DB gates."""
