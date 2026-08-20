@@ -9,10 +9,52 @@ from pathlib import Path
 
 from brain import __version__
 from tools.binding_probe import classify_database_binding
+from tools.action_receipt_store import find_exact_action_receipt
+from tools.action_receipt_validator import validate_action_receipt
 
 ROOT = Path(__file__).resolve().parents[1]
 RECEIPT_DIR = ROOT / "evidence" / "runtime"
 PROBE = ROOT / "tools" / "transport_probe.py"
+
+
+def _deployment_identity() -> tuple[str, str]:
+    value = os.environ.get("RENDER_DEPLOY_ID", "")
+    if value:
+        return value, "RENDER_DEPLOY_ID"
+    value = os.environ.get("RENDER_INSTANCE_ID", "")
+    if value:
+        return value, "RENDER_INSTANCE_ID"
+    return "", "NONE"
+
+
+def _current_action_receipt_evidence() -> dict:
+    try:
+        state = json.loads((ROOT / "state" / "current_state.json").read_text(encoding="utf-8"))
+        action = state.get("last_action_id")
+        next_action = state.get("next_action_id")
+        commit = os.environ.get("RENDER_GIT_COMMIT", "")
+        deployment, identity_type = _deployment_identity()
+        if not action or not next_action or not commit or not deployment:
+            return {"status": "DENY", "reason": "RUNTIME_ACTION_IDENTITY_MISSING", "identity_type": identity_type, "pass_is_local": True, "promotes": False}
+        receipt = find_exact_action_receipt(action_id=action, commit_sha=commit, deployment_id=deployment)
+        if not receipt:
+            return {"status": "DENY", "reason": "ACTION_RECEIPT_MISSING", "identity_type": identity_type, "pass_is_local": True, "promotes": False}
+        result = validate_action_receipt(receipt, {"last_action_id": action, "next_action_id": next_action}, {"commit_sha": commit})
+        if receipt.get("deployment_id") != deployment:
+            return {"status": "DENY", "reason": "ACTION_RECEIPT_DEPLOYMENT_ID_MISMATCH", "identity_type": identity_type, "pass_is_local": True, "promotes": False}
+        return {
+            "status": "PASS_LOCAL" if result.get("status") == "PASS" else "DENY",
+            "reason": "EXACT_CURRENT_PRIOR_RUNTIME_RECEIPT" if result.get("status") == "PASS" else result.get("reason", "ACTION_RECEIPT_NOT_PROVEN"),
+            "action_id": action,
+            "commit_sha": commit,
+            "deployment_identity_type": identity_type,
+            "receipt_sha256": receipt.get("receipt_sha256"),
+            "evidence_sha": receipt.get("evidence_sha"),
+            "pass_is_local": True,
+            "promotes": False,
+        }
+    except Exception as exc:
+        return {"status": "DENY", "reason": f"ACTION_RECEIPT_READ_FAILED:{type(exc).__name__}", "pass_is_local": True, "promotes": False}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -42,6 +84,7 @@ class Handler(BaseHTTPRequestHandler):
             "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
             "database_binding": binding["status"],
             "database_tls": binding["tls"],
+            "action_receipt": _current_action_receipt_evidence(),
         })
 
     def _probe_authorized(self) -> bool:
@@ -51,17 +94,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def _run_fixed_probe(self) -> tuple[bool, str]:
         RECEIPT_DIR.mkdir(parents=True, exist_ok=True)
-        proc = subprocess.run(
-            [sys.executable, str(PROBE)],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            timeout=30,
-            check=False,
-        )
+        proc = subprocess.run([sys.executable, str(PROBE)], cwd=ROOT, capture_output=True, text=True, timeout=30, check=False)
         raw = proc.stdout.strip()
-        # The bridge stores the probe's stdout as an immutable per-execution
-        # evidence artifact. It does not parse or rewrite the probe result.
         stamp = str(int(time.time() * 1000))
         raw_path = RECEIPT_DIR / f"transport_{stamp}.json"
         raw_path.write_text(raw + "\n", encoding="utf-8")
@@ -71,8 +105,6 @@ class Handler(BaseHTTPRequestHandler):
         if self.path in ("/", "/health", "/governance"):
             self._send_payload()
             return
-        # Probe execution is deliberately NOT available over GET. This keeps
-        # safe/read-only health paths separate from privileged execution.
         self._json(404, {"status": 404, "verdict": "NOT_FOUND"})
 
     def do_POST(self):
@@ -85,11 +117,8 @@ class Handler(BaseHTTPRequestHandler):
         try:
             passed, receipt_name = self._run_fixed_probe()
         except Exception:
-            # Do not expose exception details through the privileged boundary.
             self._json(500, {"status": 500, "verdict": "EXECUTION_FAILED"})
             return
-        # This response is dispatch/execution evidence only. It is never a
-        # forensic PASS and never returns receipt contents.
         self._json(202 if passed else 409, {
             "status": 202 if passed else 409,
             "execution": "IN_CONTAINER",
