@@ -20,8 +20,23 @@ FOR_RUNTIME = {"runtime_identity", "gate_evidence_id"}
 FOR_CANONICAL = {"canonical_payload_sha256"}
 
 
+def _canonical_or_legacy(evidence: dict[str, Any], canonical: str, legacy: str) -> tuple[str | None, bool]:
+    """Return the canonical value, or a legacy value only for explicit fixtures.
+
+    Canonical contract fields are authoritative. A legacy alias can never make
+    a production evidence object pass merely because the canonical field is
+    absent. Backward-readable fixtures must explicitly declare
+    ``legacy_fixture=true`` so schema drift cannot silently pass admission.
+    """
+    if evidence.get(canonical):
+        return evidence[canonical], False
+    if evidence.get(legacy) and evidence.get("legacy_fixture") is True:
+        return evidence[legacy], True
+    return None, False
+
+
 def validate_evidence(evidence: dict[str, Any]) -> dict[str, Any]:
-    """Return PASS/UNKNOWN/DENY without mutating the supplied evidence."""
+    """Return PASS/DENY without mutating the supplied evidence."""
     missing = sorted(k for k in REQUIRED_PROVENANCE if not evidence.get(k))
     if missing:
         return {"status": "DENY", "reason": "REQUIRED_PROVENANCE_MISSING", "missing": missing}
@@ -32,19 +47,22 @@ def validate_evidence(evidence: dict[str, Any]) -> dict[str, Any]:
     if evidence.get("observation_origin") == "local_receipt" and evidence.get("independent_external", False):
         return {"status": "DENY", "reason": "LOCAL_RECEIPT_CANNOT_BE_INDEPENDENT_EXTERNAL_OBSERVATION"}
 
-    # Canonical contract field names are authoritative. Legacy aliases are
-    # accepted only for backwards-readable fixtures; they are never preferred
-    # over the canonical names.
-    raw_sha = evidence.get("raw_artifact_sha256") or evidence.get("raw_sha256")
-    semantic_fp = evidence.get("semantic_fingerprint") or evidence.get("semantic_sha256")
-    if raw_sha and semantic_fp and raw_sha == semantic_fp and evidence.get("hashes_explicitly_distinct") is not True:
-        return {"status": "DENY", "reason": "RAW_AND_SEMANTIC_HASH_CONFLATED"}
+    raw_sha, raw_legacy = _canonical_or_legacy(evidence, "raw_artifact_sha256", "raw_sha256")
+    semantic_fp, semantic_legacy = _canonical_or_legacy(evidence, "semantic_fingerprint", "semantic_sha256")
 
     if evidence.get("raw_artifact_exists", False) and not raw_sha:
         return {"status": "DENY", "reason": "RAW_ARTIFACT_SHA256_MISSING"}
 
     if evidence.get("semantic_quorum", False) and not semantic_fp:
         return {"status": "DENY", "reason": "SEMANTIC_FINGERPRINT_MISSING"}
+
+    # Legacy aliases are readable only for explicitly marked historical fixtures.
+    # They cannot be silently mixed with canonical production evidence.
+    if (raw_legacy or semantic_legacy) and evidence.get("legacy_fixture") is not True:
+        return {"status": "DENY", "reason": "LEGACY_ALIAS_REQUIRES_EXPLICIT_FIXTURE"}
+
+    if raw_sha and semantic_fp and raw_sha == semantic_fp and evidence.get("hashes_explicitly_distinct") is not True:
+        return {"status": "DENY", "reason": "RAW_AND_SEMANTIC_HASH_CONFLATED"}
 
     if evidence.get("derived", False):
         missing_derived = sorted(k for k in FOR_DERIVED if not evidence.get(k))
