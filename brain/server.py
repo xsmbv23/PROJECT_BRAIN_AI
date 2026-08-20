@@ -27,6 +27,17 @@ def _deployment_identity() -> tuple[str, str]:
     return "", "NONE"
 
 
+def _runtime_observation_identity() -> dict:
+    deployment, identity_type = _deployment_identity()
+    return {
+        "repository": "xsmbv23/Project_Brain_AI",
+        "commit": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
+        "deployment": deployment or "UNKNOWN",
+        "instance": os.environ.get("RENDER_INSTANCE_ID", "UNKNOWN"),
+        "identity_type": identity_type,
+    }
+
+
 def _current_action_receipt_evidence() -> dict:
     try:
         state = json.loads((ROOT / "state" / "current_state.json").read_text(encoding="utf-8"))
@@ -68,6 +79,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def _send_payload(self):
         binding = classify_database_binding()
+        observation_timestamp = time.time()
+        request_identity = secrets.token_hex(16)
+        runtime_identity = _runtime_observation_identity()
         self._json(200, {
             "status": 200,
             "project": "XSMB_FORENSIC",
@@ -81,7 +95,10 @@ class Handler(BaseHTTPRequestHandler):
             "evidence": "COMPACT_ENVELOPE_ONLY",
             "render": "READONLY_HEALTH_BOUNDARY",
             "liveness": "LIVE",
-            "commit_sha": os.environ.get("RENDER_GIT_COMMIT", "UNKNOWN"),
+            "commit_sha": runtime_identity["commit"],
+            "runtime_identity": runtime_identity,
+            "observation_timestamp": observation_timestamp,
+            "request_identity": request_identity,
             "database_binding": binding["status"],
             "database_tls": binding["tls"],
             "action_receipt": _current_action_receipt_evidence(),
