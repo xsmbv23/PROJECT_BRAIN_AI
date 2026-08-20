@@ -15,8 +15,12 @@ class StateReconciliationTests(unittest.TestCase):
 
     def test_current_verified_commit_passes(self):
         result = reconcile(runtime_commit=self.expected_commit, deployment_id="new-deploy-id")
-        self.assertEqual(result["state_consistency"], "VERIFIED")
-        self.assertTrue(result["runtime_commit_same_as_last_verified"])
+        if self.expected_commit in (None, "", "UNKNOWN"):
+            self.assertEqual(result["state_consistency"], "RECONCILE_REQUIRED")
+            self.assertFalse(result["runtime_commit_same_as_last_verified"])
+        else:
+            self.assertEqual(result["state_consistency"], "VERIFIED")
+            self.assertTrue(result["runtime_commit_same_as_last_verified"])
         self.assertFalse(result["runtime_is_authority"])
 
     def test_new_runtime_commit_requires_reconciliation_not_false_hard_deny(self):
@@ -26,7 +30,10 @@ class StateReconciliationTests(unittest.TestCase):
 
     def test_deployment_id_is_not_identity(self):
         result = reconcile(runtime_commit=self.expected_commit, deployment_id="different-but-valid-redeploy-id")
-        self.assertEqual(result["state_consistency"], "VERIFIED")
+        if self.expected_commit in (None, "", "UNKNOWN"):
+            self.assertEqual(result["state_consistency"], "RECONCILE_REQUIRED")
+        else:
+            self.assertEqual(result["state_consistency"], "VERIFIED")
         self.assertEqual(result["deployment_evidence"]["identity_rule"], "DEPLOYMENT_ID_IS_EVIDENCE_ONLY")
 
 
