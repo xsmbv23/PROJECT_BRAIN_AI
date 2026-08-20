@@ -1,18 +1,20 @@
 {
-  "action_id":"BRAIN-N121",
-  "title":"Audit cross-repository admission contracts for implicit trust and directionality violations",
+  "action_id":"BRAIN-N122",
+  "title":"Audit evidence lineage from real source observation through Quant-derived evidence into Brain admission",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
   "mode":"DATA_ADMISSION",
   "action_space":0,
   "promotion":"DENY",
-  "previous":"BRAIN-N120 defined exact-current independent /governance observation admission without opening the runtime gate",
+  "previous":"BRAIN-N121 removed stale duplicated runtime authority from the repository map",
   "scope":[
-    "audit Brain/Data/Quant cross-repository contracts",
-    "detect implicit trust edges",
-    "detect derived-data-to-source-truth escalation paths",
-    "detect computation-to-governance authority escalation paths",
-    "preserve one-way dependency direction",
+    "audit source observation lineage",
+    "audit raw-byte and semantic-hash separation",
+    "audit Quant-derived evidence provenance",
+    "audit Brain admission evidence envelopes",
+    "detect derived-to-source-truth masquerading",
+    "detect local receipt masquerading as external evidence",
+    "preserve immutable source evidence",
     "continue safe engineering without unlocking Runtime Action Admission",
     "do not manufacture evidence",
     "do not unlock Room 02 or staircase",
@@ -35,9 +37,10 @@
     "HUMAN_INPUT_IS_EVIDENCE_CARRIER_NOT_STATE_AUTHORITY",
     "INDEPENDENT_OBSERVATION_CANNOT_BE_SELF_ATTESTED",
     "SOURCE_TRUTH_CANNOT_BE_OVERWRITTEN_BY_DERIVED_DATA",
-    "BRAIN_CANNOT_BECOME_DATA_OR_QUANT_ENGINE"
+    "BRAIN_CANNOT_BECOME_DATA_OR_QUANT_ENGINE",
+    "RAW_HASH_AND_SEMANTIC_HASH_HAVE_DISTINCT_MEANINGS"
   ],
   "other_bot_required_next_action":"QUANT-N007",
   "other_bot_dependency":"CI observation and source-specific semantic extraction for ketqua16.net and xsmb.com.vn; no canonical promotion",
-  "completion_gate":"Cross-repository contracts have no unresolved implicit trust or authority-escalation path, or each remaining issue is explicitly classified UNKNOWN/BLOCKED with no unsafe bypass"
+  "completion_gate":"Evidence lineage is explicit and traceable from source observation through derived computation to Brain admission, with no derived artifact able to masquerade as source truth or independent external evidence"
 }
