@@ -6,10 +6,12 @@ it never proves canonical truth, edge, EV/P&L, or action authorization.
 from __future__ import annotations
 
 from datetime import date
+import re
 
 MIN_REQUIRED_DAYS = 41
 MIN_TRAIN_OBSERVATIONS = 20
 MIN_TEST_OBSERVATIONS = 20
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 def _nonempty_string(receipt: dict[str, object], key: str) -> bool:
@@ -20,17 +22,23 @@ def _nonempty_string(receipt: dict[str, object], key: str) -> bool:
 def validate_research_dataset_receipt(receipt: dict[str, object]) -> dict[str, object]:
     required = (
         "dataset_identity", "source_provenance_reference", "canonical_input_reference",
-        "start_date", "end_date", "actual_days", "required_days", "contiguous",
-        "missing_days", "train_observations", "test_observations", "temporal_policy",
-        "code_version",
+        "temporal_evidence_reference", "date_manifest_sha256", "start_date", "end_date",
+        "actual_days", "required_days", "contiguous", "missing_days",
+        "train_observations", "test_observations", "temporal_policy", "code_version",
     )
     missing = [key for key in required if key not in receipt]
     if missing:
         return {"status": "DENY", "reason": "RECEIPT_FIELDS_MISSING", "missing": missing}
 
-    for key in ("dataset_identity", "source_provenance_reference", "canonical_input_reference", "code_version"):
+    for key in (
+        "dataset_identity", "source_provenance_reference", "canonical_input_reference",
+        "temporal_evidence_reference", "code_version",
+    ):
         if not _nonempty_string(receipt, key):
             return {"status": "DENY", "reason": "IDENTITY_OR_PROVENANCE_EMPTY", "field": key}
+
+    if not isinstance(receipt["date_manifest_sha256"], str) or not SHA256_RE.fullmatch(receipt["date_manifest_sha256"]):
+        return {"status": "DENY", "reason": "DATE_MANIFEST_HASH_INVALID"}
 
     if receipt["temporal_policy"] != "DATE_ALIGNED_NO_LOOKAHEAD":
         return {"status": "DENY", "reason": "TEMPORAL_POLICY_INVALID"}
