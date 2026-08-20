@@ -15,14 +15,8 @@ REQUIRED_PROVENANCE = {
     "observation_timestamp",
     "observation_origin",
 }
-
-FOR_DERIVED = {
-    "upstream_evidence_ids",
-    "derivation_contract",
-}
-
+FOR_DERIVED = {"upstream_evidence_ids", "derivation_contract"}
 FOR_RUNTIME = {"runtime_identity", "gate_evidence_id"}
-
 FOR_CANONICAL = {"canonical_payload_sha256"}
 
 
@@ -38,9 +32,19 @@ def validate_evidence(evidence: dict[str, Any]) -> dict[str, Any]:
     if evidence.get("observation_origin") == "local_receipt" and evidence.get("independent_external", False):
         return {"status": "DENY", "reason": "LOCAL_RECEIPT_CANNOT_BE_INDEPENDENT_EXTERNAL_OBSERVATION"}
 
-    if evidence.get("raw_sha256") and evidence.get("semantic_sha256"):
-        if evidence["raw_sha256"] == evidence["semantic_sha256"] and evidence.get("hashes_explicitly_distinct") is not True:
-            return {"status": "DENY", "reason": "RAW_AND_SEMANTIC_HASH_CONFLATED"}
+    # Canonical contract field names are authoritative. Legacy aliases are
+    # accepted only for backwards-readable fixtures; they are never preferred
+    # over the canonical names.
+    raw_sha = evidence.get("raw_artifact_sha256") or evidence.get("raw_sha256")
+    semantic_fp = evidence.get("semantic_fingerprint") or evidence.get("semantic_sha256")
+    if raw_sha and semantic_fp and raw_sha == semantic_fp and evidence.get("hashes_explicitly_distinct") is not True:
+        return {"status": "DENY", "reason": "RAW_AND_SEMANTIC_HASH_CONFLATED"}
+
+    if evidence.get("raw_artifact_exists", False) and not raw_sha:
+        return {"status": "DENY", "reason": "RAW_ARTIFACT_SHA256_MISSING"}
+
+    if evidence.get("semantic_quorum", False) and not semantic_fp:
+        return {"status": "DENY", "reason": "SEMANTIC_FINGERPRINT_MISSING"}
 
     if evidence.get("derived", False):
         missing_derived = sorted(k for k in FOR_DERIVED if not evidence.get(k))
