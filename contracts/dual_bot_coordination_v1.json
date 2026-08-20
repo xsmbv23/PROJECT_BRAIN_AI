@@ -1,0 +1,84 @@
+{
+  "contract_id": "DUAL_BOT_COORDINATION_V1",
+  "purpose": "Coordinate two parallel execution agents against one shared Core Mission and one shared policy without merging ownership or bypassing gates.",
+  "core_mission": "REAL_DATA->VALID_RESEARCH->VALID_BACKTEST->EDGE->EV_PNL_ROI->ROBUSTNESS_RISK_DRIFT->CONTROLLED_ACTION",
+  "forensic_role": "CONTROL_AND_ADMISSION_MECHANISM_NOT_PRODUCT",
+  "agents": {
+    "BOT_1": {
+      "owner": "xsmbv23/Project_Brain_AI",
+      "role": "GOVERNANCE_FORENSIC_CONTROL_AND_PROACTIVE_SYSTEM_AUDITOR",
+      "primary_domains": ["forensic_fsm", "admission", "evidence", "security", "architecture", "cross_repo_contracts", "render_boundary", "promotion", "action_control"]
+    },
+    "BOT_2": {
+      "owner": "xsmbv23/Quant_Engine",
+      "role": "CALCULATION_RESEARCH_BACKTEST_AND_QUANT_RUNTIME",
+      "primary_domains": ["temporal_integrity", "research", "backtest", "edge", "ev_pnl_roi", "robustness", "risk", "drift", "quant_runtime"]
+    },
+    "SHARED_SOURCE_TRUTH": {
+      "owner": "xsmbv23/xsmb-quant",
+      "role": "CANONICAL_SOURCE_DATA_AUTHORITY",
+      "mutation_rule": "Neither bot may silently mutate source truth; source changes require explicit scoped evidence and ownership."
+    }
+  },
+  "mandatory_pre_action_reads": [
+    "canonical_policy",
+    "own_current_state",
+    "other_bot_latest_action_log",
+    "relevant_cross_repo_contracts",
+    "relevant_evidence_and_integrity_state"
+  ],
+  "mandatory_pre_action_rule": "Every next action must record that policy and the other bot's latest log were read. If the dependency is material and either is unavailable, do not execute the dependent action; continue only with independent safe engineering.",
+  "ownership_rules": [
+    "Each bot owns its primary repository and does not silently take ownership of the other bot's repository.",
+    "Cross-repo changes require explicit dependency, scope, evidence, and handoff.",
+    "xsmb-quant remains source truth; derived data and research may not overwrite canonical source truth."
+  ],
+  "parallelism": {
+    "rule": "Run independent safe engineering in parallel; wait only on real dependencies.",
+    "locked_gate_rule": "A locked gate blocks only actions requiring that gate. It does not freeze unrelated safe engineering.",
+    "no_fake_progress": true
+  },
+  "handoff_requirements": {
+    "every_action_must_declare": [
+      "current_state",
+      "objective",
+      "core_mission_link",
+      "observed_blockers",
+      "selected_blocker",
+      "ownership",
+      "action_taken",
+      "evidence",
+      "verification_level",
+      "unresolved_blockers",
+      "other_bot_required_next_action",
+      "own_next_action",
+      "dependency_for_next_action",
+      "expected_evidence",
+      "completion_gate"
+    ],
+    "verification_levels": ["FOUND", "FIXED", "TESTED", "RUNTIME_VERIFIED", "EXTERNAL_EVIDENCE", "PROMOTED"]
+  },
+  "gate_invariants": [
+    "PASS_IS_LOCAL",
+    "PASS_IS_PREREQUISITE_ONLY",
+    "NO_PASS_INHERITANCE",
+    "OWN_GATE_EVIDENCE_REQUIRED",
+    "FRESH_EVIDENCE_REQUIRED_FOR_PROMOTION",
+    "UNKNOWN_IS_NOT_PASS",
+    "DEFAULT_DENY"
+  ],
+  "forbidden": [
+    "manufacture_evidence",
+    "self_attest_as_independent_verifier",
+    "fabricate_credentials",
+    "store_secrets_in_git",
+    "bypass_fsm",
+    "silently_mutate_canonical_truth",
+    "use_chat_request_as_state_authority"
+  ],
+  "conflict_rule": "Bots must share policy, not conclusions. Disagreement is recorded as separate observations and evidence; neither bot inherits the other's PASS or interpretation.",
+  "blocker_rule": "Each bot proactively audits its domain, ranks real blockers by Core Mission impact and dependency value, fixes the highest-value safe blocker, verifies it, and hands the next dependency to the other bot.",
+  "ev_rule": "EV < 0, NaN, or Inf makes the local candidate invalid; EDGE_CANDIDATE=false, no prediction report, and ACTION_SPACE=0. Invalid lower-level evidence cannot be rescued by aggregation.",
+  "resource_rule": "Render 512 MiB is a hard boundary; 320 MiB is the engineering guard. Heavy workloads must stay outside Brain runtime and be bounded in the correct execution plane.",
+  "canonical_state_rule": "Canonical state remains authoritative for gated actions. Proactive safe engineering may proceed only where it does not require the locked gate or falsify its evidence."
+}
