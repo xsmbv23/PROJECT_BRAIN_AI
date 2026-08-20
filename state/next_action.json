@@ -1,21 +1,19 @@
 {
-  "action_id":"BRAIN-N124",
-  "title":"Wire evidence lineage validator into current CI/test surface and audit evidence producers/consumers",
+  "action_id":"BRAIN-N125",
+  "title":"Verify current CI execution for evidence lineage tests and reconcile failures",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
-  "mode":"DATA_ADMISSION",
+  "mode":"VERIFICATION",
   "action_space":0,
   "promotion":"DENY",
-  "previous":"BRAIN-N123 added a non-authoritative evidence lineage validator and regression tests",
+  "previous":"BRAIN-N124 wired the non-authoritative evidence lineage validator into foundation CI",
   "scope":[
-    "wire evidence lineage validator into current test/CI surface",
-    "audit existing evidence producers and consumers for provenance/schema mismatches",
-    "verify raw SHA and semantic fingerprint remain distinct",
-    "verify derived evidence carries upstream evidence IDs and derivation contract",
-    "verify runtime admission evidence carries runtime identity and gate evidence ID",
-    "verify canonical envelopes carry canonical payload hash when promoted",
-    "continue safe engineering without unlocking Runtime Action Admission",
-    "do not manufacture evidence",
+    "inspect current foundation CI execution",
+    "verify evidence lineage validator test execution from current commit",
+    "reconcile any failure against contract and implementation",
+    "record execution evidence and verification status",
+    "continue safe engineering if CI observation is unavailable",
+    "do not manufacture execution receipts",
     "do not unlock Room 02 or staircase",
     "do not promote evidence"
   ],
@@ -41,5 +39,5 @@
   ],
   "other_bot_required_next_action":"QUANT-N007",
   "other_bot_dependency":"CI observation and source-specific semantic extraction for ketqua16.net and xsmb.com.vn; no canonical promotion",
-  "completion_gate":"Validator is exercised by the current CI/test surface and all audited evidence producers/consumers either satisfy the lineage contract or are explicitly recorded as UNKNOWN/DENY without bypass"
+  "completion_gate":"Current execution evidence establishes whether the lineage validator passes; any failure is repaired safely, while unavailable/insufficient execution remains UNKNOWN rather than PASS"
 }
