@@ -36,6 +36,18 @@ class ResearchDatasetAdmissionValidatorTests(unittest.TestCase):
         receipt = {**BASE, "actual_days": 40}
         self.assertEqual(validate_research_dataset_receipt(receipt)["status"], "DENY")
 
+    def test_required_history_cannot_be_lowered(self):
+        receipt = {**BASE, "required_days": 1, "actual_days": 1}
+        self.assertEqual(validate_research_dataset_receipt(receipt)["status"], "DENY")
+
+    def test_empty_provenance_denied(self):
+        receipt = {**BASE, "source_provenance_reference": ""}
+        self.assertEqual(validate_research_dataset_receipt(receipt)["status"], "DENY")
+
+    def test_invalid_date_denied(self):
+        receipt = {**BASE, "start_date": "not-a-date"}
+        self.assertEqual(validate_research_dataset_receipt(receipt)["status"], "DENY")
+
     def test_lookahead_policy_denied(self):
         receipt = {**BASE, "temporal_policy": "POSITIONAL_LAG"}
         self.assertEqual(validate_research_dataset_receipt(receipt)["status"], "DENY")
