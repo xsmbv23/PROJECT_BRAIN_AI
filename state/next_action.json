@@ -1,20 +1,19 @@
 {
-  "action_id":"BRAIN-N122",
-  "title":"Audit evidence lineage from real source observation through Quant-derived evidence into Brain admission",
+  "action_id":"BRAIN-N124",
+  "title":"Wire evidence lineage validator into current CI/test surface and audit evidence producers/consumers",
   "status":"READY",
   "phase":"FOUNDATION_HARDENING",
   "mode":"DATA_ADMISSION",
   "action_space":0,
   "promotion":"DENY",
-  "previous":"BRAIN-N121 removed stale duplicated runtime authority from the repository map",
+  "previous":"BRAIN-N123 added a non-authoritative evidence lineage validator and regression tests",
   "scope":[
-    "audit source observation lineage",
-    "audit raw-byte and semantic-hash separation",
-    "audit Quant-derived evidence provenance",
-    "audit Brain admission evidence envelopes",
-    "detect derived-to-source-truth masquerading",
-    "detect local receipt masquerading as external evidence",
-    "preserve immutable source evidence",
+    "wire evidence lineage validator into current test/CI surface",
+    "audit existing evidence producers and consumers for provenance/schema mismatches",
+    "verify raw SHA and semantic fingerprint remain distinct",
+    "verify derived evidence carries upstream evidence IDs and derivation contract",
+    "verify runtime admission evidence carries runtime identity and gate evidence ID",
+    "verify canonical envelopes carry canonical payload hash when promoted",
     "continue safe engineering without unlocking Runtime Action Admission",
     "do not manufacture evidence",
     "do not unlock Room 02 or staircase",
@@ -42,5 +41,5 @@
   ],
   "other_bot_required_next_action":"QUANT-N007",
   "other_bot_dependency":"CI observation and source-specific semantic extraction for ketqua16.net and xsmb.com.vn; no canonical promotion",
-  "completion_gate":"Evidence lineage is explicit and traceable from source observation through derived computation to Brain admission, with no derived artifact able to masquerade as source truth or independent external evidence"
+  "completion_gate":"Validator is exercised by the current CI/test surface and all audited evidence producers/consumers either satisfy the lineage contract or are explicitly recorded as UNKNOWN/DENY without bypass"
 }
