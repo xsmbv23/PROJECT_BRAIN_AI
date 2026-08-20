@@ -40,6 +40,18 @@ class ResearchDatasetAdmissionValidatorTests(unittest.TestCase):
         receipt = {**BASE, "required_days": 1, "actual_days": 1}
         self.assertEqual(validate_research_dataset_receipt(receipt)["status"], "DENY")
 
+    def test_required_history_must_match_oos_split(self):
+        receipt = {**BASE, "required_days": 42}
+        self.assertEqual(validate_research_dataset_receipt(receipt)["status"], "DENY")
+
+    def test_date_span_must_match_actual_days(self):
+        receipt = {**BASE, "end_date": "2026-02-11", "actual_days": 41}
+        self.assertEqual(validate_research_dataset_receipt(receipt)["status"], "DENY")
+
+    def test_reversed_date_range_denied(self):
+        receipt = {**BASE, "start_date": "2026-02-11"}
+        self.assertEqual(validate_research_dataset_receipt(receipt)["status"], "DENY")
+
     def test_empty_provenance_denied(self):
         receipt = {**BASE, "source_provenance_reference": ""}
         self.assertEqual(validate_research_dataset_receipt(receipt)["status"], "DENY")
