@@ -2,9 +2,10 @@
 
 Boot/liveness and forensic admission are deliberately different gates.
 A missing historical action receipt must block promotion/transport, but must
-not make the HTTP service unavailable. This lets the exact-current runtime
-be observed so the missing evidence can be diagnosed without manufacturing it.
-All checks are metadata-only and subprocess-isolated.
+not make the HTTP service unavailable. The receipt issuer runs only after the
+full runtime boundary completes; the verifier on the next runtime reads that
+prior receipt. This preserves a restart boundary and prevents the verifier from
+self-manufacturing its own evidence.
 """
 from __future__ import annotations
 
@@ -68,6 +69,28 @@ def admission_summary(binding_status: str, network_status: str, round_trip_prove
     return {"db_existence": "PREREQUISITE_EXTERNAL_EVIDENCE", "db_binding": binding_status, "db_tls_admission": "PASS" if binding_status == "BOUND_TLS" else "DENY", "network_origin_proof": "PASS" if network_pass else "NOT_PROVEN", "db_round_trip": "PASS" if round_trip_proven else "NOT_PROVEN", "promotion": "ALLOW" if (network_pass and evaluated["promotion"]) else "DENY", "rule": "PASS_IS_LOCAL_TO_GATE;PASS_IS_PREREQUISITE_ONLY;NO_PASS_INHERITANCE"}
 
 
+def issue_prior_runtime_receipt(env: dict[str, str], binding_status: str) -> dict[str, object]:
+    """Issue evidence only after the runtime boundary; never used to make this boot PASS."""
+    action = None
+    try:
+        state = json.loads((ROOT / "state" / "current_state.json").read_text(encoding="utf-8"))
+        action = state.get("last_action_id")
+    except Exception:
+        return {"status": "DENY", "reason": "ACTION_RECEIPT_STATE_UNREADABLE"}
+    commit = env.get("RENDER_GIT_COMMIT", "")
+    deployment = env.get("RENDER_DEPLOY_ID", "")
+    if not action or not commit or not deployment:
+        return {"status": "DENY", "reason": "ACTION_RECEIPT_ISSUER_IDENTITY_MISSING"}
+    if binding_status != "BOUND_TLS":
+        return {"status": "DENY", "reason": "ACTION_RECEIPT_DB_NOT_BOUND_TLS"}
+    try:
+        from tools.action_receipt_store import issue_action_receipt
+        receipt = issue_action_receipt(action_id=action, commit_sha=commit, deployment_id=deployment)
+        return {"status": "ISSUED_FOR_NEXT_RUNTIME", "action_id": action, "receipt_sha256": receipt["receipt_sha256"], "evidence_sha": receipt["evidence_sha"], "pass_is_local": True, "promotes": False}
+    except Exception as exc:
+        return {"status": "DENY", "reason": f"ACTION_RECEIPT_ISSUE_FAILED:{type(exc).__name__}"}
+
+
 def main() -> int:
     started = time.time()
     results = []
@@ -80,19 +103,13 @@ def main() -> int:
         proc = subprocess.run([sys.executable, str(ROOT / relpath)], cwd=ROOT, env=env, capture_output=True, text=True, timeout=120)
         result = {"name": name, "exit_code": proc.returncode, "stdout_tail": proc.stdout[-4000:], "stderr_tail": proc.stderr[-2000:]}
         results.append(result)
-
-        # Action receipts are an admission gate, not a service-liveness gate.
-        # Missing/invalid historical evidence must remain DENY and must never
-        # be manufactured just to make Render boot green.
         if proc.returncode != 0 and name == "action_receipt":
             admission_denials.append("ACTION_RECEIPT")
             result["gate_role"] = "ADMISSION_DENY_ONLY"
             continue
-
         if proc.returncode != 0:
             print(json.dumps({"runtime_boot_gate": "DENY", "failed": name, "results": results}, ensure_ascii=False), flush=True)
             return 1
-
         if name == "foundation":
             try:
                 report = ast.literal_eval(proc.stdout.strip().splitlines()[-1])
@@ -125,6 +142,11 @@ def main() -> int:
     reconciliation = evaluate_admission(runtime_commit=os.environ.get("RENDER_GIT_COMMIT"), deployment_id=os.environ.get("RENDER_DEPLOY_ID"), quant_projection=None)
     results.append({"name": "state_reconciliation_admission", "exit_code": 0, "evidence": reconciliation})
 
+    # Only now, after all runtime checks and DB evidence have completed, issue a receipt
+    # for the NEXT runtime to verify. This is deliberately not consulted to turn this boot green.
+    receipt_issue = issue_prior_runtime_receipt(env, str(binding["status"]))
+    results.append({"name": "action_receipt_issuer", "exit_code": 0 if receipt_issue.get("status") == "ISSUED_FOR_NEXT_RUNTIME" else 1, "evidence": receipt_issue, "gate_role": "POST_BOUNDARY_ISSUER"})
+
     admission_status = "DENY" if admission_denials else "PASS"
     print(json.dumps({
         "runtime_boot_gate": "PASS",
@@ -139,6 +161,7 @@ def main() -> int:
         "n104c1_transport": n104c1,
         "state_reconciliation_admission": reconciliation,
         "room01_runtime": room01,
+        "action_receipt_issuer": receipt_issue,
         "external_event_path": "ISOLATED; NO_SELF_MANUFACTURED_EVENT",
         "foundation_path": "ADVANCE_ALLOWED; EXTERNAL_STATE_UNCHANGED",
         "room_02": "LOCKED",
