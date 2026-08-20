@@ -4,7 +4,7 @@
 
 **CANONICAL SYSTEM MAP — FOUNDATION / FORENSIC**
 
-This document defines the repository boundaries for successor AI agents. The three repositories are NOT one codebase and MUST NOT be collapsed into one implementation boundary.
+This document defines the repository boundaries. The three repositories are NOT one codebase and MUST NOT be collapsed into one implementation boundary.
 
 ## Canonical repositories
 
@@ -41,17 +41,7 @@ Brain governs. Data owns source truth. Quant calculates. Neither Data nor Quant 
 
 Owner: `xsmbv23/xsmb-quant`
 
-Examples already present in the data repository include:
-
-- raw artifact handling;
-- data contracts;
-- calendar ledger/state;
-- reconciliation;
-- source-truth handoff documentation;
-- data foundation runbook/blueprint;
-- data-side security corridor/capability/audit/self-test.
-
-Evidence in the current repository includes `docs/STATE_AUTHORITY_HANDOFF.md`, `data/contracts/README.md`, `storage/raw_artifacts.py`, `data/reconciliation/legacy_reconcile.py`, and the AI progress/action ledgers. fileciteturn764file0L1-L5 fileciteturn764file5L26-L30 fileciteturn764file14L71-L75 fileciteturn764file22L111-L115
+Examples already present in the data repository include raw artifact handling, data contracts, calendar ledger/state, reconciliation, source-truth handoff documentation, data foundation runbook/blueprint, and data-side security corridor/capability/audit/self-test.
 
 ### 2. Calculation / research
 
@@ -59,25 +49,11 @@ Owner: `xsmbv23/Quant_Engine`
 
 The repository is deliberately isolated from Brain governance and XSMB source-truth ownership. Calculation code must consume explicit, admissible inputs and must not mutate source truth.
 
-Current repository metadata confirms `Quant_Engine` is a public `main`-branch repository owned by `xsmbv23`.
-
 ### 3. Governance / Forensic control
 
 Owner: `xsmbv23/Project_Brain_AI`
 
-Brain owns:
-
-- governance FSM;
-- corridor admission;
-- corridor-key + room-key separation;
-- per-room locks;
-- protected-room inner release;
-- capability admission;
-- immutable forensic state;
-- promotion gates;
-- successor action log / next-action handoff;
-- compact evidence policy;
-- Render OOM safety boundary.
+Brain owns governance FSM, corridor admission, corridor-key + room-key separation, per-room locks, protected-room inner release, capability admission, immutable forensic state, promotion gates, successor action log / next-action handoff, compact evidence policy, and Render OOM safety boundary.
 
 Brain is a control plane, not the system's source-data owner.
 
@@ -237,7 +213,7 @@ Persistent state must live in repository state/contracts/action logs and durable
 
 Every AI agent inheriting this system MUST read this document before modifying any repository.
 
-The successor MUST NOT:
+The agent MUST NOT:
 
 1. merge the three repositories;
 2. move source-truth authority into Brain;
@@ -250,19 +226,17 @@ The successor MUST NOT:
 9. load bulk data into Brain runtime;
 10. unlock Layer 1 or the staircase merely because the foundation runtime is healthy.
 
-Every action MUST create/update the successor action ledger before declaring the action complete.
+Every action MUST create/update the action ledger before declaring the action complete.
 
-## Current foundation status
+## Current status authority
+
+The status snapshot that previously appeared in this map was a point-in-time observation and MUST NOT be treated as current authority. Current runtime state is authoritative only from:
 
 ```text
-THREE-REPOSITORY MAP       = ESTABLISHED
-DATA AUTHORITY             = xsmb-quant
-CALCULATION AUTHORITY      = Quant_Engine
-GOVERNANCE AUTHORITY       = Project_Brain_AI
-DB EXISTENCE               = PASS
-DB BINDING                 = NOT_BOUND
-DB TLS ROUND-TRIP          = NOT_PROVEN
-PROMOTION                  = DENY
-LAYER 1                    = LOCKED
-STAIRCASE                  = LOCKED
+state/current_state.json
+state/next_action.json
 ```
+
+At the time of this update, `state/current_state.json` records the current runtime anchor, 209 tests PASS, DB binding `BOUND_TLS`, DB TLS PASS, network-origin PASS, DB round-trip PASS, promotion DENY, action receipt `NOT_YET_PROVEN_CURRENT`, and `ACTION_SPACE = 0`.
+
+This section deliberately avoids duplicating mutable runtime state beyond a short pointer because duplicated mutable state creates stale-authority risk.
