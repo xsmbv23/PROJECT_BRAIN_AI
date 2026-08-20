@@ -1,0 +1,74 @@
+{
+  "contract_id": "GOVERNANCE_OBSERVATION_ADMISSION_V1",
+  "purpose": "Define the minimum evidence required for an independently observable exact-current /governance observation without allowing self-attestation or stale receipts to satisfy the gate.",
+  "gate": "RUNTIME_ACTION_ADMISSION",
+  "required_observation": {
+    "path": "/governance",
+    "independence": "EXTERNAL_OBSERVER_REQUIRED",
+    "exact_current_runtime_binding": [
+      "repository",
+      "commit",
+      "deployment",
+      "instance"
+    ],
+    "freshness": "OBSERVATION_TIMESTAMP_MUST_BE_CURRENT_RELATIVE_TO_GATE",
+    "observable_receipt": true,
+    "receipt_binding": [
+      "runtime_identity",
+      "action_or_probe_identity",
+      "nonce_or_unique_request_identity",
+      "observation_timestamp"
+    ]
+  },
+  "independence_rules": {
+    "allowed": [
+      "external_observer_submits_observed_response_and_receipt",
+      "auditable_external_http_observation",
+      "independent_runtime_observer_with_verifiable_provenance"
+    ],
+    "rejected": [
+      "brain_self_call_to_its_own_governance_endpoint",
+      "brain_generated_receipt_claimed_as_external",
+      "startup_log_substituted_for_http_observation",
+      "historical_receipt",
+      "screenshot_without_verifiable_runtime_binding",
+      "human_assertion_of_pass",
+      "chat_request_as_authority"
+    ]
+  },
+  "gate_semantics": {
+    "PASS_IS_LOCAL": true,
+    "PASS_IS_PREREQUISITE_ONLY": true,
+    "NO_PASS_INHERITANCE": true,
+    "OWN_GATE_EVIDENCE_REQUIRED": true,
+    "FRESH_EVIDENCE_REQUIRED_FOR_PROMOTION": true,
+    "UNKNOWN_IS_NOT_PASS": true,
+    "DEFAULT_DENY": true
+  },
+  "verification_order": [
+    "receive_external_observation",
+    "verify_observation_provenance",
+    "verify_exact_current_runtime_identity",
+    "verify_path_is_governance",
+    "verify_nonce_or_unique_request_identity",
+    "verify_freshness",
+    "verify_receipt_integrity",
+    "evaluate_gate",
+    "only_then_allow_fsm_transition_if_all_other_gate_conditions_are independently satisfied"
+  ],
+  "failure_policy": {
+    "missing_field": "DENY",
+    "mismatch": "DENY",
+    "stale": "DENY",
+    "self_attested": "DENY",
+    "unknown_provenance": "DENY",
+    "invalid_receipt": "DENY"
+  },
+  "security": {
+    "credentials_in_receipt": false,
+    "credentials_in_logs": false,
+    "credentials_in_chat": false,
+    "synthetic_receipt": false
+  },
+  "relationship_to_canonical_state": "This contract defines evidence requirements only. It does not itself grant action_space, promotion, Room 02, staircase access, or canonical state transition."
+}
