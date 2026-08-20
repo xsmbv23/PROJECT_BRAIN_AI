@@ -1,3 +1,4 @@
+import copy
 import unittest
 
 from tools.evidence_lineage_validator import validate_evidence
@@ -50,3 +51,40 @@ class EvidenceLineageValidatorTests(unittest.TestCase):
         result = validate_evidence(evidence)
         self.assertEqual(result["status"], "DENY")
         self.assertEqual(result["reason"], "CANONICAL_PROVENANCE_MISSING")
+
+    def test_raw_artifact_requires_raw_sha256(self):
+        result = validate_evidence(self.base() | {"raw_artifact_exists": True})
+        self.assertEqual(result["status"], "DENY")
+        self.assertEqual(result["reason"], "RAW_ARTIFACT_SHA256_MISSING")
+
+    def test_semantic_quorum_requires_semantic_fingerprint(self):
+        result = validate_evidence(self.base() | {"semantic_quorum": True})
+        self.assertEqual(result["status"], "DENY")
+        self.assertEqual(result["reason"], "SEMANTIC_FINGERPRINT_MISSING")
+
+    def test_raw_and_semantic_identity_are_not_conflated(self):
+        evidence = self.base() | {
+            "raw_artifact_sha256": "raw-bytes",
+            "semantic_fingerprint": "meaning",
+            "semantic_quorum": True,
+        }
+        self.assertEqual(validate_evidence(evidence)["status"], "PASS")
+
+    def test_same_value_for_raw_and_semantic_hash_denies_without_explicit_distinction(self):
+        evidence = self.base() | {
+            "raw_artifact_sha256": "same",
+            "semantic_fingerprint": "same",
+        }
+        result = validate_evidence(evidence)
+        self.assertEqual(result["status"], "DENY")
+        self.assertEqual(result["reason"], "RAW_AND_SEMANTIC_HASH_CONFLATED")
+
+    def test_validator_does_not_mutate_evidence(self):
+        evidence = self.base() | {
+            "derived": True,
+            "upstream_evidence_ids": ["E1"],
+            "derivation_contract": "DERIVATION_V1",
+        }
+        before = copy.deepcopy(evidence)
+        validate_evidence(evidence)
+        self.assertEqual(evidence, before)
