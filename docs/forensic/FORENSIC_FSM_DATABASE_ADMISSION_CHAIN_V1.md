@@ -18,19 +18,15 @@ PROMOTION
 
 ## Gate semantics
 
-`DB_EXISTENCE=PASS` means only that the database resource exists and is observable.
-It does not prove that the service can access it.
+`DB_EXISTENCE=PASS` means only that the database resource exists and is observable. It does not prove that the service can access it.
 
-`DB_BINDING=PASS` means only that the exact runtime has an authorized database binding.
-It does not prove TLS admission or successful database I/O.
+`DB_BINDING=PASS` means only that the exact runtime has an authorized database binding. It does not prove TLS admission or successful database I/O.
 
-`DB_TLS_ADMISSION=PASS` means only that the binding satisfies the explicit TLS policy.
-It does not prove a real round trip.
+`DB_TLS_ADMISSION=PASS` means only that the binding satisfies the explicit TLS policy. It does not prove a real round trip.
 
-`DB_ROUND_TRIP=PASS` means a compact metadata envelope was actually written, read back, and its SHA-256 matched.
-Only this gate may satisfy the durable evidence sink admission condition.
+`DB_ROUND_TRIP=PASS` means a compact metadata envelope was actually written, read back, and its SHA-256 matched. Only this gate may satisfy the durable evidence sink admission condition.
 
-`PROMOTION=PASS` means durable evidence promotion is authorized after the prior gate has its own receipt.
+`PROMOTION=PASS` means durable evidence promotion is authorized after all required preceding gates each have their own current evidence.
 
 ## Non-inheritance invariant
 
@@ -38,7 +34,7 @@ Only this gate may satisfy the durable evidence sink admission condition.
 PASS(N) ≠ PASS(N+1)
 ```
 
-Every gate requires its own Atomic Evidence Artifact. A PASS is local evidence and only a prerequisite for evaluating the next gate.
+Every gate requires its own Atomic Evidence Artifact. A PASS is local evidence and only a prerequisite for evaluating the next gate. It never becomes the destination gate's evidence.
 
 ```text
 DB EXISTS
@@ -51,6 +47,8 @@ DB ROUND-TRIP PROVEN
    ≠
 PROMOTION AUTHORIZED
 ```
+
+The destination gate must independently observe and cryptographically bind its own evidence. A previous PASS may make the destination eligible for evaluation, but cannot close it.
 
 ## Epistemic enforcement
 
@@ -83,6 +81,30 @@ Round-trip proves that the door was actually opened and the evidence could be ex
 Promotion is the authority to treat that room as a durable forensic evidence sink.
 
 Each stage is distinct because the evidence required to prove it is distinct.
+
+## Relation to source admission
+
+Source admission is another ordered gate chain inside the same Forensic FSM:
+
+```text
+SOURCE_INDEPENDENCE
+    ↓
+NETWORK_ORIGIN_PROOF
+    ↓
+RESULT_TRANSPORT
+    ↓
+OFFICIAL_RESULT_PANEL
+    ↓
+CANDIDATE
+    ↓
+EXCEL_VS_WEB_MATCH
+    ↓
+CANONICAL_QUORUM
+    ↓
+TRUTH_ADMISSION
+```
+
+The same rule applies: a PASS in one source gate is never evidence for the next source gate.
 
 ## Prohibited shortcuts
 
