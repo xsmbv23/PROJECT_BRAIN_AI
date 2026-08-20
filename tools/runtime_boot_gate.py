@@ -62,6 +62,16 @@ def room01_runtime_evidence(env: dict[str, str]) -> dict[str, object]:
     return _run_json_tool(env, "tools/runtime_room01_verify.py", 45, "DENY")
 
 
+def deployment_identity(env: dict[str, str]) -> tuple[str, str]:
+    deploy_id = env.get("RENDER_DEPLOY_ID", "")
+    if deploy_id:
+        return deploy_id, "RENDER_DEPLOY_ID"
+    instance_id = env.get("RENDER_INSTANCE_ID", "")
+    if instance_id:
+        return instance_id, "RENDER_INSTANCE_ID"
+    return "", "NONE"
+
+
 def admission_summary(binding_status: str, network_status: str, round_trip_proven: bool = False) -> dict[str, object]:
     network_pass = network_status == "PASS"
     state = AdmissionState(existence=False, binding=binding_status == "BOUND_TLS", tls=binding_status == "BOUND_TLS", round_trip=round_trip_proven)
@@ -71,24 +81,23 @@ def admission_summary(binding_status: str, network_status: str, round_trip_prove
 
 def issue_prior_runtime_receipt(env: dict[str, str], binding_status: str) -> dict[str, object]:
     """Issue evidence only after the runtime boundary; never used to make this boot PASS."""
-    action = None
     try:
         state = json.loads((ROOT / "state" / "current_state.json").read_text(encoding="utf-8"))
         action = state.get("last_action_id")
     except Exception:
         return {"status": "DENY", "reason": "ACTION_RECEIPT_STATE_UNREADABLE"}
     commit = env.get("RENDER_GIT_COMMIT", "")
-    deployment = env.get("RENDER_DEPLOY_ID", "")
+    deployment, identity_type = deployment_identity(env)
     if not action or not commit or not deployment:
-        return {"status": "DENY", "reason": "ACTION_RECEIPT_ISSUER_IDENTITY_MISSING"}
+        return {"status": "DENY", "reason": "ACTION_RECEIPT_ISSUER_IDENTITY_MISSING", "deployment_identity_type": identity_type}
     if binding_status != "BOUND_TLS":
-        return {"status": "DENY", "reason": "ACTION_RECEIPT_DB_NOT_BOUND_TLS"}
+        return {"status": "DENY", "reason": "ACTION_RECEIPT_DB_NOT_BOUND_TLS", "deployment_identity_type": identity_type}
     try:
         from tools.action_receipt_store import issue_action_receipt
         receipt = issue_action_receipt(action_id=action, commit_sha=commit, deployment_id=deployment)
-        return {"status": "ISSUED_FOR_NEXT_RUNTIME", "action_id": action, "receipt_sha256": receipt["receipt_sha256"], "evidence_sha": receipt["evidence_sha"], "pass_is_local": True, "promotes": False}
+        return {"status": "ISSUED_FOR_NEXT_RUNTIME", "action_id": action, "receipt_sha256": receipt["receipt_sha256"], "evidence_sha": receipt["evidence_sha"], "deployment_id": deployment, "deployment_identity_type": identity_type, "pass_is_local": True, "promotes": False}
     except Exception as exc:
-        return {"status": "DENY", "reason": f"ACTION_RECEIPT_ISSUE_FAILED:{type(exc).__name__}"}
+        return {"status": "DENY", "reason": f"ACTION_RECEIPT_ISSUE_FAILED:{type(exc).__name__}", "deployment_identity_type": identity_type}
 
 
 def main() -> int:
@@ -139,11 +148,9 @@ def main() -> int:
     results.append({"name": "n104c1_transport_inspection", "exit_code": int(n104c1.get("exit_code", 0)), "evidence": n104c1})
     room01 = room01_runtime_evidence(env)
     results.append({"name": "room01_runtime_verify", "exit_code": int(room01.get("exit_code", 0)), "evidence": room01})
-    reconciliation = evaluate_admission(runtime_commit=os.environ.get("RENDER_GIT_COMMIT"), deployment_id=os.environ.get("RENDER_DEPLOY_ID"), quant_projection=None)
+    reconciliation = evaluate_admission(runtime_commit=os.environ.get("RENDER_GIT_COMMIT"), deployment_id=os.environ.get("RENDER_DEPLOY_ID") or os.environ.get("RENDER_INSTANCE_ID"), quant_projection=None)
     results.append({"name": "state_reconciliation_admission", "exit_code": 0, "evidence": reconciliation})
 
-    # Only now, after all runtime checks and DB evidence have completed, issue a receipt
-    # for the NEXT runtime to verify. This is deliberately not consulted to turn this boot green.
     receipt_issue = issue_prior_runtime_receipt(env, str(binding["status"]))
     results.append({"name": "action_receipt_issuer", "exit_code": 0 if receipt_issue.get("status") == "ISSUED_FOR_NEXT_RUNTIME" else 1, "evidence": receipt_issue, "gate_role": "POST_BOUNDARY_ISSUER"})
 
