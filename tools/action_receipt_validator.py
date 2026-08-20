@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +21,17 @@ def expected_receipt_sha(receipt: dict[str, Any]) -> str:
     body = dict(receipt)
     body.pop("receipt_sha256", None)
     return hashlib.sha256(_canonical(body)).hexdigest()
+
+
+def _expected_execution_nonce(receipt: dict[str, Any]) -> str | None:
+    action_id = receipt.get("action_id")
+    commit_sha = receipt.get("commit_sha")
+    deployment_id = receipt.get("deployment_id")
+    issued_at = receipt.get("issued_at")
+    if not all((action_id, commit_sha, deployment_id, issued_at)):
+        return None
+    seed = f"{action_id}|{commit_sha}|{deployment_id}|{issued_at}"
+    return hashlib.sha256(seed.encode("utf-8")).hexdigest()
 
 
 def validate_action_receipt(receipt: dict[str, Any], state: dict[str, Any], runtime: dict[str, Any]) -> dict[str, Any]:
@@ -41,6 +53,19 @@ def validate_action_receipt(receipt: dict[str, Any], state: dict[str, Any], runt
     receipt_commit = receipt.get("commit_sha")
     if not runtime_commit or not receipt_commit or runtime_commit != receipt_commit:
         return {"status": "DENY", "reason": "RUNTIME_COMMIT_MISMATCH"}
+
+    issued_at = receipt.get("issued_at")
+    if not issued_at:
+        return {"status": "DENY", "reason": "RECEIPT_ISSUED_AT_MISSING"}
+    try:
+        datetime.fromisoformat(str(issued_at).replace("Z", "+00:00"))
+    except ValueError:
+        return {"status": "DENY", "reason": "RECEIPT_ISSUED_AT_INVALID"}
+
+    execution_nonce = receipt.get("execution_nonce")
+    expected_nonce = _expected_execution_nonce(receipt)
+    if not execution_nonce or not expected_nonce or execution_nonce != expected_nonce:
+        return {"status": "DENY", "reason": "RECEIPT_NONCE_MISMATCH"}
 
     if receipt.get("status") not in {"PASS", "DENY", "HOLD"}:
         return {"status": "DENY", "reason": "RECEIPT_STATUS_INVALID"}
