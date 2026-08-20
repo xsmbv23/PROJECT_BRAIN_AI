@@ -7,6 +7,8 @@ BASE = {
     "dataset_identity": "dataset-1",
     "source_provenance_reference": "prov-1",
     "canonical_input_reference": "full27-1",
+    "temporal_evidence_reference": "temporal-1",
+    "date_manifest_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
     "start_date": "2026-01-01",
     "end_date": "2026-02-10",
     "actual_days": 41,
@@ -58,6 +60,10 @@ class ResearchDatasetAdmissionValidatorTests(unittest.TestCase):
 
     def test_invalid_date_denied(self):
         receipt = {**BASE, "start_date": "not-a-date"}
+        self.assertEqual(validate_research_dataset_receipt(receipt)["status"], "DENY")
+
+    def test_invalid_manifest_hash_denied(self):
+        receipt = {**BASE, "date_manifest_sha256": "not-a-sha256"}
         self.assertEqual(validate_research_dataset_receipt(receipt)["status"], "DENY")
 
     def test_lookahead_policy_denied(self):
