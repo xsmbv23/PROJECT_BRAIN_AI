@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""Browser-independent worker runtime for Project Brain.
-
-V1 claims deterministic task envelopes and executes only explicitly allocated
-work. LLM reasoning is provider-neutral and fail-closed until configured.
-Results are append-only JSONL records in the worker's local durable sink;
-persistent GitHub reconciliation is performed by the orchestration workflow.
-"""
+"""Browser-independent worker runtime for Project Brain."""
 from __future__ import annotations
 
 import hashlib
@@ -14,6 +8,8 @@ import os
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+from llm_provider import invoke
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTBOX = ROOT / "coordination" / "worker_outbox"
@@ -37,16 +33,23 @@ def append_jsonl(path: Path, record: dict) -> None:
         fh.write(json.dumps(record, sort_keys=True) + "\n")
 
 
+def prompt_for(task: dict) -> str:
+    return json.dumps({
+        "worker_id": WORKER_ID,
+        "role": task.get("role"),
+        "objective": task.get("objective"),
+        "constraints": task.get("constraints", []),
+        "required_outputs": task.get("required_outputs", []),
+        "authority": "execution-only; no canonical state mutation; no forensic promotion",
+    }, sort_keys=True)
+
+
 def execute(task: dict) -> dict:
-    # V1 deliberately proves claim/lease/result plumbing without pretending
-    # that an LLM provider exists in the background runtime yet.
-    return {
-        "status": "BLOCKED_PROVIDER_NOT_CONFIGURED",
-        "reason": "LLM reasoning provider is not configured in Worker Runtime V1",
-        "proposed_next_action": "Provision an approved provider/runtime budget before autonomous reasoning",
-        "forensic_gate": "NONE",
-        "promotion": "DENY",
-    }
+    result = invoke(prompt_for(task))
+    if result.get("status") == "LLM_COMPLETED":
+        result["reasoning_classification"] = "ADVISORY_ONLY"
+        result["evidence_refs"] = []
+    return result
 
 
 def process_task(path: Path) -> None:
@@ -60,7 +63,7 @@ def process_task(path: Path) -> None:
         return
     result = execute(task)
     record = {
-        "schema": "forensic-worker-result/v1",
+        "schema": "forensic-worker-result/v4",
         "recorded_at": now(),
         "worker_id": WORKER_ID,
         "cycle_id": task["cycle_id"],
@@ -69,7 +72,10 @@ def process_task(path: Path) -> None:
         "lease_id": task.get("lease", {}).get("lease_id"),
         "attempt": task.get("lease", {}).get("attempt", 1),
         "result": result,
-        "evidence_refs": [],
+        "evidence_refs": result.get("evidence_refs", []),
+        "canonical_mutation": "FORBIDDEN",
+        "forensic_gate": "NONE",
+        "promotion": "DENY",
     }
     append_jsonl(result_path, record)
     print(json.dumps({"event": "TASK_RESULT", **record}, sort_keys=True), flush=True)
