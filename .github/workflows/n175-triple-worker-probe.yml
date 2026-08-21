@@ -1,0 +1,69 @@
+name: N175 Triple Worker Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'coordination/worker_allocation_v2.json'
+      - 'coordination/BOT_OPERATING_CONTEXT_V1.json'
+      - '.github/workflows/n175-triple-worker-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: n175-triple-worker-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe all three headless workers against current allocation
+        env:
+          BOT2_URL: https://brain-bot2-worker-v2.onrender.com
+          BOT3_URL: https://brain-bot3-worker.onrender.com
+          BOT4_URL: https://brain-bot4-worker-v2.onrender.com
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          from datetime import datetime, timezone
+          outer=json.loads(Path('coordination/worker_allocation_v2.json').read_text())
+          alloc=json.loads(outer['content']) if isinstance(outer.get('content'),str) else outer
+          workers={
+            'BOT2_QUANT':os.environ['BOT2_URL'],
+            'BOT3_REALITY':os.environ['BOT3_URL'],
+            'BOT4_EXECUTION':os.environ['BOT4_URL'],
+          }
+          out=[]
+          for wid,url in workers.items():
+            rec={'schema':'n175-triple-runtime-probe/v1','worker':wid,'allocation_id':alloc.get('allocation_id'),'cycle_id':alloc.get('cycle_id'),'observed_at':datetime.now(timezone.utc).isoformat(),'endpoint':url,'promotion':'DENY','canonical_mutation':'FORBIDDEN'}
+            for path in ('/health','/result'):
+              p=subprocess.run(['curl','-fsS','--max-time','20',url.rstrip('/')+path],capture_output=True,text=True)
+              key=path.strip('/')
+              rec[key]={'http_exit':p.returncode,'body':None}
+              if p.returncode==0:
+                try: rec[key]['body']=json.loads(p.stdout)
+                except Exception: rec[key]['body']={'raw':p.stdout[-4000:]}
+              else: rec[key]['error']='UNREACHABLE'
+            result=rec['result'].get('body') or {}
+            rec['identity_match']=result.get('allocation_id')==alloc.get('allocation_id') and result.get('cycle_id')==alloc.get('cycle_id')
+            rec['fresh_result_observed']=bool(result.get('observed_at') or result.get('issued_at'))
+            rec['status']='PASS' if rec['health']['http_exit']==0 and rec['result']['http_exit']==0 and rec['identity_match'] else 'HOLD'
+            out.append(rec)
+          Path('coordination/receipts/N175_TRIPLE_RUNTIME_PROBE.json').write_text(json.dumps({'schema':'n175-triple-runtime-probe-bundle/v1','allocation_id':alloc.get('allocation_id'),'cycle_id':alloc.get('cycle_id'),'observed_at':datetime.now(timezone.utc).isoformat(),'workers':out,'promotion':'DENY'},indent=2,ensure_ascii=False)+'\n')
+          print(json.dumps(out,indent=2,ensure_ascii=False))
+          PY
+      - name: Persist triple runtime probe
+        if: always()
+        run: |
+          git config user.name "Project Brain Bot1 Runtime Probe"
+          git config user.email "actions@users.noreply.github.com"
+          git add coordination/receipts/N175_TRIPLE_RUNTIME_PROBE.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "forensic: persist N175 triple worker runtime probe"
+          git push
