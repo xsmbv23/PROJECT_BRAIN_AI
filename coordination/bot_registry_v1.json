@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "authority_model": "BOT1_LEAD_GOVERNANCE",
+  "bots": {
+    "BOT1_LEAD": {
+      "role": "lead/governance/e2e",
+      "status": "active"
+    },
+    "BOT2_QUANT": {
+      "role": "quant/data/research",
+      "status": "worker_bootstrap_in_progress",
+      "domain_split": null
+    },
+    "BOT3_EXECUTION": {
+      "role": "execution/runtime/ci",
+      "status": "standby",
+      "domain_split": null
+    },
+    "BOT4_EXECUTION": {
+      "role": "execution/runtime/ci",
+      "status": "slot_reserved",
+      "domain_split": null,
+      "planned_future_split": [
+        "domestic_market",
+        "export_market"
+      ]
+    }
+  },
+  "rules": {
+    "deliberation_is_not_evidence": true,
+    "bot_acceptance_is_not_gate_pass": true,
+    "bot_majority_is_not_promotion": true,
+    "domain_split_requires_new_owner_scope": true,
+    "shared_coordination_bus": "coordination/"
+  }
+}
