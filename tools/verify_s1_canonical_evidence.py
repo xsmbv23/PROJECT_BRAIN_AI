@@ -1,6 +1,6 @@
 """Machine-checkable S1 canonical evidence admission.
 
-This verifier is intentionally fail-closed. It can validate a real evidence
+This verifier is intentionally fail-closed. It validates a real evidence
 manifest and, when present, the referenced artifact bytes and receipt. It never
 creates evidence, hashes missing data, or promotes an unproven dataset.
 
@@ -21,6 +21,8 @@ from pathlib import Path
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 REQUIRED = {
     "source_provenance",
+    "artifact_path",
+    "raw_artifact_sha256",
     "raw_byte_sha256",
     "date_start",
     "date_end",
@@ -30,6 +32,7 @@ REQUIRED = {
     "unresolved_conflicts",
     "admission_receipt",
     "frozen_canonical_sha256",
+    "synthetic_data",
 }
 
 
@@ -40,8 +43,6 @@ def _parse_date(value: str) -> date:
 def _is_real_receipt(value: object) -> bool:
     if not isinstance(value, dict):
         return False
-    # A receipt must identify an externally observable event. No credential
-    # fields are accepted here.
     required = {"receipt_id", "source", "observed_at", "event_type"}
     if not required.issubset(value):
         return False
@@ -95,7 +96,7 @@ def verify_manifest(manifest_path: str | Path) -> dict[str, object]:
     if not isinstance(provenance, dict) or provenance.get("classification") != "REAL_AND_TRACEABLE":
         reasons.append("SOURCE_PROVENANCE_NOT_REAL_AND_TRACEABLE")
 
-    for field in ("raw_byte_sha256", "frozen_canonical_sha256"):
+    for field in ("raw_artifact_sha256", "raw_byte_sha256", "frozen_canonical_sha256"):
         value = manifest.get(field)
         if not isinstance(value, str) or not SHA256_RE.fullmatch(value):
             reasons.append(field.upper() + "_INVALID")
@@ -145,14 +146,16 @@ def verify_manifest(manifest_path: str | Path) -> dict[str, object]:
         else:
             if not artifact.is_file():
                 reasons.append("CANONICAL_ARTIFACT_MISSING")
-            elif isinstance(manifest.get("raw_artifact_sha256"), str):
-                expected_raw = manifest["raw_artifact_sha256"]
-                if not SHA256_RE.fullmatch(expected_raw):
-                    reasons.append("RAW_ARTIFACT_SHA256_INVALID")
-                elif _sha256_file(artifact) != expected_raw:
-                    reasons.append("RAW_ARTIFACT_SHA256_MISMATCH")
             else:
-                reasons.append("RAW_ARTIFACT_SHA256_MISSING")
+                computed = _sha256_file(artifact)
+                expected_raw_artifact = manifest.get("raw_artifact_sha256")
+                expected_raw_byte = manifest.get("raw_byte_sha256")
+                if isinstance(expected_raw_artifact, str) and SHA256_RE.fullmatch(expected_raw_artifact):
+                    if computed != expected_raw_artifact:
+                        reasons.append("RAW_ARTIFACT_SHA256_MISMATCH")
+                if isinstance(expected_raw_byte, str) and SHA256_RE.fullmatch(expected_raw_byte):
+                    if computed != expected_raw_byte:
+                        reasons.append("RAW_BYTE_SHA256_MISMATCH")
 
     result["reasons"] = reasons
     if not reasons:
