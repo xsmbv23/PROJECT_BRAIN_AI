@@ -1,0 +1,18 @@
+{
+  "schema":"bot1-e2e-triple-worker-runtime-reconciliation/v1",
+  "recorded_at":"2026-08-21T16:48:10Z",
+  "cycle_id":"BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+  "allocation_id":"ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
+  "allocation_sha256":"a3ab69b6f11fbaaeb1eec2ec071fd9b508e7edb06026eab7d99db3d379fef7cd",
+  "workers":{
+    "BOT2_QUANT":{"status":"PASS","observed_at":"2026-08-21T16:47:23.275626+00:00","checks":{"context_present":true,"context_role_match":true,"allocation_present":true,"canonical_next_action_present":true,"cycle_present":true,"task_present":true}},
+    "BOT3_REALITY":{"status":"PASS","observed_at":"2026-08-21T16:47:36.979402+00:00","checks":{"allocation_present":true,"canonical_next_action_present":true,"cycle_present":true,"task_present":true}},
+    "BOT4_EXECUTION":{"status":"PASS","observed_at":"2026-08-21T16:47:59.788318+00:00","checks":{"context_present":true,"context_role_match":true,"allocation_present":true,"canonical_next_action_present":true,"cycle_present":true,"task_present":true}}
+  },
+  "runtime_evidence_source":"Render application logs for the three canonical v2 worker services",
+  "e2e_worker_runtime":"PASS_LOCAL",
+  "forensic_promotion":"DENY",
+  "canonical_state_mutation":"FORBIDDEN",
+  "interpretation":"All three current-cycle workers produced fresh persistent-observable runtime receipts bound to the exact N175 allocation and cycle. This proves the worker-plane E2E segment only; it does not prove S1 canonical-data admission and does not open S2.",
+  "next_action":"Continue BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER and close the remaining own-gate evidence predicates."
+}
