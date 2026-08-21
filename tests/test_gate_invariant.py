@@ -25,7 +25,7 @@ class GateInvariantTests(unittest.TestCase):
         gate = GateDefinition("DB_BINDING", depends_on=("DB_EXISTENCE",))
         ok, reason = check_gate_invariant(gate, [prev], now=self.now)
         self.assertFalse(ok)
-        self.assertEqual(reason, "DEPENDENCY_NOT_PASS:DB_EXISTENCE")
+        self.assertEqual(reason, "BLOCKED_HISTORY:DB_EXISTENCE:UNKNOWN")
 
     def test_stale_evidence_denies(self):
         gate = GateDefinition("DB_BINDING", depends_on=("DB_EXISTENCE",))
