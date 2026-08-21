@@ -1,0 +1,30 @@
+{
+  "schema": "bot3-reactivation-receipt/v1",
+  "created_at": "2026-08-21T15:27:23.527958+00:00",
+  "allocation_id": "ALLOC-BOT3-REACTIVATION-001",
+  "cycle_id": "BRAIN-N174-BOT3-REACTIVATION",
+  "endpoint": "https://brain-bot3-worker.onrender.com/result",
+  "status": "PASS",
+  "result": {
+    "schema": "headless-worker-result/v2",
+    "result_type": "ADVERSARIAL_REALITY_REVIEW",
+    "worker": "BOT3_REALITY",
+    "allocation_id": "ALLOC-BOT3-REACTIVATION-001",
+    "cycle_id": "BRAIN-N174-BOT3-REACTIVATION",
+    "allocation_sha256": "8f67bb603acedfffbe220b4bd1d941bdbd648dbc8458e8b3c8c64bbd95829735",
+    "checks": {
+      "allocation_present": true,
+      "task_present": true,
+      "cycle_present": true,
+      "canonical_next_action_present": true
+    },
+    "result": "PASS",
+    "challenge_status": "ACTIVE",
+    "promotion": "DENY",
+    "canonical_mutation": "FORBIDDEN",
+    "observed_at": "2026-08-21T15:27:22.784086+00:00"
+  },
+  "freshness_check": "PASS",
+  "promotion": "DENY",
+  "canonical_mutation": "FORBIDDEN"
+}
