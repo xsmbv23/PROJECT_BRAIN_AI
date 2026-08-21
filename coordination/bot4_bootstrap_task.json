@@ -1,0 +1,12 @@
+{
+  "schema":"bot4-bootstrap-task/v1",
+  "cycle_id":"CYCLE-BOOTSTRAP-001",
+  "bot":"BOT4_EXECUTION",
+  "role":"execution/runtime peer review",
+  "read_first":["coordination/current_cycle.json","coordination/inbox/BOT2_QUANT.jsonl"],
+  "task":"Perform one independent implementation/runtime challenge against the current cycle. Do not scan the whole repository.",
+  "required_output_path":"coordination/inbox/BOT4_EXECUTION.jsonl",
+  "output_fields":["message_id","cycle_id","from_bot","to_bots","message_type","epistemic_status","challenge","next_action","evidence_refs","conflicts","gate_authority","promotion","created_at"],
+  "constraints":["DELIBERATION_NOT_EVIDENCE","NO_GATE_AUTHORITY","NO_PROMOTION","NO_PASS_INHERITANCE","PRESERVE_CONFLICTS","DO_NOT_REWRITE_HISTORY"],
+  "completion":"A persistent JSONL reply is the only accepted bootstrap acknowledgement."
+}
