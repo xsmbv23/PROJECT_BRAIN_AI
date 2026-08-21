@@ -9,6 +9,8 @@ import socket
 from datetime import datetime, timezone
 from pathlib import Path
 
+from llm_provider import invoke
+
 ROOT = Path(__file__).resolve().parents[1]
 STATE = ROOT / "state" / "current_state.json"
 NEXT = ROOT / "state" / "next_action.json"
@@ -61,15 +63,26 @@ def latest_result(path: Path, task_id: str):
     return found
 
 
+def prompt_for(task: dict) -> str:
+    return json.dumps({
+        "worker_id": task.get("worker_id"),
+        "role": task.get("role"),
+        "objective": task.get("objective"),
+        "constraints": task.get("constraints", []),
+        "required_outputs": task.get("required_outputs", []),
+        "authority": "execution-only; no canonical state mutation; no forensic promotion",
+    }, sort_keys=True)
+
+
 def execute(task: dict) -> dict:
-    # Fail closed until an approved LLM provider adapter exists.
-    return {
-        "status": "BLOCKED_PROVIDER_NOT_CONFIGURED",
-        "reason": "LLM provider is not configured for background autonomous reasoning",
-        "proposed_next_action": "Configure approved provider adapter and budget policy",
-        "forensic_gate": "NONE",
-        "promotion": "DENY",
-    }
+    """Run the guarded provider adapter; never grant forensic authority."""
+    result = invoke(prompt_for(task))
+    if result.get("status") == "LLM_COMPLETED":
+        result["reasoning_classification"] = "ADVISORY_ONLY"
+        result["evidence_refs"] = []
+        result["forensic_gate"] = "NONE"
+        result["promotion"] = "DENY"
+    return result
 
 
 def process(task_path: Path, current_cycle: str) -> dict | None:
@@ -81,27 +94,12 @@ def process(task_path: Path, current_cycle: str) -> dict | None:
     task_id = task.get("task_id")
     result_path = RESULTS / str(cycle) / f"{worker}.jsonl"
 
-    # A task from an older cycle can never become a current-cycle authority.
     if cycle != current_cycle:
-        return {
-            "status": "STALE_REJECTED",
-            "worker_id": worker,
-            "cycle_id": cycle,
-            "task_id": task_id,
-            "reason": "task cycle differs from exact current canonical cycle",
-            "canonical_mutation": "FORBIDDEN",
-        }
+        return {"status": "STALE_REJECTED", "worker_id": worker, "cycle_id": cycle, "task_id": task_id, "reason": "task cycle differs from exact current canonical cycle", "canonical_mutation": "FORBIDDEN"}
 
     prior = latest_result(result_path, task_id)
     if prior is not None:
-        return {
-            "status": "DUPLICATE_IGNORED",
-            "worker_id": worker,
-            "cycle_id": cycle,
-            "task_id": task_id,
-            "lease_id": prior.get("lease_id"),
-            "reason": "task already has an immutable result receipt",
-        }
+        return {"status": "DUPLICATE_IGNORED", "worker_id": worker, "cycle_id": cycle, "task_id": task_id, "lease_id": prior.get("lease_id"), "reason": "task already has an immutable result receipt"}
 
     lease = task.get("lease", {})
     lease_id = lease.get("lease_id") or f"LEASE-{digest(task)[:20]}"
@@ -122,7 +120,7 @@ def process(task_path: Path, current_cycle: str) -> dict | None:
 
     result = execute(task)
     record = {
-        "schema": "forensic-worker-result/v3",
+        "schema": "forensic-worker-result/v4",
         "recorded_at": now(),
         "worker_id": worker,
         "cycle_id": cycle,
@@ -131,53 +129,38 @@ def process(task_path: Path, current_cycle: str) -> dict | None:
         "lease_id": lease_id,
         "attempt": attempt,
         "result": result,
-        "evidence_refs": [],
+        "evidence_refs": result.get("evidence_refs", []),
         "canonical_mutation": "FORBIDDEN",
+        "forensic_gate": "NONE",
+        "promotion": "DENY",
     }
     append_jsonl(result_path, record)
     return record
 
 
 def reconcile(cycle: str, results: list[dict]) -> dict:
-    statuses = [r.get("result", {}).get("status") for r in results if r.get("status") not in {"STALE_REJECTED", "DUPLICATE_IGNORED"}]
+    active = [r for r in results if r.get("status") not in {"STALE_REJECTED", "DUPLICATE_IGNORED"}]
+    statuses = [r.get("result", {}).get("status") for r in active]
     if any(r.get("status") == "STALE_REJECTED" for r in results):
-        decision = "HOLD"
-        reason = "stale task/result detected; no stale evidence may influence current cycle"
-    elif not results or any(s is None for s in statuses):
-        decision = "UNREACHED"
-        reason = "required worker result missing"
+        decision, reason = "HOLD", "stale task/result detected; no stale evidence may influence current cycle"
+    elif not active or any(s is None for s in statuses):
+        decision, reason = "UNREACHED", "required worker result missing"
     elif any(s in {"FAIL", "CONFLICT"} for s in statuses):
-        decision = "HOLD"
-        reason = "blocking worker disagreement/failure preserved"
-    elif all(s == "BLOCKED_PROVIDER_NOT_CONFIGURED" for s in statuses):
-        decision = "HOLD"
-        reason = "background reasoning provider unavailable"
+        decision, reason = "HOLD", "blocking worker disagreement/failure preserved"
+    elif any(s == "BLOCKED_PROVIDER_NOT_CONFIGURED" for s in statuses):
+        decision, reason = "HOLD", "background reasoning provider unavailable"
     else:
-        decision = "REVIEW_REQUIRED"
-        reason = "results exist but BOT1 must perform forensic synthesis"
-    return {
-        "schema": "forensic-worker-reconciliation/v1",
-        "recorded_at": now(),
-        "cycle_id": cycle,
-        "worker_results": results,
-        "decision": decision,
-        "reason": reason,
-        "minority_preserved": True,
-        "canonical_next_action_mutation": "FORBIDDEN",
-        "promotion": "DENY",
-    }
+        decision, reason = "REVIEW_REQUIRED", "results exist but BOT1 must perform forensic synthesis"
+    return {"schema": "forensic-worker-reconciliation/v2", "recorded_at": now(), "cycle_id": cycle, "worker_results": results, "decision": decision, "reason": reason, "minority_preserved": True, "canonical_next_action_mutation": "FORBIDDEN", "promotion": "DENY"}
 
 
 def main() -> int:
     current_state = load(STATE)
     current_next = load(NEXT)
     current_cycle = current_next.get("action_id", "UNKNOWN-CYCLE")
-    # Use the matrix cycle when available; this prevents accidental coupling to
-    # a Bot's private naming convention.
     matrix_path = ROOT / "coordination" / "next_action_matrix_v1.json"
     if matrix_path.exists():
-        matrix = load(matrix_path)
-        current_cycle = matrix.get("cycle_id", current_cycle)
+        current_cycle = load(matrix_path).get("cycle_id", current_cycle)
 
     produced = []
     if OUTBOX.exists():
