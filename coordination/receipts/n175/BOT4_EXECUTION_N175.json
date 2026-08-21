@@ -1,9 +1,9 @@
 {
   "schema": "bot4-n175-s1-review/v1",
   "worker": "BOT4_EXECUTION",
-  "allocation_id": "ALLOC-S1-VERIFIER-001",
+  "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
   "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
-  "observed_at": "2026-08-21T16:11:29.841436+00:00",
+  "observed_at": "2026-08-21T16:18:29.970140+00:00",
   "result": "PASS",
   "promotion": "DENY",
   "canonical_mutation": "FORBIDDEN",
@@ -17,5 +17,5 @@
   "findings": [
     "NO_NEW_RUNTIME_CODE_DEFECT_FOUND"
   ],
-  "challenge": "A worker result endpoint is not by itself a durable receipt. Exact runtime/deployment identity and append-only persistence must be independently observable before any S1 promotion."
+  "challenge": "Runtime identity and durable receipt must be independently observable before S1 promotion."
 }
