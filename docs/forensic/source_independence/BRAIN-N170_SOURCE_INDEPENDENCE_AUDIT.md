@@ -20,19 +20,27 @@ The site publishes XSMB result tables and explicitly describes itself as the cur
 
 The site publishes XSMB result tables with the same prize structure and historical result presentation.
 
-### Independent candidate C — not admitted for automated collection
+### Preferred independent candidate C — official issuer source
+
+`https://xosothudo.com.vn/`
+
+This is the website identified by the Công ty TNHH một thành viên Xổ số Kiến thiết Thủ Đô as its own website and as a place where its lottery results can be viewed. The first-party company page identifies the company, website, headquarters, and its role in issuing Xổ số kiến thiết Miền Bắc. This gives substantially stronger ownership provenance than another generic result aggregator.
+
+Automated collection is **not yet admitted** because the current evidence set has not established a complete technical automation permission/network-origin record. The source can be used as an external validation reference while the technical admission boundary is completed.
+
+### Rejected/blocked candidate
 
 `https://xskt.com.vn/`
 
-This site publishes XSMB result tables and is technically observed on infrastructure distinct from the Cloudflare-fronted sources. However, its published terms explicitly prohibit automated robots/spiders or automated collection without prior written permission. Therefore it is a **validation candidate only**, not an automatically scraped production source unless lawful permission is obtained.
+Its published terms explicitly prohibit automated robots/spiders or automated collection without prior written permission. It therefore remains outside the production automated source set unless written permission is obtained.
 
 ## External evidence captured 2026-08-21
 
 - ketqua16.net current XSMB page: current result tables observed. citeturn0search1turn0search2
 - ketqua16.net domain-change notice: Ketqua.net announced the move to ketqua16.net in July 2026. citeturn1search1
 - xsmb.com.vn current XSMB pages: current and historical result tables observed. citeturn1search10turn0search11
-- xskt.com.vn technical evidence: observed direct IPv4 `210.245.72.221` with Vietnam hosting; historical technical evidence also associates it with FPT infrastructure. citeturn4search0turn4search1
-- xskt.com.vn terms: automated robots/spiders/automated collection are prohibited without prior written permission. citeturn4search6
+- xosothudo.com.vn first-party company page: the issuer identifies its own website and states that Xổ số kiến thiết Thủ Đô results are available there. citeturn7search0turn7search1
+- xskt.com.vn technical evidence and terms remain recorded as a blocked automated candidate. citeturn4search0turn4search6
 
 ## Forensic interpretation
 
@@ -47,8 +55,9 @@ Therefore the current evidence is sufficient to say:
 ```text
 RESULT_CONTENT_AVAILABLE       = YES
 MULTIPLE_HOSTNAMES              = YES
-CROSS-OWNER_INDEPENDENCE        = NOT_PROVEN
-AUTOMATED_SOURCE_C_ALLOWED      = NO (permission absent)
+OFFICIAL_ISSUER_PROVENANCE     = YES (xosothudo.com.vn)
+CROSS-OWNER_TECHNICAL_PROOF    = NOT_COMPLETELY_PROVEN
+AUTOMATED_SOURCE_C_ALLOWED     = NOT_YET_ADMITTED
 CANONICAL_QUORUM                = DENY
 ```
 
@@ -106,4 +115,4 @@ This DENY is immutable history. A future Bot may add fresh evidence, but it must
 
 ## Next action
 
-`BRAIN-N171` — establish an explicitly permitted independent-source path (preferably a source with independently provable ownership/upstream provenance) and run a fresh same-date comparison against `ketqua16.net` and `xsmb.com.vn`. If no lawful and independently attributable source is available, preserve `DENY` and move the architecture toward a manual/authorized evidence-ingestion boundary rather than scraping a prohibited source.
+`BRAIN-N171` — establish a permitted technical path to the official issuer source, capture fresh network-origin evidence, and perform a same-real-date comparison against `ketqua16.net` and `xsmb.com.vn`. If automated access is not explicitly admissible, keep the official source as validation-only and preserve `DENY` for automated canonical quorum.
