@@ -23,7 +23,11 @@ jobs:
           fetch-depth: 1
 
       - name: Validate orchestration runtime
-        run: python -m compileall -q orchestration/dispatch_workers.py orchestration/worker_runtime.py orchestration/worker_reconcile.py
+        run: python -m compileall -q orchestration/dispatch_workers.py orchestration/worker_runtime.py orchestration/worker_reconcile.py orchestration/llm_provider.py orchestration/test_llm_provider.py
+
+      - name: Run fail-closed provider tests
+        working-directory: orchestration
+        run: python test_llm_provider.py
 
       - name: Generate pending task envelopes
         run: python orchestration/dispatch_workers.py
