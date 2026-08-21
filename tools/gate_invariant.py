@@ -63,6 +63,8 @@ def check_gate_invariant(
         age = now_value - item.created_at
         if age < 0 or age > ttl_seconds:
             return False, f"STALE_EVIDENCE:{item.gate_id}"
+        if item.status != "PASS":
+            return False, f"BLOCKED_HISTORY:{item.gate_id}:{item.status}"
 
     for dependency in current.depends_on:
         result = by_id.get(dependency)
@@ -73,7 +75,6 @@ def check_gate_invariant(
         if result.cycle_id != history[-1].cycle_id if history else True:
             return False, f"CYCLE_MISMATCH:{dependency}"
 
-    # No current gate may reuse any predecessor evidence hash.
     predecessor_hashes = {by_id[d].evidence_hash for d in current.depends_on if d in by_id}
     if len(predecessor_hashes) != len([d for d in current.depends_on if d in by_id]):
         return False, "DUPLICATE_PREDECESSOR_EVIDENCE"
