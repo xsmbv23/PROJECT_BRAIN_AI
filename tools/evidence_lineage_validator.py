@@ -38,25 +38,23 @@ def validate_evidence(evidence: dict[str, Any]) -> dict[str, Any]:
     raw_sha, raw_legacy = _canonical_or_legacy(evidence, "raw_artifact_sha256", "raw_sha256")
     semantic_fp, semantic_legacy = _canonical_or_legacy(evidence, "semantic_fingerprint", "semantic_sha256")
 
+    # Legacy aliases are an explicit migration boundary. Detect a legacy alias
+    # misuse before the canonical-field completeness checks so the forensic
+    # failure identifies the actual forbidden shortcut.
+    if (raw_legacy or semantic_legacy) and evidence.get("legacy_fixture") is not True:
+        return {"status": "DENY", "reason": "LEGACY_ALIAS_REQUIRES_EXPLICIT_FIXTURE"}
+
     if evidence.get("raw_artifact_exists", False) and not raw_sha:
         return {"status": "DENY", "reason": "RAW_ARTIFACT_SHA256_MISSING"}
 
     if evidence.get("semantic_quorum", False) and not semantic_fp:
         return {"status": "DENY", "reason": "SEMANTIC_FINGERPRINT_MISSING"}
 
-    # Detect raw/semantic identity conflation before any downstream semantic
-    # admission check. This gives the most specific forensic failure reason.
     if raw_sha and semantic_fp and raw_sha == semantic_fp and evidence.get("hashes_explicitly_distinct") is not True:
         return {"status": "DENY", "reason": "RAW_AND_SEMANTIC_HASH_CONFLATED"}
 
-    # A semantic fingerprint may exist as a lineage artifact without asserting
-    # canonical truth. Domain validation is required only when the evidence
-    # explicitly asserts semantic truth/admission.
     if semantic_fp and evidence.get("semantic_truth_asserted", False) and not evidence.get("validated_canonical_domain", False):
         return {"status": "DENY", "reason": "SEMANTIC_HASH_REQUIRES_VALIDATED_DOMAIN"}
-
-    if (raw_legacy or semantic_legacy) and evidence.get("legacy_fixture") is not True:
-        return {"status": "DENY", "reason": "LEGACY_ALIAS_REQUIRES_EXPLICIT_FIXTURE"}
 
     if evidence.get("derived", False):
         missing_derived = sorted(k for k in FOR_DERIVED if not evidence.get(k))
