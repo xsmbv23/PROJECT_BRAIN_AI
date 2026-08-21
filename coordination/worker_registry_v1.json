@@ -1,0 +1,10 @@
+{
+  "schema": "contracts/worker_hierarchy_v1.schema.json",
+  "registry_version": 1,
+  "canonical_allocator": "BOT1_LEAD",
+  "workers": [
+    {"worker_id":"BOT2_QUANT","parent_worker_id":null,"department":"QUANT","generation":0,"capabilities":["quant_review","adversarial_review"],"delegated_scope":[],"allocation_id":null,"lease":null,"bootstrap_ref":"workers/bootstrap/BOT2_QUANT.md","receipt_path":"worker_results/BOT2/","runtime_identity":null,"status":"ACTIVE"},
+    {"worker_id":"BOT3_REALITY","parent_worker_id":null,"department":"REALITY","generation":0,"capabilities":["source_review","provenance_review","reality_review"],"delegated_scope":[],"allocation_id":null,"lease":null,"bootstrap_ref":"workers/bootstrap/BOT3_REALITY.md","receipt_path":"worker_results/BOT3/","runtime_identity":null,"status":"ACTIVE"},
+    {"worker_id":"BOT4_EXECUTION","parent_worker_id":null,"department":"EXECUTION","generation":0,"capabilities":["runtime_review","deployment_review","operations_review"],"delegated_scope":[],"allocation_id":null,"lease":null,"bootstrap_ref":"workers/bootstrap/BOT4_EXECUTION.md","receipt_path":"worker_results/BOT4/","runtime_identity":null,"status":"ACTIVE"}
+  ]
+}
