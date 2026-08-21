@@ -49,7 +49,7 @@
   "layer_1":"ROOM_01_DATA_ADMISSION",
   "room_02":"LOCKED",
   "staircase":"LOCKED",
-  "last_action_id":"BRAIN-N154_DUAL-BOT-ACK-AND-DUPLICATE-GATE-FIX",
+  "last_action_id":"BRAIN-N158_E2E_SEGMENT_REACHABILITY_GUARD",
   "next_action_id":"BRAIN-N125_WAIT_EXTERNAL",
   "parallel_safe_engineering":"QUANT-N010_WORKFLOW_EVIDENCE_HARDENING",
   "parallel_safe_engineering_status":"ALLOWED_LOCAL_PREREQUISITE_ONLY",
@@ -58,5 +58,7 @@
   "quant_primary_pair":"ketqua16 + xsmb",
   "quant_external_observation_20260809":"AGREEMENT_OBSERVED_NOT_RUNTIME_RECEIPT",
   "quant_raw_durability":"LOCAL_EPHEMERAL_NOT_DURABLE",
-  "state_integrity_note":"N154 hardened live gate admission against duplicate gate history and recorded explicit peer coordination semantics. Quant workflow evidence remains scoped to Quant only and cannot unlock Brain gates."
+  "e2e_current_segment":"S2_VALID_RESEARCH",
+  "e2e_blocked_segments":["S3_VALID_BACKTEST","S4_EDGE","S5_EV_PNL_ROI","S6_ROBUSTNESS_RISK_DRIFT","S7_CONTROLLED_ACTION"],
+  "state_integrity_note":"N158 added a machine-checkable E2E segment reachability guard and regression tests. It does not alter external-observation wait, action_space, promotion, Layer 1, Room 02, or staircase. Downstream segments remain unreachable until their predecessor exit evidence is independently verified."
 }
