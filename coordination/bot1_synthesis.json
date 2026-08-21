@@ -1,0 +1,16 @@
+{
+  "schema": "bot-deliberation-synthesis/v1",
+  "cycle_id": "CYCLE-BOOTSTRAP-001",
+  "lead": "BOT1_LEAD",
+  "status": "OPEN_CROSS_REVIEW",
+  "accepted": ["BOT2_QUANT_REPLY_PERSISTED"],
+  "challenge": "Receipt persistence is communication evidence, not forensic truth; the next loop must reconcile Bot 2 and Bot 3 replies without granting deliberation gate authority.",
+  "next_actions": {
+    "BOT2_QUANT": "continue adversarial quant/data review and persist branch-local reply",
+    "BOT3_EXECUTION": "persist execution/runtime challenge in the same cycle schema",
+    "BOT1_LEAD": "reconcile both replies, preserve minority/conflict state, and assign the next safe parallel cycle"
+  },
+  "gate_authority": "LOCAL_FORENSIC_GATE_ONLY",
+  "promotion": "DENY",
+  "recorded_at": "2026-08-21T00:00:00Z"
+}
