@@ -11,6 +11,8 @@
   "gate_semantics":["PASS_IS_LOCAL","PASS_IS_PREREQUISITE_ONLY","NO_PASS_INHERITANCE","UNKNOWN_IS_NOT_PASS","DEFAULT_DENY","OWN_GATE_EVIDENCE_REQUIRED","FRESH_EVIDENCE_REQUIRED_FOR_PROMOTION"],
   "database_admission_chain":"DB_EXISTENCE->DB_BINDING->SECRET_RESOLUTION->DB_TLS_ADMISSION->NETWORK_ORIGIN_PROOF->DB_ROUND_TRIP->PROMOTION",
   "database_chain_rule":"ONE_FORENSIC_FSM_CHAIN; EACH_GATE_OWNS_OWN_EVIDENCE; PASS_DOES_NOT_INHERIT",
+  "database_gate_noninheritance":true,
+  "database_promotion_requires_fresh_evidence":true,
   "source_admission_chain":"SOURCE_INDEPENDENCE->NETWORK_ORIGIN_PROOF->RESULT_TRANSPORT->OFFICIAL_RESULT_PANEL->CANDIDATE->EXCEL_VS_WEB_MATCH->CANONICAL_QUORUM->TRUTH_ADMISSION",
   "source_target_primary":"ketqua16.net",
   "source_identity_b":"xsmb.com.vn",
@@ -55,13 +57,13 @@
   "unknown_is_not_pass":true,
   "default_deny":true,
   "ci_status":"UNKNOWN_NO_OBSERVABLE_WORKFLOW_RUN",
-  "last_action_id":"BRAIN-N166_CURRENT-RUNTIME-FRESH-EVIDENCE-AND-S1-BRIDGE",
-  "next_action_id":"BRAIN-N167_FRESH-APP-LOG-AND-CURRENT-COMMIT-VERIFICATION",
+  "last_action_id":"BRAIN-N167_FRESH-APP-LOG-AND-CURRENT-COMMIT-VERIFICATION",
+  "next_action_id":"BRAIN-N168_RUNTIME-RECONCILIATION-AFTER-INVARIANT-REPAIR",
   "state_authority_doc":"docs/architecture/CURRENT_STATE_AUTHORITY.md",
   "forensic_admission_doc":"docs/architecture/FORENSIC_ADMISSION_CHAIN.md",
   "s1_contract":"contracts/s1_canonical_evidence_manifest.schema.json",
   "canonical_promotion":"ONE_WAY_ONLY",
   "raw_hash_semantics":"BYTE_IDENTITY_ONLY",
   "semantic_hash_semantics":"STRUCTURAL_MEANING_ONLY",
-  "state_integrity_note":"N166 added fresh exact-current Render resource evidence: live deploy on eefed3c... and memory 26,886,144 bytes, within the 320 MiB guard. Fresh application logs and current-commit test/foundation/database receipts remain unobserved, so those fields stay UNKNOWN. S1 remains blocked and downstream S2-S7 remain locked."
+  "state_integrity_note":"N167 identified a concrete foundation defect: state_reconciliation requires explicit database_gate_noninheritance and database_promotion_requires_fresh_evidence invariants, but the persistent state omitted them. These flags are now explicitly declared. The repair does not promote S1, does not inherit runtime PASS, and keeps downstream gates locked. N168 must obtain fresh exact-current runtime evidence after this repair."
 }
