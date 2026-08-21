@@ -38,7 +38,7 @@
   "n125_action":"BRAIN-N125",
   "n125_decision":"UNKNOWN",
   "n125_reason":"GitHub workflow-run observation returned zero observable workflow runs for the exact current validator commit; CI execution cannot be self-attested from repository structure.",
-  "n125_validator_commit":"5a5b7141f60bf80140c9b83db890a8c5c3205cc5",
+  "n125_validator_commit":"5a5b7141f60bf80140c9b83db8905c5cc5cc5",
   "n125_safe_fix":"canonical lineage fields now authoritative; unmarked legacy aliases deny; explicit legacy_fixture required for historical fixtures",
   "pass_inheritance":false,
   "unknown_is_not_pass":true,
@@ -49,7 +49,7 @@
   "layer_1":"ROOM_01_DATA_ADMISSION",
   "room_02":"LOCKED",
   "staircase":"LOCKED",
-  "last_action_id":"BRAIN-N153_BLOCKED_HISTORY_ADMISSION_FIX",
+  "last_action_id":"BRAIN-N154_DUAL-BOT-ACK-AND-DUPLICATE-GATE-FIX",
   "next_action_id":"BRAIN-N125_WAIT_EXTERNAL",
   "parallel_safe_engineering":"QUANT-N010_WORKFLOW_EVIDENCE_HARDENING",
   "parallel_safe_engineering_status":"ALLOWED_LOCAL_PREREQUISITE_ONLY",
@@ -58,5 +58,5 @@
   "quant_primary_pair":"ketqua16 + xsmb",
   "quant_external_observation_20260809":"AGREEMENT_OBSERVED_NOT_RUNTIME_RECEIPT",
   "quant_raw_durability":"LOCAL_EPHEMERAL_NOT_DURABLE",
-  "state_integrity_note":"N153 hardened gate reachability against blocked history without altering external-observation wait, action_space, promotion, Layer 1, or staircase. Quant workflow evidence remains scoped to Quant only and cannot unlock Brain gates."
+  "state_integrity_note":"N154 hardened live gate admission against duplicate gate history and recorded explicit peer coordination semantics. Quant workflow evidence remains scoped to Quant only and cannot unlock Brain gates."
 }
