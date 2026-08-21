@@ -49,7 +49,7 @@
   "layer_1":"ROOM_01_DATA_ADMISSION",
   "room_02":"LOCKED",
   "staircase":"LOCKED",
-  "last_action_id":"BRAIN-N151_PARALLEL_FORENSIC_CHAIN",
+  "last_action_id":"BRAIN-N153_BLOCKED_HISTORY_ADMISSION_FIX",
   "next_action_id":"BRAIN-N125_WAIT_EXTERNAL",
   "parallel_safe_engineering":"QUANT-N010_WORKFLOW_EVIDENCE_HARDENING",
   "parallel_safe_engineering_status":"ALLOWED_LOCAL_PREREQUISITE_ONLY",
@@ -58,5 +58,5 @@
   "quant_primary_pair":"ketqua16 + xsmb",
   "quant_external_observation_20260809":"AGREEMENT_OBSERVED_NOT_RUNTIME_RECEIPT",
   "quant_raw_durability":"LOCAL_EPHEMERAL_NOT_DURABLE",
-  "state_integrity_note":"N151 canonized the single-Forensic-FSM database admission semantics as a safe parallel documentation action. It did not alter the mandatory external-observation wait, action_space, promotion, Layer 1, or staircase. Quant workflow evidence remains scoped to Quant only and cannot unlock Brain gates."
+  "state_integrity_note":"N153 hardened gate reachability against blocked history without altering external-observation wait, action_space, promotion, Layer 1, or staircase. Quant workflow evidence remains scoped to Quant only and cannot unlock Brain gates."
 }
