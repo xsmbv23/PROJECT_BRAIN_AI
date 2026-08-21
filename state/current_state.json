@@ -22,6 +22,8 @@
   "current_runtime_commit":"eefed3c11077d6ee759c7be8b22bd88eaf0dff0c",
   "current_runtime_deploy":"dep-da3r0pk2qudc73df3tq0",
   "current_runtime_liveness":"VERIFIED_FROM_RENDER_DEPLOY_STATUS; FRESH_APP_LOGS_NOT_OBSERVED",
+  "current_runtime_memory_bytes":26886144,
+  "current_runtime_memory_guard_status":"WITHIN_320_MIB_GUARD",
   "current_runtime_tests":"UNKNOWN_FOR_CURRENT_COMMIT",
   "current_runtime_tests_status":"UNKNOWN",
   "current_runtime_foundation":"UNKNOWN_FOR_CURRENT_COMMIT",
@@ -53,13 +55,13 @@
   "unknown_is_not_pass":true,
   "default_deny":true,
   "ci_status":"UNKNOWN_NO_OBSERVABLE_WORKFLOW_RUN",
-  "last_action_id":"BRAIN-N165_RENDER-EXACT-CURRENT-RECONCILIATION",
-  "next_action_id":"BRAIN-N166_CURRENT-RUNTIME-FRESH-EVIDENCE-AND-S1-BRIDGE",
+  "last_action_id":"BRAIN-N166_CURRENT-RUNTIME-FRESH-EVIDENCE-AND-S1-BRIDGE",
+  "next_action_id":"BRAIN-N167_FRESH-APP-LOG-AND-CURRENT-COMMIT-VERIFICATION",
   "state_authority_doc":"docs/architecture/CURRENT_STATE_AUTHORITY.md",
   "forensic_admission_doc":"docs/architecture/FORENSIC_ADMISSION_CHAIN.md",
   "s1_contract":"contracts/s1_canonical_evidence_manifest.schema.json",
   "canonical_promotion":"ONE_WAY_ONLY",
   "raw_hash_semantics":"BYTE_IDENTITY_ONLY",
   "semantic_hash_semantics":"STRUCTURAL_MEANING_ONLY",
-  "state_integrity_note":"N165 reconciled exact-current Render deployment drift: live runtime is eefed3c... on dep-da3r0pk2qudc73df3tq0, while prior state referenced 8f00ef5b.... Fresh application logs and current-commit test/foundation/database evidence remain unobserved, so those fields are now UNKNOWN rather than inherited from the older runtime. S1 remains blocked and downstream S2-S7 remain locked."
+  "state_integrity_note":"N166 added fresh exact-current Render resource evidence: live deploy on eefed3c... and memory 26,886,144 bytes, within the 320 MiB guard. Fresh application logs and current-commit test/foundation/database receipts remain unobserved, so those fields stay UNKNOWN. S1 remains blocked and downstream S2-S7 remain locked."
 }
