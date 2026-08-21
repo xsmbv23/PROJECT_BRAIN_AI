@@ -25,10 +25,13 @@ jobs:
           fetch-depth: 1
 
       - name: Validate orchestration runtime
-        run: python -m compileall -q orchestration/dispatch_workers.py orchestration/worker_runtime.py orchestration/worker_reconcile.py orchestration/llm_provider.py orchestration/test_llm_provider.py orchestration/v1_5a_verify.py orchestration/test_worker_v1_5c.py orchestration/v1_5e_e2e.py
+        run: python -m compileall -q orchestration/dispatch_workers.py orchestration/worker_runtime.py orchestration/worker_reconcile.py orchestration/llm_provider.py orchestration/test_llm_provider.py orchestration/v1_5a_verify.py orchestration/test_worker_v1_5c.py orchestration/v1_5e_e2e.py orchestration/test_worker_v1_6_recovery.py
 
       - name: Validate BOT1 allocation contract
         run: python orchestration/test_worker_v1_5c.py
+
+      - name: Validate V1.6 autonomous recovery contract
+        run: python orchestration/test_worker_v1_6_recovery.py
 
       - name: Run fail-closed provider tests
         working-directory: orchestration
