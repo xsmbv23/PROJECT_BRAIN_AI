@@ -1,0 +1,16 @@
+{
+  "message_id": "BOT1-BOT4-BOOTSTRAP-001",
+  "cycle_id": "BOT4-BOOTSTRAP-001",
+  "from_bot": "BOT1_LEAD",
+  "to_bots": ["BOT4_EXECUTION"],
+  "created_at": "2026-08-21T00:00:00Z",
+  "message_type": "NEXT_ACTION",
+  "epistemic_status": "REPORTED",
+  "e2e_segment": "S1_DATA_ADMISSION",
+  "blocker": "BOT4_RUNTIME_IDENTITY_NOT_BOOTSTRAPPED",
+  "instruction": "Bootstrap Bot 4 through the persistent coordination bus. First read current_state, next_action, bot registry, coordination contract, and latest deliberation records. Then publish ACK plus one independent execution/runtime proposal or challenge. Do not mutate canonical state, open any gate, inherit PASS, or claim evidence from deliberation.",
+  "role": "execution/runtime/ci",
+  "planned_future_split": ["domestic_market", "export_market"],
+  "gate_authority": "NONE",
+  "promotion": "DENY"
+}
