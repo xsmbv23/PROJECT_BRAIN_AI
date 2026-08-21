@@ -1,6 +1,6 @@
 {
-  "action_id":"BRAIN-N164_S1_MANIFEST-ADMISSION-AUDIT",
-  "title":"Audit and enforce S1 canonical evidence manifest admission semantics",
+  "action_id":"BRAIN-N165_RENDER-EXACT-CURRENT-RECONCILIATION",
+  "title":"Verify exact-current Render runtime after state reconciliation and preserve S1 DENY",
   "status":"READY",
   "phase":"DATA_ADMISSION",
   "mode":"DATA_ADMISSION",
@@ -8,12 +8,9 @@
   "promotion":"PASS_TO_ROOM_01_ONLY;CANONICAL_QUORUM_DENY",
   "layer_1":"ROOM_01_DATA_ADMISSION",
   "staircase":"LOCKED",
-  "e2e_segment":"S1_REAL_DATA",
-  "previous":"BRAIN-N163_E2E-PEER-N011-N012-S1-EVIDENCE",
-  "blocker":"Canonical dataset artifact admission is still not proven by exact-current observable evidence",
-  "scope":["verify S1 manifest contract coherence","verify artifact path containment under evidence root when a real manifest is supplied","verify raw artifact SHA-256 and raw-byte SHA-256 semantics independently","verify consecutive real-date coverage and coverage_ratio == 1.0","verify unresolved_conflicts == 0","verify real observable admission receipt","verify frozen canonical SHA-256","reject synthetic or fabricated evidence","preserve immutable prior DENY/UNKNOWN events","do not unlock S2 from contract/scaffold PASS alone","do not move computation into Brain"],
-  "required_evidence":["real-source provenance","raw-byte SHA-256","consecutive real-date coverage","coverage_ratio_1.0","zero unresolved conflicts","real observable admission receipt","frozen canonical hash"],
-  "constraints":["ONE_FORENSIC_FSM","PASS_IS_LOCAL","PASS_IS_PREREQUISITE_ONLY","NO_PASS_INHERITANCE","UNKNOWN_IS_NOT_PASS","DEFAULT_DENY","OWN_GATE_EVIDENCE_REQUIRED","FRESH_EVIDENCE_REQUIRED_FOR_PROMOTION","FORENSIC_IMMUTABILITY","NO_SYNTHETIC_PRODUCTION_DATA","320MB_RENDER_GUARD","CHAT_IS_INTERFACE_ONLY","BRAIN_IS_GOVERNANCE_CONTROL_PLANE","SOURCE_TRUTH_CANNOT_BE_OVERWRITTEN_BY_DERIVED_DATA","RAW_HASH_AND_SEMANTIC_HASH_HAVE_DISTINCT_MEANINGS","LAYER_1_ROOM_01_ONLY","ROOM_02_LOCKED","STAIRCASE_LOCKED"],
-  "completion_gate":"Contract audit PASS is local prerequisite evidence only. S1 promotion remains DENY until every required real-world evidence item is independently observable and frozen.",
-  "successor_instruction":"Read docs/architecture/FORENSIC_ADMISSION_CHAIN.md and contracts/s1_canonical_evidence_manifest.schema.json before modifying admission logic. The persistent state and next_action files are direct JSON state artifacts, not transport envelopes. Never erase a prior failure; corrections create a new action/hash/event."
+  "previous":"BRAIN-N164_S1_MANIFEST-ADMISSION-AUDIT",
+  "scope":["observe the Render deployment for the reconciled state","verify runtime boot gate PASS on the exact current commit","verify foundation/access/security/database-contract/S1-contract checks","verify S1 admission remains NOT_PROVEN and promotion remains DENY","measure memory against 320MiB guard","record exact commit/deploy/receipt evidence","if runtime denies, repair only the specific persistent-state contract defect and preserve the failure event","after runtime reconciliation, continue S1 real-evidence admission from observable source provenance"],
+  "completion_gate":"Exact-current Render runtime passes its fail-closed state verifier and all local foundation gates while S1 remains explicitly blocked; no synthetic evidence may promote S1.",
+  "constraints":["ONE_FORENSIC_FSM","PASS_IS_LOCAL","PASS_IS_PREREQUISITE_ONLY","NO_PASS_INHERITANCE","UNKNOWN_IS_NOT_PASS","DEFAULT_DENY","OWN_GATE_EVIDENCE_REQUIRED","FRESH_EVIDENCE_REQUIRED_FOR_PROMOTION","FORENSIC_IMMUTABILITY","NO_SYNTHETIC_PRODUCTION_DATA","320MB_RENDER_GUARD","CHAT_IS_INTERFACE_ONLY","BRAIN_IS_GOVERNANCE_CONTROL_PLANE","LAYER_1_ROOM_01_ONLY","ROOM_02_LOCKED","STAIRCASE_LOCKED","RAW_HASH_AND_SEMANTIC_HASH_HAVE_DISTINCT_MEANINGS"],
+  "successor_instruction":"Do not treat repository commit existence as Render runtime evidence. Verify the exact current deployed commit and its fresh logs before declaring runtime PASS."
 }
