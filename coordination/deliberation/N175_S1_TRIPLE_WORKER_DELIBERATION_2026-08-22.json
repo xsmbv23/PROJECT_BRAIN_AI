@@ -1,0 +1,22 @@
+{
+  "cycle_id":"N175",
+  "allocation_id":"ALLOC-N175-S1-E2E-TRIPLE-WORKER-003",
+  "mode":"MANDATORY_PARALLEL_DELIBERATION",
+  "status":"DISPATCHED",
+  "lead":"BOT1_LEAD",
+  "workers":[
+    {"worker_id":"BOT2_QUANT","role":"quant/data/adversarial","task":"analyze S1 coverage, hashes, conflicts, evidence completeness; challenge assumptions"},
+    {"worker_id":"BOT3_REALITY","role":"reality/source/provenance","task":"verify acquisition provenance, lawful reference, source identity and reproducibility; challenge BOT2 assumptions"},
+    {"worker_id":"BOT4_EXECUTION","role":"execution/deployment/operations","task":"verify dispatch, worker runtime, allocation/lease, deployment and receipt path; challenge operational assumptions"}
+  ],
+  "deliberation_protocol":[
+    "each worker produces an independent position before convergence",
+    "each worker must explicitly challenge at least one plausible failure mode",
+    "minority/blocking objections are preserved",
+    "consensus is advisory and never evidence or forensic promotion",
+    "BOT1 reconciles only after all three persistent results exist"
+  ],
+  "required_receipts":["INDEPENDENT_REVIEW","CHALLENGE","REBUTTAL_OR_CONFIRMATION","RESULT"],
+  "forensic_authority":"BOT1_ONLY",
+  "canonical_state_mutation":"BOT1_ONLY"
+}
