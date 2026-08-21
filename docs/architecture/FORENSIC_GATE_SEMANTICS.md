@@ -25,7 +25,13 @@ DB_EXISTENCE
 DB_BINDING
     |
     v
+SECRET_RESOLUTION
+    |
+    v
 DB_TLS_ADMISSION
+    |
+    v
+NETWORK_ORIGIN_PROOF
     |
     v
 DB_ROUND_TRIP
@@ -39,7 +45,9 @@ Meaning:
 
 - `DB_EXISTENCE=PASS` proves only that the database resource exists.
 - `DB_BINDING=PASS` proves only that the service has an explicit runtime binding.
+- `SECRET_RESOLUTION=PASS` proves only that the runtime resolved the required secret without exposing it.
 - `DB_TLS_ADMISSION=PASS` proves only that the binding satisfies the TLS contract.
+- `NETWORK_ORIGIN_PROOF=PASS` proves only that the observed connection originates from the admitted runtime path.
 - `DB_ROUND_TRIP=PASS` proves an actual compact write/read/re-hash/match event.
 - `PROMOTION=PASS` is a separate authorization decision requiring fresh evidence.
 
@@ -50,14 +58,36 @@ DB_EXISTS = PASS
     != DB_BINDING = PASS
 
 DB_BINDING = PASS
+    != SECRET_RESOLUTION = PASS
+
+SECRET_RESOLUTION = PASS
     != DB_TLS_ADMISSION = PASS
 
 DB_TLS_ADMISSION = PASS
+    != NETWORK_ORIGIN_PROOF = PASS
+
+NETWORK_ORIGIN_PROOF = PASS
     != DB_ROUND_TRIP = PASS
 
 DB_ROUND_TRIP = PASS
-    != DOMAIN_TRUTH = PASS
+    != PROMOTION = PASS
 ```
+
+### Reachability, not inheritance
+
+A successful earlier gate only makes the next gate **reachable**. It never writes the next gate's state.
+
+```text
+G1 PASS
+  |
+  +--> G2 becomes REACHABLE
+         |
+         +--> G2 PASS: G3 becomes REACHABLE
+         +--> G2 FAIL: stop
+         +--> G2 UNKNOWN: stop
+```
+
+If an upstream gate is FAIL or UNKNOWN, downstream gates are `UNREACHED`; they are not PASS and must not be inferred.
 
 ## Source-data admission chain
 
@@ -144,6 +174,34 @@ The system must not:
 - infer domain truth from one receipt;
 - use a downstream PASS to retroactively satisfy an upstream gate.
 
+## Parallel-Agent Isolation Doctrine
+
+A second Bot, Quant Engine, or any other subsystem may work in parallel. Parallel work is a **separate execution stream**, not a shortcut through the Brain FSM.
+
+```text
+PARALLEL WORK
+     |
+     +--> may produce LOCAL_PREREQUISITE evidence
+     |
+     +--> may produce TEST evidence
+     |
+     +--> may improve code/contracts
+     |
+     X--> cannot unlock Brain gate automatically
+     X--> cannot promote Brain
+     X--> cannot inherit Brain PASS
+```
+
+Evidence from another Bot is admissible only when the Brain contract explicitly defines:
+
+1. the producing runtime identity;
+2. the exact artifact/receipt identity;
+3. the evidence type and scope;
+4. the freshness requirement;
+5. the verification method.
+
+A GitHub workflow being triggered is not evidence that the workflow passed. An unavailable workflow observation remains UNKNOWN.
+
 ## Advertisement and redirect boundary
 
 Advertisements, promotional links, prediction pages, forums, affiliate destinations, navigation links, and redirect targets are outside the source-truth boundary unless a dedicated contract explicitly admits them.
@@ -195,6 +253,27 @@ single receipt != domain understanding
 
 Preferred canonical quorum remains unreachable below three independent valid observations. Two receipts may establish stability evidence, but do not by themselves establish domain truth.
 
+## Render/OOM invariant
+
+Brain is a governance control plane, not a bulk data processor.
+
+```text
+512 MB = HARD PLATFORM BOUNDARY
+320 MiB = OPERATIONAL GUARD
+```
+
+Raw crawl bodies, large datasets, and bulk evidence must remain outside Brain memory. Brain receives compact envelopes and hashes. Data owns source truth; Quant Engine owns calculation.
+
 ## Successor instruction
 
 Never “optimize” these distinctions away. They are security and forensic invariants, not verbosity. Any future change that merges gates must first prove that the change preserves local PASS semantics, explicit evidence provenance, default deny, and immutability.
+
+Before taking any action, a successor Bot must read:
+
+```text
+state/current_state.json
+state/next_action.json
+docs/architecture/FORENSIC_GATE_SEMANTICS.md
+```
+
+Then it must identify the **current gate** and the **current action-space restriction**. If `action_space=0`, it must not invent an execution receipt or promote state. Safe documentation, contract verification, and other explicitly permitted local prerequisites may continue, but they remain local evidence only.
