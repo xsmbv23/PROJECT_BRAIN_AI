@@ -1,0 +1,89 @@
+name: Bot3 Reactivation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'coordination/worker_allocation_v2.json'
+      - '.github/workflows/bot3-reactivation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bot3-reactivation
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact governance state
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Probe Bot3 result endpoint and persist one fresh receipt
+        env:
+          BOT3_URL: https://brain-bot3-worker.onrender.com
+        run: |
+          set +e
+          mkdir -p coordination/receipts
+          python - <<'PY'
+          import json, os, subprocess
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          alloc_outer = json.loads(Path('coordination/worker_allocation_v2.json').read_text())
+          alloc = json.loads(alloc_outer['content']) if isinstance(alloc_outer.get('content'), str) else alloc_outer
+          expected_alloc = alloc.get('allocation_id')
+          expected_cycle = alloc.get('cycle_id')
+          url = os.environ['BOT3_URL'].rstrip('/') + '/result'
+          proc = subprocess.run(['curl','-fsS','--max-time','25',url], text=True, capture_output=True)
+          receipt = {
+              'schema': 'bot3-reactivation-receipt/v1',
+              'created_at': datetime.now(timezone.utc).isoformat(),
+              'allocation_id': expected_alloc,
+              'cycle_id': expected_cycle,
+              'endpoint': url,
+              'status': 'HOLD',
+              'result': None,
+              'freshness_check': 'NOT_PROVEN',
+              'promotion': 'DENY',
+              'canonical_mutation': 'FORBIDDEN',
+          }
+          if proc.returncode == 0:
+              try:
+                  result = json.loads(proc.stdout)
+                  receipt['result'] = result
+                  same_alloc = result.get('allocation_id') == expected_alloc
+                  same_cycle = result.get('cycle_id') == expected_cycle
+                  fresh_ts = bool(result.get('observed_at'))
+                  receipt['freshness_check'] = 'PASS' if same_alloc and same_cycle and fresh_ts else 'FAIL'
+                  receipt['status'] = 'PASS' if receipt['freshness_check'] == 'PASS' and result.get('result') == 'PASS' else 'HOLD'
+              except Exception as exc:
+                  receipt['error'] = type(exc).__name__
+          else:
+              receipt['error'] = 'BOT3_ENDPOINT_UNREACHABLE'
+              receipt['curl_exit_code'] = proc.returncode
+              receipt['stderr'] = proc.stderr[-1000:]
+          out = Path('coordination/receipts/BOT3_REACTIVATION_latest.json')
+          out.write_text(json.dumps(receipt, indent=2, ensure_ascii=False) + '\n')
+          print(json.dumps(receipt, sort_keys=True))
+          raise SystemExit(0 if receipt['status'] == 'PASS' else 2)
+          PY
+
+      - name: Persist receipt even on HOLD
+        if: always()
+        run: |
+          git config user.name "Project Brain Bot1 Orchestrator"
+          git config user.email "actions@users.noreply.github.com"
+          git add coordination/receipts/BOT3_REACTIVATION_latest.json
+          if git diff --cached --quiet; then
+            echo "No receipt change."
+            exit 0
+          fi
+          git commit -m "forensic: persist Bot3 reactivation receipt"
+          git push
