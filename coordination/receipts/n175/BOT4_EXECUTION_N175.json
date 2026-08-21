@@ -3,7 +3,7 @@
   "worker": "BOT4_EXECUTION",
   "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
   "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
-  "observed_at": "2026-08-21T16:18:29.970140+00:00",
+  "observed_at": "2026-08-21T16:48:37.327768+00:00",
   "result": "PASS",
   "promotion": "DENY",
   "canonical_mutation": "FORBIDDEN",
