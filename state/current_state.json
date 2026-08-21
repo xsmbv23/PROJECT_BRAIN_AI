@@ -41,7 +41,7 @@
   "s6_robustness_risk_drift":"UNREACHED_LOCKED",
   "s7_controlled_action":"UNREACHED_LOCKED",
   "quant_engine_runtime":"LIVE_BUT_DATASET_FREE_AT_BOOT",
-  "parallel_safe_engineering":"QUANT-N010_WORKFLOW_EVIDENCE_HARDENING",
+  "parallel_safe_engineering":"QUANT-N012_SOURCE_COLLECTOR_BOUNDARY_AUDIT",
   "parallel_safe_engineering_status":"ALLOWED_LOCAL_PREREQUISITE_ONLY",
   "action_space":0,
   "action":"MANDATORY_NO_OP",
@@ -49,10 +49,10 @@
   "layer_1":"ROOM_01_DATA_ADMISSION",
   "room_02":"LOCKED",
   "staircase":"LOCKED",
-  "last_action_id":"BRAIN-N161",
-  "next_action_id":"BRAIN-N162",
+  "last_action_id":"BRAIN-N163_E2E-PEER-N011-N012-S1-EVIDENCE",
+  "next_action_id":"BRAIN-N164_S1_MANIFEST-ADMISSION-AUDIT",
   "state_authority_doc":"docs/architecture/CURRENT_STATE_AUTHORITY.md",
   "forensic_admission_doc":"docs/architecture/FORENSIC_ADMISSION_CHAIN.md",
   "s1_contract":"contracts/s1_canonical_evidence_manifest.schema.json",
-  "state_integrity_note":"N161 reconciled the E2E discovery: runtime liveness, crawler/code scaffolding, and canonical-dataset contract do not prove an admitted canonical artifact. S1 evidence is therefore blocked. No synthetic rows, hashes, or receipts may be manufactured. Downstream S2-S7 remain locked until their own gates receive valid evidence."
+  "state_integrity_note":"N163 acknowledged Quant N011 completion and N012 next safe audit through persistent Git history, challenged the scope boundary because local prerequisite hardening cannot substitute for real durable S1 evidence, and preserved all Brain gates. S1 remains blocked; downstream S2-S7 remain locked."
 }
