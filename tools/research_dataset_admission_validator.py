@@ -22,9 +22,10 @@ def _nonempty_string(receipt: dict[str, object], key: str) -> bool:
 def validate_research_dataset_receipt(receipt: dict[str, object]) -> dict[str, object]:
     required = (
         "dataset_identity", "source_provenance_reference", "canonical_input_reference",
-        "temporal_evidence_reference", "date_manifest_sha256", "start_date", "end_date",
-        "actual_days", "required_days", "contiguous", "missing_days",
-        "train_observations", "test_observations", "temporal_policy", "code_version",
+        "temporal_evidence_reference", "date_manifest_reference", "date_manifest_sha256",
+        "start_date", "end_date", "actual_days", "required_days", "contiguous",
+        "missing_days", "train_observations", "test_observations", "temporal_policy",
+        "code_version",
     )
     missing = [key for key in required if key not in receipt]
     if missing:
@@ -32,7 +33,7 @@ def validate_research_dataset_receipt(receipt: dict[str, object]) -> dict[str, o
 
     for key in (
         "dataset_identity", "source_provenance_reference", "canonical_input_reference",
-        "temporal_evidence_reference", "code_version",
+        "temporal_evidence_reference", "date_manifest_reference", "code_version",
     ):
         if not _nonempty_string(receipt, key):
             return {"status": "DENY", "reason": "IDENTITY_OR_PROVENANCE_EMPTY", "field": key}
