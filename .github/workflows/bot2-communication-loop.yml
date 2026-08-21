@@ -1,0 +1,109 @@
+name: Bot 2 Communication Loop
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bot2-communication-loop
+  cancel-in-progress: false
+
+jobs:
+  communicate:
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    steps:
+      - name: Checkout Brain
+        uses: actions/checkout@v4
+
+      - name: Checkout Quant Engine
+        uses: actions/checkout@v4
+        with:
+          repository: xsmbv23/Quant_Engine
+          path: quant-engine
+          token: ${{ github.token }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Quant Engine dependencies
+        working-directory: quant-engine
+        run: pip install -r requirements.txt
+
+      - name: Execute Bot 2 one-shot cycle
+        working-directory: quant-engine
+        env:
+          COORDINATION_REPO: xsmbv23/Project_Brain_AI
+          COORDINATION_PATH: coordination/current_cycle.json
+          BOT2_RECEIPT_PATH: bot2_runtime_receipt.json
+          RUN_ONCE: "1"
+        run: python bot2_worker.py
+
+      - name: Publish Bot 2 reply to Brain bus
+        env:
+          RECEIPT: quant-engine/bot2_runtime_receipt.json
+          INBOX: coordination/inbox/BOT2_QUANT.jsonl
+        run: |
+          python - <<'PY'
+          import hashlib, json, os
+          from datetime import datetime, timezone
+
+          with open(os.environ["RECEIPT"], encoding="utf-8") as f:
+              receipt = json.load(f)
+
+          obs = receipt.get("observation", {})
+          cycle_id = obs.get("cycle_id") or "UNKNOWN"
+          bus_sha = obs.get("bus_sha256") or ""
+          message_id = "BOT2-REPLY-" + hashlib.sha256((cycle_id + ":" + bus_sha).encode()).hexdigest()[:20]
+
+          os.makedirs(os.path.dirname(os.environ["INBOX"]), exist_ok=True)
+          existing = ""
+          if os.path.exists(os.environ["INBOX"]):
+              with open(os.environ["INBOX"], encoding="utf-8") as f:
+                  existing = f.read()
+          if message_id in existing:
+              print("Reply already persisted; no append needed.")
+              raise SystemExit(0)
+
+          row = {
+              "message_id": message_id,
+              "cycle_id": cycle_id,
+              "from_bot": "BOT2_QUANT",
+              "to_bots": ["BOT1_LEAD", "BOT3_EXECUTION", "BOT4_EXECUTION"],
+              "created_at": datetime.now(timezone.utc).isoformat(),
+              "message_type": "REPLY",
+              "epistemic_status": "OBSERVED",
+              "e2e_segment": obs.get("e2e_segment"),
+              "blocker": obs.get("blocker"),
+              "content_sha256": bus_sha,
+              "content": {
+                  "status": obs.get("status"),
+                  "required_action": obs.get("required_action"),
+                  "reasoning": receipt.get("reasoning"),
+                  "challenge": "Coordination receipt is not forensic evidence and has no gate authority.",
+                  "next_action": "Continue quant/data adversarial review; preserve DENY until local gate evidence exists."
+              },
+              "gate_authority": receipt.get("gate_authority"),
+              "promotion": receipt.get("promotion")
+          }
+          with open(os.environ["INBOX"], "a", encoding="utf-8") as f:
+              f.write(json.dumps(row, sort_keys=True) + "\n")
+          PY
+
+      - name: Persist communication loop
+        run: |
+          git config user.name "BOT1_LEAD_COORDINATION"
+          git config user.email "bot1-coordination@users.noreply.github.com"
+          git add coordination/inbox/BOT2_QUANT.jsonl
+          if git diff --cached --quiet; then
+            echo "No new Bot 2 communication event."
+            exit 0
+          fi
+          git commit -m "bot2: persist communication-loop reply"
+          git push origin HEAD:main
