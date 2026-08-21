@@ -28,10 +28,6 @@ def _read_direct_json(path: Path) -> dict:
     return value
 
 
-def _promotion_is_room01_only(value: object) -> bool:
-    return value == "PASS_TO_ROOM_01_ONLY;CANONICAL_QUORUM_DENY"
-
-
 def main() -> int:
     try:
         current = _read_direct_json(ROOT / "state/current_state.json")
@@ -85,12 +81,14 @@ def main() -> int:
             errors.append("DATA_ADMISSION requires staircase LOCKED")
         if current.get("action_space") != 1 or nxt.get("action_space") != 1:
             errors.append("DATA_ADMISSION requires exactly one admitted action slot")
-        if current.get("action") != "RUNTIME_PROVENANCE_EXECUTION":
-            errors.append("DATA_ADMISSION current action must be RUNTIME_PROVENANCE_EXECUTION")
+        allowed_actions = {"RUNTIME_PROVENANCE_EXECUTION", "PERMITTED_INDEPENDENT_SOURCE_ADMISSION"}
+        allowed_states = {"SOURCE_PROVENANCE_CAPTURE", "SOURCE_INDEPENDENCE_AUDIT"}
+        if current.get("action") not in allowed_actions:
+            errors.append("DATA_ADMISSION current action is outside the admitted Room 01 action set")
         if nxt.get("mode") != "DATA_ADMISSION" or nxt.get("status") != "READY":
             errors.append("DATA_ADMISSION next action must be READY in DATA_ADMISSION mode")
-        if current.get("state") != "SOURCE_PROVENANCE_CAPTURE":
-            errors.append("DATA_ADMISSION current state must be SOURCE_PROVENANCE_CAPTURE")
+        if current.get("state") not in allowed_states:
+            errors.append("DATA_ADMISSION current state is outside the admitted provenance states")
     else:
         errors.append(f"unknown state_mode: {mode}")
 
