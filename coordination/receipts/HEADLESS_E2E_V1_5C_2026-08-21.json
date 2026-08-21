@@ -1,0 +1,17 @@
+{
+  "schema":"headless-e2e-receipt/v1",
+  "receipt_type":"WORKER_ORCHESTRATION_E2E",
+  "observed_at":"2026-08-21T12:57:18Z",
+  "allocation_id":"ALLOC-BRAIN-N173-V1",
+  "cycle_id":"BRAIN-N173_FRESH-PROBE-RECEIPT-AND-S1-BRIDGE",
+  "execution_authority":"HEADLESS_WORKER",
+  "chat_session_execution":"CLOSED",
+  "bot2":{"worker":"BOT2_QUANT","result":"PASS","result_type":"EXECUTION_RECEIPT","allocation_identity":true,"canonical_mutation":"FORBIDDEN","promotion":"DENY"},
+  "bot4":{"worker":"BOT4_EXECUTION","result":"PASS","result_type":"EXECUTION_RECEIPT","allocation_identity":true,"canonical_mutation":"FORBIDDEN","promotion":"DENY"},
+  "reconciliation":{"result":"PASS","schema":"headless-reconciliation-receipt/v2","canonical_mutation":"BOT1_ONLY","promotion":"DENY","restart_continuity":"PASS","prior_receipt_anchor":"PASS"},
+  "health":"PASS",
+  "next_action":"BOT1_RECONCILE_AND_ALLOCATE_NEXT",
+  "forensic_promotion":"DENY",
+  "source":"Render runtime logs from brain-worker-orchestrator",
+  "note":"This receipt proves the headless worker execution loop, not S1 data admission. S1 remains governed by its own fresh evidence gate."
+}
