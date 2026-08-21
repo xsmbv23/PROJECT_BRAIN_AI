@@ -17,7 +17,9 @@ NEXT = ROOT / "state" / "next_action.json"
 OUTBOX = ROOT / "coordination" / "worker_outbox"
 RESULTS = ROOT / "coordination" / "worker_results"
 RECON = ROOT / "coordination" / "reconciliation"
-WORKERS = tuple(x.strip() for x in os.environ.get("WORKERS", "BOT2_QUANT,BOT4_EXECUTION").split(",") if x.strip())
+# BOT3 is a first-class headless worker. Keep an environment override for
+# future department expansion, but do not silently omit BOT3 from E2E cycles.
+WORKERS = tuple(x.strip() for x in os.environ.get("WORKERS", "BOT2_QUANT,BOT3_EXECUTION,BOT4_EXECUTION").split(",") if x.strip())
 
 
 def now() -> str:
@@ -141,8 +143,12 @@ def process(task_path: Path, current_cycle: str) -> dict | None:
 def reconcile(cycle: str, results: list[dict]) -> dict:
     active = [r for r in results if r.get("status") not in {"STALE_REJECTED", "DUPLICATE_IGNORED"}]
     statuses = [r.get("result", {}).get("status") for r in active]
+    workers_observed = sorted({r.get("worker_id") for r in active if r.get("worker_id")})
+    missing_workers = sorted(set(WORKERS) - set(workers_observed))
     if any(r.get("status") == "STALE_REJECTED" for r in results):
         decision, reason = "HOLD", "stale task/result detected; no stale evidence may influence current cycle"
+    elif missing_workers:
+        decision, reason = "HOLD", f"required worker result missing: {','.join(missing_workers)}"
     elif not active or any(s is None for s in statuses):
         decision, reason = "UNREACHED", "required worker result missing"
     elif any(s in {"FAIL", "CONFLICT"} for s in statuses):
@@ -150,8 +156,8 @@ def reconcile(cycle: str, results: list[dict]) -> dict:
     elif any(s == "BLOCKED_PROVIDER_NOT_CONFIGURED" for s in statuses):
         decision, reason = "HOLD", "background reasoning provider unavailable"
     else:
-        decision, reason = "REVIEW_REQUIRED", "results exist but BOT1 must perform forensic synthesis"
-    return {"schema": "forensic-worker-reconciliation/v2", "recorded_at": now(), "cycle_id": cycle, "worker_results": results, "decision": decision, "reason": reason, "minority_preserved": True, "canonical_next_action_mutation": "FORBIDDEN", "promotion": "DENY"}
+        decision, reason = "REVIEW_REQUIRED", "all three worker results exist but BOT1 must perform forensic synthesis"
+    return {"schema": "forensic-worker-reconciliation/v3", "recorded_at": now(), "cycle_id": cycle, "worker_results": results, "workers_expected": list(WORKERS), "workers_observed": workers_observed, "missing_workers": missing_workers, "decision": decision, "reason": reason, "minority_preserved": True, "canonical_next_action_mutation": "FORBIDDEN", "promotion": "DENY"}
 
 
 def main() -> int:
