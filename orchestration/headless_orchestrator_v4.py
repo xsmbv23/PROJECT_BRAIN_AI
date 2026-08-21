@@ -1,39 +1,62 @@
 #!/usr/bin/env python3
-"""Headless supervisor V4: BOT2/BOT3/BOT4 health, results and reconciliation."""
+"""V1.5D headless supervisor: active-worker health, result, identity and fail-closed reconciliation."""
 from __future__ import annotations
 import hashlib,json,os,time,urllib.request,threading
 from datetime import datetime,timezone
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
-REPO=os.getenv('COORDINATION_REPO','xsmbv23/Project_Brain_AI'); BRANCH=os.getenv('COORDINATION_BRANCH','main'); BOT2=os.getenv('BOT2_URL','https://bot2-headless-worker.onrender.com'); BOT3=os.getenv('BOT3_URL','https://brain-bot3-worker.onrender.com'); BOT4=os.getenv('BOT4_URL','https://brain-bot4-worker.onrender.com'); POLL=int(os.getenv('POLL_SECONDS','60')); PORT=int(os.getenv('PORT','10000')); LAST={"status":"STARTING"}; RECEIPT={}
+REPO=os.getenv('COORDINATION_REPO','xsmbv23/Project_Brain_AI'); BRANCH=os.getenv('COORDINATION_BRANCH','main')
+BOT_URLS={'BOT2_QUANT':os.getenv('BOT2_URL','https://brain-bot2-worker-v2.onrender.com'),'BOT3_REALITY':os.getenv('BOT3_URL','https://brain-bot3-worker.onrender.com'),'BOT4_EXECUTION':os.getenv('BOT4_URL','https://brain-bot4-worker-v2.onrender.com')}
+POLL=int(os.getenv('POLL_SECONDS','60')); RETRIES=int(os.getenv('HEALTH_RETRIES','3')); DELAY=float(os.getenv('HEALTH_RETRY_DELAY','2')); PORT=int(os.getenv('PORT','10000'))
+LAST={'status':'STARTING'}; RECEIPT={}
 def raw(path):
- r=urllib.request.Request(f'https://raw.githubusercontent.com/{REPO}/{BRANCH}/{path}',headers={'User-Agent':'brain-headless-orchestrator-v4'}); return r.read().decode() if False else urllib.request.urlopen(r,timeout=20).read().decode()
+ r=urllib.request.Request(f'https://raw.githubusercontent.com/{REPO}/{BRANCH}/{path}',headers={'User-Agent':'brain-headless-orchestrator-v1.5d'}); return urllib.request.urlopen(r,timeout=20).read().decode()
 def get(url,path):
- r=urllib.request.Request(url.rstrip('/')+path,headers={'User-Agent':'brain-headless-orchestrator-v4'}); return json.loads(urllib.request.urlopen(r,timeout=15).read().decode())
-def cycle():
- text=raw('coordination/worker_allocation_v2.json'); outer=json.loads(text); return (json.loads(outer['content']) if isinstance(outer.get('content'),str) else outer),hashlib.sha256(text.encode()).hexdigest()
-def observe(url):
- try:return get(url,'/health')
- except Exception as e:return {'status':'UNREACHABLE','error':type(e).__name__}
-def result(url):
- try:return get(url,'/result')
- except Exception as e:return {'result':'HOLD','error':type(e).__name__}
+ r=urllib.request.Request(url.rstrip('/')+path,headers={'User-Agent':'brain-headless-orchestrator-v1.5d'}); return json.loads(urllib.request.urlopen(r,timeout=15).read().decode())
+def probe(url,path):
+ if not url:return {'status':'UNCONFIGURED'}
+ last={'status':'UNREACHABLE'}
+ for attempt in range(1,RETRIES+1):
+  try:
+   v=get(url,path); v['probe_attempt']=attempt; return v
+  except Exception as e:
+   last={'status':'UNREACHABLE','error':type(e).__name__,'probe_attempt':attempt}
+   if attempt<RETRIES: time.sleep(DELAY*attempt)
+ return last
+def allocation():
+ text=raw('coordination/worker_allocation_v2.json'); outer=json.loads(text); alloc=json.loads(outer['content']) if isinstance(outer.get('content'),str) else outer
+ active=alloc.get('active_workers') or [w for w,v in alloc.get('workers',{}).items() if v.get('enabled',True)]
+ return alloc,active,hashlib.sha256(text.encode()).hexdigest()
 def tick():
  global LAST,RECEIPT
- alloc,alloc_sha=cycle(); hs=[observe(x) for x in (BOT2,BOT3,BOT4)]; rs=[result(x) for x in (BOT2,BOT3,BOT4)]; now=datetime.now(timezone.utc).isoformat()
- health_ok=all(x.get('status')=='ALLOCATION_OBSERVED' for x in hs); result_ok=all(x.get('result')=='PASS' for x in rs); identity_ok=all(x.get('allocation_id')==alloc.get('allocation_id') and x.get('cycle_id')==alloc.get('cycle_id') for x in rs)
- receipt={'schema':'headless-reconciliation-receipt/v3','receipt_type':'THREE_WORKER_RECONCILIATION','issued_at':now,'allocation_id':alloc.get('allocation_id'),'cycle_id':alloc.get('cycle_id'),'allocation_sha256':alloc_sha,'workers':rs,'checks':{'health':health_ok,'results':result_ok,'allocation_identity':identity_ok,'chat_session_execution':'CLOSED'},'result':'PASS' if health_ok and result_ok and identity_ok else 'HOLD','next_action':'BOT1_RECONCILE_AND_ALLOCATE_NEXT' if health_ok and result_ok and identity_ok else 'HOLD_AND_DIAGNOSE_WORKER_PATH','canonical_mutation':'BOT1_ONLY','promotion':'DENY','execution_authority':'HEADLESS_WORKER'}
- receipt['receipt_sha256']=hashlib.sha256(json.dumps(receipt,sort_keys=True,separators=(',',':')).encode()).hexdigest(); RECEIPT=receipt; LAST={'schema':'headless-orchestrator/v4','observed_at':now,'allocation_id':alloc.get('allocation_id'),'cycle_id':alloc.get('cycle_id'),'health_status':'PASS' if health_ok else 'HOLD','result_status':receipt['result'],'next_action':receipt['next_action'],'promotion':'DENY'}; print(json.dumps(receipt,sort_keys=True),flush=True)
+ alloc,active,alloc_sha=allocation(); observations={}
+ for wid in alloc.get('workers',{}):
+  if wid not in active:
+   observations[wid]={'status':'PAUSED','execution_required':False}; continue
+  url=BOT_URLS.get(wid,''); observations[wid]={'health':probe(url,'/health'),'result':probe(url,'/result')}
+ configured=all(BOT_URLS.get(w) for w in active)
+ health_ok=configured and all(observations[w]['health'].get('status')=='ALLOCATION_OBSERVED' for w in active)
+ result_ok=configured and all(observations[w]['result'].get('result')=='PASS' for w in active)
+ identity_ok=configured and all(observations[w]['result'].get('allocation_id')==alloc.get('allocation_id') and observations[w]['result'].get('cycle_id')==alloc.get('cycle_id') for w in active)
+ authority_ok=configured and all(observations[w]['result'].get('promotion')=='DENY' and observations[w]['result'].get('canonical_mutation')=='FORBIDDEN' for w in active)
+ overall='PASS' if health_ok and result_ok and identity_ok and authority_ok else 'HOLD'
+ now=datetime.now(timezone.utc).isoformat()
+ receipt={'schema':'headless-reconciliation-receipt/v4','receipt_type':'ACTIVE_WORKER_RECONCILIATION','issued_at':now,'allocation_id':alloc.get('allocation_id'),'cycle_id':alloc.get('cycle_id'),'allocation_sha256':alloc_sha,'active_workers':active,'workers':observations,'checks':{'active_workers_configured':configured,'health':health_ok,'results':result_ok,'allocation_identity':identity_ok,'authority_boundary':authority_ok},'result':overall,'next_action':'BOT1_RECONCILE_AND_ALLOCATE_NEXT' if overall=='PASS' else 'HOLD_AND_DIAGNOSE_WORKER_PATH','canonical_mutation':'BOT1_ONLY','promotion':'DENY','chat_session_execution':'CLOSED','execution_authority':'HEADLESS_WORKER'}
+ receipt['receipt_sha256']=hashlib.sha256(json.dumps(receipt,sort_keys=True,separators=(',',':')).encode()).hexdigest(); RECEIPT=receipt
+ LAST={'schema':'headless-orchestrator/v1.5d','observed_at':now,'allocation_id':alloc.get('allocation_id'),'cycle_id':alloc.get('cycle_id'),'active_workers':active,'workers':observations,'health_status':'PASS' if health_ok else 'HOLD','result_status':overall,'next_action':receipt['next_action'],'promotion':'DENY','chat_session_execution':'CLOSED'}
+ print(json.dumps(receipt,sort_keys=True),flush=True)
 class H(BaseHTTPRequestHandler):
  def do_GET(self):
   if self.path in ('/health','/receipt'):
-   b=json.dumps(LAST if self.path=='/health' else RECEIPT,separators=(',',':')).encode(); self.send_response(200); self.send_header('Content-Type','application/json'); self.send_header('Content-Length',str(len(b))); self.end_headers(); self.wfile.write(b); return
+   payload=LAST if self.path=='/health' else RECEIPT; b=json.dumps(payload,separators=(',',':')).encode(); self.send_response(200); self.send_header('Content-Type','application/json'); self.send_header('Content-Length',str(len(b))); self.end_headers(); self.wfile.write(b); return
   self.send_response(404); self.end_headers()
  def log_message(self,*a):pass
 if __name__=='__main__':
  s=ThreadingHTTPServer(('0.0.0.0',PORT),H)
  def loop():
   while True:
-   try:tick()
-   except Exception as e:print(json.dumps({'status':'SUPERVISOR_ERROR','error':type(e).__name__}),flush=True)
+   try: tick()
+   except Exception as e:
+    global LAST
+    LAST={'status':'SUPERVISOR_ERROR','error':type(e).__name__}; print(json.dumps(LAST),flush=True)
    time.sleep(POLL)
  threading.Thread(target=loop,daemon=True).start(); s.serve_forever()
