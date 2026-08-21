@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -23,7 +22,16 @@ OUTBOX = ROOT / "coordination" / "worker_outbox"
 
 
 def read_json(path: Path):
-    return json.loads(path.read_text(encoding="utf-8"))
+    value = json.loads(path.read_text(encoding="utf-8"))
+    # The Brain state files use a durable wrapper with the canonical JSON stored
+    # in the string-valued `content` field. Accept both wrapped and plain JSON
+    # so the worker protocol is not coupled to one storage serializer.
+    if isinstance(value, dict) and isinstance(value.get("content"), str):
+        try:
+            return json.loads(value["content"])
+        except json.JSONDecodeError:
+            pass
+    return value
 
 
 def stable_id(*parts: str) -> str:
@@ -64,7 +72,7 @@ def main() -> int:
             "canonical_next_action": nxt["action_id"],
             "task": action,
             "lease": {
-                "lease_id": f"LEASE-{stable_id(task_id, now)}",
+                "lease_id": f"LEASE-{stable_id(task_id)}",
                 "state": "PENDING",
                 "attempt": 1,
                 "exclusive_write_scope": [f"coordination/inbox/{worker_id}.jsonl"]
