@@ -10,7 +10,15 @@ class S1CanonicalEvidenceTests(unittest.TestCase):
     def _manifest(self, root: Path, artifact: Path, **overrides):
         raw_hash = sha256(artifact.read_bytes()).hexdigest()
         data = {
-            "source_provenance": {"classification": "REAL_AND_TRACEABLE", "source": "TEST_ONLY"},
+            "source_provenance": {
+                "classification": "REAL_AND_TRACEABLE",
+                "source": "TEST_ONLY",
+                "operator_identity": "TEST_SUITE",
+                "authorization_reference": "TEST_SUITE_AUTHORIZED_CAPTURE",
+            },
+            "acquisition_channel": "MANUAL_AUTHORIZED_CAPTURE",
+            "acquisition_reference": "TEST_SUITE_AUTHORIZED_CAPTURE",
+            "acquisition_timestamp_utc": "2026-08-12T10:00:00+00:00",
             "artifact_path": artifact.name,
             "raw_artifact_sha256": raw_hash,
             "raw_byte_sha256": raw_hash,
@@ -40,7 +48,7 @@ class S1CanonicalEvidenceTests(unittest.TestCase):
             result = verify_manifest(Path(td) / "missing.json")
             self.assertEqual(result["status"], "DENY")
 
-    def test_real_complete_fixture_passes_unit_contract(self):
+    def test_authorized_complete_fixture_passes_unit_contract(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             artifact = root / "canonical.bin"
