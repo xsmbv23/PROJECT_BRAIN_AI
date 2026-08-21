@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Headless supervisor: observes workers, collects execution receipts, and reconciles them."""
+"""Headless supervisor: observes workers, reconciles results, and verifies restart continuity."""
 from __future__ import annotations
 import hashlib,json,os,time,urllib.request,threading
 from datetime import datetime,timezone
@@ -23,12 +23,17 @@ def result(url):
  except Exception as e:return {"result":"HOLD","error":type(e).__name__}
 def cycle():
  raw=get_raw('coordination/worker_allocation_v1.json'); outer=json.loads(raw); alloc=json.loads(outer['content']) if isinstance(outer.get('content'),str) else outer; return alloc,hashlib.sha256(raw.encode()).hexdigest()
+def prior_receipt():
+ try:
+  outer=json.loads(get_raw('coordination/worker_runtime_receipt.json')); return outer
+ except Exception as e:return {"status":"MISSING","error":type(e).__name__}
 def tick():
  global LAST,RECEIPT
- alloc,alloc_sha=cycle(); h2=health(BOT2); h4=health(BOT4); r2=result(BOT2); r4=result(BOT4); now=datetime.now(timezone.utc).isoformat()
- health_ok=h2.get('status')=='ALLOCATION_OBSERVED' and h4.get('status')=='ALLOCATION_OBSERVED'; result_ok=r2.get('result')=='PASS' and r4.get('result')=='PASS'; identity_ok=all(x.get('allocation_id')==alloc.get('allocation_id') and x.get('cycle_id')==alloc.get('cycle_id') for x in (r2,r4)); overall='PASS' if health_ok and result_ok and identity_ok else 'HOLD'
- receipt={"schema":"headless-reconciliation-receipt/v1","receipt_type":"WORKER_RECONCILIATION","issued_at":now,"allocation_id":alloc.get('allocation_id'),"cycle_id":alloc.get('cycle_id'),"allocation_sha256":alloc_sha,"bot2_result":r2,"bot4_result":r4,"checks":{"health":health_ok,"results":result_ok,"allocation_identity":identity_ok},"result":overall,"next_action":"BOT1_RECONCILE_AND_ALLOCATE_NEXT" if overall=='PASS' else "HOLD_AND_DIAGNOSE_WORKER_PATH","canonical_mutation":"BOT1_ONLY","promotion":"DENY","chat_session_execution":"CLOSED","execution_authority":"HEADLESS_WORKER"}
- receipt['receipt_sha256']=hashlib.sha256(json.dumps(receipt,sort_keys=True,separators=(',',':')).encode()).hexdigest(); RECEIPT=receipt; LAST={"schema":"headless-orchestrator/v2","observed_at":now,"allocation_id":alloc.get('allocation_id'),"cycle_id":alloc.get('cycle_id'),"health_status":"PASS" if health_ok else "HOLD","result_status":overall,"next_action":receipt['next_action'],"promotion":"DENY"}; print(json.dumps(receipt,sort_keys=True),flush=True); print(json.dumps(LAST,sort_keys=True),flush=True)
+ alloc,alloc_sha=cycle(); h2=health(BOT2); h4=health(BOT4); r2=result(BOT2); r4=result(BOT4); prior=prior_receipt(); now=datetime.now(timezone.utc).isoformat()
+ health_ok=h2.get('status')=='ALLOCATION_OBSERVED' and h4.get('status')=='ALLOCATION_OBSERVED'; result_ok=r2.get('result')=='PASS' and r4.get('result')=='PASS'; identity_ok=all(x.get('allocation_id')==alloc.get('allocation_id') and x.get('cycle_id')==alloc.get('cycle_id') for x in (r2,r4)); prior_ok=prior.get('result')=='PASS' and prior.get('allocation_id')==alloc.get('allocation_id') and prior.get('cycle_id')==alloc.get('cycle_id'); overall='PASS' if health_ok and result_ok and identity_ok else 'HOLD'
+ recovery_ok=prior_ok and prior.get('receipt_sha256') not in ('',None)
+ receipt={"schema":"headless-reconciliation-receipt/v2","receipt_type":"WORKER_RECONCILIATION","issued_at":now,"allocation_id":alloc.get('allocation_id'),"cycle_id":alloc.get('cycle_id'),"allocation_sha256":alloc_sha,"bot2_result":r2,"bot4_result":r4,"prior_receipt":{"receipt_sha256":prior.get('receipt_sha256'),"result":prior.get('result')},"checks":{"health":health_ok,"results":result_ok,"allocation_identity":identity_ok,"prior_receipt_anchor":prior_ok,"restart_continuity":recovery_ok},"result":overall if recovery_ok else 'HOLD',"next_action":"BOT1_RECONCILE_AND_ALLOCATE_NEXT" if overall=='PASS' and recovery_ok else "HOLD_AND_DIAGNOSE_WORKER_PATH","canonical_mutation":"BOT1_ONLY","promotion":"DENY","chat_session_execution":"CLOSED","execution_authority":"HEADLESS_WORKER"}
+ receipt['receipt_sha256']=hashlib.sha256(json.dumps(receipt,sort_keys=True,separators=(',',':')).encode()).hexdigest(); RECEIPT=receipt; LAST={"schema":"headless-orchestrator/v3","observed_at":now,"allocation_id":alloc.get('allocation_id'),"cycle_id":alloc.get('cycle_id'),"health_status":"PASS" if health_ok else "HOLD","result_status":receipt['result'],"restart_continuity":"PASS" if recovery_ok else "HOLD","next_action":receipt['next_action'],"promotion":"DENY"}; print(json.dumps(receipt,sort_keys=True),flush=True); print(json.dumps(LAST,sort_keys=True),flush=True)
 class H(BaseHTTPRequestHandler):
  def do_GET(self):
   if self.path in ('/health','/receipt'):
