@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/xsmbv23/Project_Brain_AI/blob/main/doctrine/multi_bot_deliberation.schema.json",
+  "title": "Multi-Bot Deliberation Governance Contract",
+  "description": "Machine-readable contract for official communication, challenge, rebuttal, evidence handling, and decision boundaries among Bot 1, Bot 2, and Bot 3. Deliberation may improve reasoning but can never manufacture evidence, inherit PASS, or override a local admission gate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol_version", "deliberation_id", "subject", "participants", "rounds", "decision"],
+  "properties": {
+    "protocol_version": {"type": "string", "const": "1.0"},
+    "deliberation_id": {"type": "string", "minLength": 1},
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim_id", "claim_type"],
+      "properties": {
+        "claim_id": {"type": "string", "minLength": 1},
+        "claim_type": {"enum": ["DOCTRINE", "EVIDENCE", "STATE", "HISTORY", "HYPOTHESIS", "EDGE", "EV", "ROI", "ACTION"]},
+        "claim": {"type": "string"}
+      }
+    },
+    "participants": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["bot_id", "role"],
+        "properties": {
+          "bot_id": {"enum": ["BOT_1", "BOT_2", "BOT_3"]},
+          "role": {"enum": ["PROPOSER", "ADVERSARIAL_REVIEWER", "INDEPENDENT_ARBITER"]},
+          "capability_boundary": {"type": "string"}
+        }
+      }
+    },
+    "rounds": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["round_id", "speaker", "message_type", "position", "evidence_refs", "epistemic_status"],
+        "properties": {
+          "round_id": {"type": "integer", "minimum": 1},
+          "speaker": {"enum": ["BOT_1", "BOT_2", "BOT_3"]},
+          "message_type": {"enum": ["PROPOSAL", "CHALLENGE", "REBUTTAL", "CLARIFICATION", "EVIDENCE_REQUEST", "ARBITRATION"]},
+          "position": {"type": "string", "minLength": 1},
+          "argument": {"type": "string"},
+          "evidence_refs": {"type": "array", "items": {"type": "string"}},
+          "counterevidence_refs": {"type": "array", "items": {"type": "string"}},
+          "epistemic_status": {"enum": ["PROVEN", "DISPROVEN", "UNKNOWN", "HYPOTHESIS", "NOT_PROVEN"]},
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+          "requested_gate": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "basis", "pass_inheritance", "unknown_policy"],
+      "properties": {
+        "status": {"enum": ["ACCEPTED", "REJECTED", "UNRESOLVED", "DENIED"]},
+        "basis": {"enum": ["EVIDENCE", "DOCTRINE", "STATE", "HISTORY", "HYPOTHESIS", "MIXED_WITH_EXPLICIT_LINEAGE"]},
+        "pass_inheritance": {"const": "FORBIDDEN"},
+        "unknown_policy": {"const": "UNKNOWN_IS_NOT_PASS"},
+        "edge_status": {"enum": ["NOT_PROVEN", "PROVEN", "DISPROVEN", "UNKNOWN"]},
+        "ev_status": {"enum": ["NOT_ADMITTED", "POSITIVE", "ZERO", "NEGATIVE", "UNKNOWN"]},
+        "roi_status": {"enum": ["NOT_AVAILABLE", "POSITIVE", "ZERO", "NEGATIVE", "UNKNOWN"]}
+      }
+    },
+    "integrity_invariants": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "one_forensic_fsm": {"const": true},
+        "no_pass_inheritance": {"const": true},
+        "gate_local_evidence": {"const": true},
+        "unknown_is_not_pass": {"const": true},
+        "no_receipt_hard_deny": {"const": true},
+        "deliberation_is_not_evidence": {"const": true},
+        "consensus_is_not_truth": {"const": true},
+        "bot_must_not_create_evidence": {"const": true},
+        "bot_must_not_modify_canonical_truth": {"const": true},
+        "edge_not_proven_means_no_edge": {"const": true},
+        "negative_ev_means_no_bet": {"const": true},
+        "unknown_ev_means_no_bet": {"const": true},
+        "negative_roi_must_be_reported": {"const": true},
+        "no_result_beautification": {"const": true}
+      }
+    }
+  }
+}
