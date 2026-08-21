@@ -16,12 +16,13 @@ FOR_RUNTIME = {"runtime_identity", "gate_evidence_id"}
 FOR_CANONICAL = {"canonical_payload_sha256"}
 
 
-def _canonical_or_legacy(evidence: dict[str, Any], canonical: str, legacy: str) -> tuple[str | None, bool]:
+def _canonical_or_legacy(evidence: dict[str, Any], canonical: str, legacy: str) -> tuple[str | None, bool, bool]:
+    """Return value, whether a legacy alias is present, and whether it is fixture-authorized."""
     if evidence.get(canonical):
-        return evidence[canonical], False
-    if evidence.get(legacy) and evidence.get("legacy_fixture") is True:
-        return evidence[legacy], True
-    return None, False
+        return evidence[canonical], False, False
+    if evidence.get(legacy):
+        return evidence[legacy], True, evidence.get("legacy_fixture") is True
+    return None, False, False
 
 
 def validate_evidence(evidence: dict[str, Any]) -> dict[str, Any]:
@@ -35,14 +36,16 @@ def validate_evidence(evidence: dict[str, Any]) -> dict[str, Any]:
     if evidence.get("observation_origin") == "local_receipt" and evidence.get("independent_external", False):
         return {"status": "DENY", "reason": "LOCAL_RECEIPT_CANNOT_BE_INDEPENDENT_EXTERNAL_OBSERVATION"}
 
-    raw_sha, raw_legacy = _canonical_or_legacy(evidence, "raw_artifact_sha256", "raw_sha256")
-    semantic_fp, semantic_legacy = _canonical_or_legacy(evidence, "semantic_fingerprint", "semantic_sha256")
+    raw_sha, raw_legacy, raw_legacy_authorized = _canonical_or_legacy(evidence, "raw_artifact_sha256", "raw_sha256")
+    semantic_fp, semantic_legacy, semantic_legacy_authorized = _canonical_or_legacy(evidence, "semantic_fingerprint", "semantic_sha256")
 
     # Legacy aliases are an explicit migration boundary. Detect a legacy alias
-    # misuse before the canonical-field completeness checks so the forensic
-    # failure identifies the actual forbidden shortcut.
-    if (raw_legacy or semantic_legacy) and evidence.get("legacy_fixture") is not True:
-        return {"status": "DENY", "reason": "LEGACY_ALIAS_REQUIRES_EXPLICIT_FIXTURE"}
+    # misuse before canonical-field completeness checks so the forensic failure
+    # identifies the actual forbidden shortcut.
+    if raw_legacy and not raw_legacy_authorized:
+        return {"status": "DENY", "reason": "LEGACY_ALIAS_REQUIRES_EXPLICIT_FIXTURE", "field": "raw_sha256"}
+    if semantic_legacy and not semantic_legacy_authorized:
+        return {"status": "DENY", "reason": "LEGACY_ALIAS_REQUIRES_EXPLICIT_FIXTURE", "field": "semantic_sha256"}
 
     if evidence.get("raw_artifact_exists", False) and not raw_sha:
         return {"status": "DENY", "reason": "RAW_ARTIFACT_SHA256_MISSING"}
