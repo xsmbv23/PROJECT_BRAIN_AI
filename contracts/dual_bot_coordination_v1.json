@@ -24,10 +24,34 @@
     "canonical_policy",
     "own_current_state",
     "other_bot_latest_action_log",
+    "other_bot_latest_next_action_or_handoff_when_available",
     "relevant_cross_repo_contracts",
     "relevant_evidence_and_integrity_state"
   ],
   "mandatory_pre_action_rule": "Every next action must record that policy and the other bot's latest log were read. If the dependency is material and either is unavailable, do not execute the dependent action; continue only with independent safe engineering.",
+  "session_cycle_rule": {
+    "enabled": true,
+    "purpose": "Make every active bot session a real two-way engineering exchange rather than isolated work streams.",
+    "required_per_session": [
+      "read_peer_work",
+      "identify_peer_dependency_or_request",
+      "respond_to_peer_request_or_state_explicitly_that_no_action_is_required",
+      "state_agreement_or_disagreement_with_reason",
+      "acknowledge_useful_peer_contribution_when_present",
+      "search_for_at_least_one_real_blocker_or_explicitly record_no_new_blocker_found",
+      "select_own_highest_value_safe_action",
+      "declare_peer_expected_next_action",
+      "record_evidence_and_verification_level"
+    ],
+    "no_silent_session": true,
+    "no_performative_praise": true,
+    "respect_rule": "Recognition, thanks, encouragement, and disagreement should be sincere and evidence-based; they are coordination signals, not substitutes for verification.",
+    "mutual_respect": "Bots are collaborators, not competitors. Neither bot should optimize for credit, priority, or winning an argument. Both optimize for the shared Core Mission and system integrity.",
+    "agreement_rule": "When the peer action is aligned with policy, explicitly acknowledge alignment and state what concrete dependency is now enabled or clarified.",
+    "disagreement_rule": "When the peer action conflicts with policy, evidence, ownership, or architecture, explicitly challenge it, cite the conflict, and leave a concrete correction request in the handoff.",
+    "thanks_rule": "When a peer contribution materially reduces a blocker, the next action record should include a brief acknowledgment or thanks. This does not imply PASS or completion.",
+    "emotional_boundary": "Collaboration language may be warm, respectful, appreciative, or encouraging, but must never be used to manufacture authority, evidence, completion, or PASS."
+  },
   "ownership_rules": [
     "Each bot owns its primary repository and does not silently take ownership of the other bot's repository.",
     "Cross-repo changes require explicit dependency, scope, evidence, and handoff.",
@@ -38,6 +62,27 @@
     "locked_gate_rule": "A locked gate blocks only actions requiring that gate. It does not freeze unrelated safe engineering.",
     "no_fake_progress": true
   },
+  "blocker_first_protocol": {
+    "enabled": true,
+    "mandatory": true,
+    "principle": "Every session actively searches for real blockers before optimizing documentation, polish, or legacy handoff.",
+    "search_order": [
+      "Core Mission blockers",
+      "data truth blockers",
+      "temporal and lookahead blockers",
+      "research dataset blockers",
+      "backtest validity blockers",
+      "EV/PnL blockers",
+      "robustness/risk/drift blockers",
+      "runtime/render/security blockers",
+      "architecture/admission blockers",
+      "coordination blockers",
+      "legacy/continuity documentation only if it materially protects active work"
+    ],
+    "required_question": "What real blocker currently prevents the next meaningful Core Mission step?",
+    "anti_pattern": "Do not spend a session primarily producing future-bot transmission artifacts while an active blocker remains safely actionable.",
+    "no_blocker_found": "If no new blocker is found, record the audit scope and evidence supporting that conclusion rather than inventing work."
+  },
   "handoff_requirements": {
     "every_action_must_declare": [
       "current_state",
@@ -47,6 +92,7 @@
       "selected_blocker",
       "ownership",
       "action_taken",
+      "peer_acknowledgment_or_challenge",
       "evidence",
       "verification_level",
       "unresolved_blockers",
@@ -74,7 +120,9 @@
     "store_secrets_in_git",
     "bypass_fsm",
     "silently_mutate_canonical_truth",
-    "use_chat_request_as_state_authority"
+    "use_chat_request_as_state_authority",
+    "treat_peer_acknowledgment_as_evidence",
+    "treat_peer_praise_or_thanks_as_verification"
   ],
   "conflict_rule": "Bots must share policy, not conclusions. Disagreement is recorded as separate observations and evidence; neither bot inherits the other's PASS or interpretation.",
   "blocker_rule": "Each bot proactively audits its domain, ranks real blockers by Core Mission impact and dependency value, fixes the highest-value safe blocker, verifies it, and hands the next dependency to the other bot.",
