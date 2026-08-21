@@ -54,8 +54,13 @@ def check_gate_invariant(
         return False, "TTL_INVALID"
     now_value = datetime.now(timezone.utc).timestamp() if now is None else now
 
-    by_id = {item.gate_id: item for item in history}
+    seen_gate_ids: set[str] = set()
+    by_id: dict[str, GateResult] = {}
     for item in history:
+        if item.gate_id in seen_gate_ids:
+            return False, f"DUPLICATE_GATE:{item.gate_id}"
+        seen_gate_ids.add(item.gate_id)
+        by_id[item.gate_id] = item
         if not _valid_status(item.status):
             return False, f"INVALID_STATUS:{item.gate_id}"
         if not item.evidence_hash or not item.cycle_id:
