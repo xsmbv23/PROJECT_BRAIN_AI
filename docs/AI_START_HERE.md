@@ -26,6 +26,72 @@ CONTROLLED ACTION
 
 The Forensic FSM is the admission/control mechanism that prevents shortcuts, fabricated evidence, invalid inference, and unauthorized transitions. It is not the product goal.
 
+## NON-NEGOTIABLE: SESSION START IS AN ACTION
+
+Every Bot session begins with exactly one mandatory operation:
+
+```text
+SESSION_START_SYNC
+```
+
+**No engineering action is allowed before this sync passes.**
+
+The Bot must read and verify the machine-readable contract:
+
+```text
+contracts/bot_session_start_protocol_v1.json
+```
+
+Then it must read the complete required continuity chain below, including the latest peer-Bot handoff/action. The Bot must produce a durable session-start record before proceeding.
+
+```text
+AI_START_HERE
+   ↓
+FOSENNIC_FOUNDATION
+   ↓
+FORENSIC_FSM_GATE_SEMANTICS
+   ↓
+COMMUNICATION_SECURITY
+   ↓
+EVIDENCE_PROTOCOL
+   ↓
+ACTION_LEDGER_PROTOCOL
+   ↓
+PROACTIVE_ENGINEERING_POLICY
+   ↓
+BOT_SESSION_START_PROTOCOL
+   ↓
+CURRENT_STATE
+   ↓
+NEXT_ACTION
+   ↓
+LATEST ACTION LOG
+   ↓
+LATEST PEER-BOT HANDOFF
+   ↓
+SESSION_START_RECORD = PASS
+   ↓
+ONLY THEN: ENGINEERING
+```
+
+### Session-start record must contain
+
+- session id and UTC timestamp;
+- Bot identity;
+- hashes/references for policy and state actually read;
+- latest action id actually read;
+- latest peer-Bot handoff actually read, or explicit `MISSING` evidence;
+- genuine acknowledgement of useful peer work, or explicit missing-ack evidence;
+- policy/evidence alignment and conflicts;
+- ranked real blockers;
+- safe action space and gated action space;
+- own next action;
+- concrete peer-Bot next action;
+- exact evidence references;
+- sync status.
+
+A Bot must **never claim that session-start synchronization occurred merely because another Bot said it did**. The durable record is the authority.
+
 ## Non-negotiable boundaries
 
 1. Brain governs; it does not invent XSMB truth.
@@ -48,32 +114,8 @@ The Forensic FSM is the admission/control mechanism that prevents shortcuts, fab
 18. Brain must proactively search for real blockers across data, research, backtest, EV/P&L, runtime, Render, security, architecture, code quality, and admission.
 19. If a safe proactive action is permitted and materially reduces a Core Mission blocker, Brain must execute it without waiting for human approval.
 20. NO_OP is valid only when no permitted safe blocker-reduction action remains, or when policy explicitly requires waiting for external evidence.
-
-## Required reading order
-
-```text
-CORE MISSION / APPLICABLE POLICY
-        ↓
-FOSENNIC_FOUNDATION
-        ↓
-FORENSIC_FSM_GATE_SEMANTICS
-        ↓
-COMMUNICATION_SECURITY
-        ↓
-EVIDENCE_PROTOCOL
-        ↓
-ACTION_LEDGER_PROTOCOL
-        ↓
-contracts/proactive_engineering_policy_v1.json
-        ↓
-state/current_state.json
-        ↓
-state/next_action.json
-        ↓
-latest action_log/*
-        ↓
-latest cross-bot handoff
-```
+21. Session-start synchronization is mandatory and precedes autonomous engineering in every new Bot session.
+22. A peer-Bot claim is not evidence of peer synchronization; only the durable session/handoff record is evidence.
 
 ## Required action discipline
 
