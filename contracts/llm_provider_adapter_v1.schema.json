@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "forensic-llm-provider-adapter/v1",
+  "title": "Forensic LLM Provider Adapter V1",
+  "type": "object",
+  "required": ["provider_config", "budget", "authority"],
+  "properties": {
+    "provider_config": {
+      "type": "object",
+      "required": ["base_url", "model", "secret_ref"],
+      "properties": {
+        "base_url": {"type": "string", "minLength": 1},
+        "model": {"type": "string", "minLength": 1},
+        "secret_ref": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "budget": {
+      "type": "object",
+      "required": ["timeout_seconds", "max_output_tokens", "max_prompt_chars"],
+      "properties": {
+        "timeout_seconds": {"type": "integer", "minimum": 1},
+        "max_output_tokens": {"type": "integer", "minimum": 1},
+        "max_prompt_chars": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "authority": {
+      "const": "ADVISORY_ONLY"
+    }
+  },
+  "additionalProperties": false
+}
