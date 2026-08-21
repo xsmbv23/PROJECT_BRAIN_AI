@@ -1,0 +1,32 @@
+{
+  "schema":"s1-verifier-reconciliation/v1",
+  "recorded_at":"2026-08-22T08:00:00Z",
+  "action_id":"BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+  "status":"HOLD",
+  "promotion":"DENY",
+  "canonical_mutation":"BOT1_ONLY",
+  "verified_predicates":{
+    "real_source_observed":true,
+    "http_200_observed":true,
+    "raw_byte_sha256_present":true,
+    "observed_dates_consecutive_2026_08_17_to_2026_08_21":true,
+    "triple_worker_runtime_e2e":true
+  },
+  "unproven_predicates":{
+    "lawful_acquisition_reference":true,
+    "required_complete_coverage":true,
+    "coverage_ratio_1_0":true,
+    "zero_unresolved_conflicts":true,
+    "fresh_real_admission_receipt":true,
+    "frozen_canonical_sha256":true,
+    "admitted_canonical_artifact":true
+  },
+  "evidence_refs":[
+    "coordination/receipts/N175_S1_RAW_ACQUISITION_OBSERVATION.json",
+    "coordination/reconciliation/N175_E2E_TRIPLE_WORKER_RUNTIME_2026-08-21T16-48Z.json",
+    "contracts/s1_canonical_evidence_manifest.schema.json",
+    "xsmbv23/Quant_Engine:data_buffer/acquisition_status.jsonl"
+  ],
+  "interpretation":"Fresh verification confirms the observed raw captures and the worker-plane E2E segment, but the S1 own-gate contract is not fully satisfied. HOLD is required; no S2 promotion.",
+  "next_action":"Obtain/verify lawful acquisition reference and complete the remaining S1 evidence predicates; then rerun the S1 verifier and reconcile fresh receipts."
+}
