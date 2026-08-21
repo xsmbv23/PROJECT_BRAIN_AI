@@ -1,0 +1,16 @@
+{
+  "schema":"bot-system-audit-allocation/v1",
+  "allocation_id":"ALLOC-SYSTEM-AUDIT-001",
+  "issued_by":"BOT1_LEAD",
+  "authority":"BOT1_ONLY",
+  "context_ref":"coordination/BOT_OPERATING_CONTEXT_V1.json",
+  "parallel":true,
+  "promotion":"DENY",
+  "tasks":{
+    "BOT2_QUANT":{"scope":["contracts","schemas","state transitions","evidence provenance","source independence","PASS inheritance","hash semantics","receipt integrity"],"deliverable":"ranked findings with severity, exact file/line refs, proposed fix, evidence required"},
+    "BOT4_EXECUTION":{"scope":["Render services","headless worker endpoints","supervisor routing","health semantics","lease/replay/stale protection","result receipt persistence","restart/recovery","resource/oom risks"],"deliverable":"ranked findings with severity, exact file/line refs, proposed fix, runtime evidence required"}
+  },
+  "completion":"one append-only result per worker; conflicts preserved for BOT1 reconciliation",
+  "canonical_mutation":"FORBIDDEN",
+  "next_action_after_results":"BOT1_RECONCILE_AND_ALLOCATE_FIXES"
+}
