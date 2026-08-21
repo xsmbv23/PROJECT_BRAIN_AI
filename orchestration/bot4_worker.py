@@ -17,7 +17,7 @@ def poll():
   LAST={"status":"POLL_ERROR","error":type(e).__name__}; print(json.dumps(LAST,sort_keys=True),flush=True)
 class H(BaseHTTPRequestHandler):
  def do_GET(self):
-  if self.path=='/health':
+  if self.path in ('/health','/healthz','/'):
    b=json.dumps(LAST,separators=(',',':')).encode(); self.send_response(200); self.send_header('Content-Type','application/json'); self.send_header('Content-Length',str(len(b))); self.end_headers(); self.wfile.write(b); return
   self.send_response(404); self.end_headers()
  def log_message(self,*a): pass
