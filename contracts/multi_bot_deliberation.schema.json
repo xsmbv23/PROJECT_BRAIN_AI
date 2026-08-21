@@ -1,13 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "MULTI_BOT_DELIBERATION_V2",
-  "title": "Forensic Multi-Bot Deliberation Protocol",
-  "description": "Official protocol for Bot1, Bot2 and Bot3 exchange, challenge, evidence review, synthesis and escalation. Consensus never substitutes for evidence or a local admission gate.",
+  "title": "Forensic Multi-Bot Deliberation Protocol V2",
+  "description": "Deliberation is a reasoning and recommendation layer on top of ONE FORENSIC FSM. It never creates evidence, never owns a forensic gate, never becomes Quant truth, and never authorizes promotion.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "contract_id",
     "deliberation_id",
+    "historical_only",
     "e2e_segment",
     "blocker",
     "proposer",
@@ -16,29 +17,29 @@
     "evidence_refs",
     "assumptions",
     "positions",
+    "dissents",
     "objections_and_replies",
+    "rounds",
     "synthesized_decision",
-    "chosen_owner",
-    "safe_parallel_work",
-    "unresolved_questions",
-    "next_action",
-    "forensic_state_transition"
+    "next_action"
   ],
   "properties": {
     "contract_id": {"const": "MULTI_BOT_DELIBERATION_V2"},
     "deliberation_id": {"type": "string", "minLength": 1},
+    "historical_only": {"const": true},
     "e2e_segment": {"type": "string", "minLength": 1},
     "blocker": {"type": "string", "minLength": 1},
     "proposer": {"$ref": "#/$defs/bot"},
     "reviewers": {
       "type": "array",
       "minItems": 2,
+      "uniqueItems": true,
       "items": {"$ref": "#/$defs/bot"}
     },
     "proposal": {"type": "string", "minLength": 1},
     "evidence_refs": {
       "type": "array",
-      "items": {"type": "string"}
+      "items": {"$ref": "#/$defs/evidenceRef"}
     },
     "assumptions": {
       "type": "array",
@@ -49,27 +50,45 @@
       "minItems": 3,
       "items": {"$ref": "#/$defs/position"}
     },
+    "dissents": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/dissent"}
+    },
     "objections_and_replies": {
       "type": "array",
       "items": {"$ref": "#/$defs/objection"}
     },
+    "rounds": {
+      "type": "array",
+      "minItems": 4,
+      "items": {"$ref": "#/$defs/round"}
+    },
     "synthesized_decision": {"$ref": "#/$defs/decision"},
-    "chosen_owner": {"$ref": "#/$defs/bot"},
-    "safe_parallel_work": {
-      "type": "array",
-      "items": {"type": "string"}
-    },
-    "unresolved_questions": {
-      "type": "array",
-      "items": {"type": "string"}
-    },
-    "next_action": {"type": "string", "minLength": 1},
-    "forensic_state_transition": {"$ref": "#/$defs/stateTransition"}
+    "next_action": {"type": "string", "minLength": 1}
   },
   "$defs": {
     "bot": {
-      "type": "string",
-      "enum": ["BOT1_LEAD", "BOT2_QUANT", "BOT3_EXECUTION"]
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bot_id", "domain_authority", "deliberation_role"],
+      "properties": {
+        "bot_id": {"enum": ["BOT1_LEAD", "BOT2_QUANT", "BOT3_EXECUTION"]},
+        "domain_authority": {"enum": ["GOVERNANCE", "QUANT", "EXECUTION"]},
+        "deliberation_role": {"enum": ["PROPOSER", "ADVERSARIAL_REVIEWER", "INDEPENDENT_ARBITER", "SYNTHESIZER"]}
+      }
+    },
+    "evidenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_id", "record_ref", "record_sha256", "gate_owner", "execution_id", "status"],
+      "properties": {
+        "evidence_id": {"type": "string", "minLength": 1},
+        "record_ref": {"type": "string", "minLength": 1},
+        "record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "gate_owner": {"enum": ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "DB_EXISTENCE", "DB_BINDING", "DB_TLS_ADMISSION", "DB_ROUND_TRIP", "NONE"]},
+        "execution_id": {"type": "string", "minLength": 1},
+        "status": {"enum": ["OBSERVED", "VERIFIED", "UNKNOWN", "DENIED"]}
+      }
     },
     "position": {
       "type": "object",
@@ -79,9 +98,21 @@
         "bot": {"$ref": "#/$defs/bot"},
         "position": {"enum": ["AGREE", "CHALLENGE", "CONDITIONAL", "UNKNOWN"]},
         "claim": {"type": "string", "minLength": 1},
-        "evidence_refs": {"type": "array", "items": {"type": "string"}},
+        "evidence_refs": {"type": "array", "items": {"$ref": "#/$defs/evidenceRef"}},
         "confidence": {"type": "number", "minimum": 0, "maximum": 1},
         "blocking": {"type": "boolean"}
+      }
+    },
+    "dissent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bot", "claim", "reason", "evidence_refs", "resolved"],
+      "properties": {
+        "bot": {"$ref": "#/$defs/bot"},
+        "claim": {"type": "string", "minLength": 1},
+        "reason": {"type": "string", "minLength": 1},
+        "evidence_refs": {"type": "array", "items": {"$ref": "#/$defs/evidenceRef"}},
+        "resolved": {"type": "boolean"}
       }
     },
     "objection": {
@@ -93,97 +124,70 @@
         "target_bot": {"$ref": "#/$defs/bot"},
         "objection": {"type": "string", "minLength": 1},
         "reply": {"type": "string"},
-        "reply_evidence_refs": {"type": "array", "items": {"type": "string"}},
+        "reply_evidence_refs": {"type": "array", "items": {"$ref": "#/$defs/evidenceRef"}},
         "resolved": {"type": "boolean"}
+      }
+    },
+    "round": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["round_id", "kind", "immutable", "entries"],
+      "properties": {
+        "round_id": {"type": "integer", "minimum": 1},
+        "kind": {"enum": ["PROPOSAL", "CHALLENGE", "REBUTTAL", "ARBITRATION", "EVIDENCE_REQUEST", "CLARIFICATION"]},
+        "immutable": {"const": true},
+        "entries": {"type": "array", "minItems": 1, "items": {"type": "string"}}
       }
     },
     "decision": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["outcome", "reason", "evidence_refs", "gate_status", "minority_preserved"],
+      "required": ["scope", "outcome", "reason", "recommendation", "minority_preserved", "gate_outcome", "quant_outcome", "execution_outcome"],
       "properties": {
-        "outcome": {"enum": ["PASS", "DENY", "HOLD", "ESCALATE"]},
+        "scope": {"const": "DELIBERATION_ONLY"},
+        "outcome": {"enum": ["ACCEPTED", "REJECTED", "HOLD", "ESCALATE", "UNRESOLVED"]},
         "reason": {"type": "string", "minLength": 1},
-        "evidence_refs": {"type": "array", "items": {"type": "string"}},
-        "gate_status": {"enum": ["PASS", "DENY", "UNKNOWN", "NOT_REACHED"]},
-        "minority_preserved": {"type": "boolean"}
-      }
-    },
-    "stateTransition": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["previous", "proposed", "authorized_by_local_gate", "evidence_required", "evidence_present"],
-      "properties": {
-        "previous": {"type": "string"},
-        "proposed": {"type": "string"},
-        "authorized_by_local_gate": {"type": "boolean"},
-        "evidence_required": {"type": "array", "items": {"type": "string"}},
-        "evidence_present": {"type": "array", "items": {"type": "string"}}
+        "recommendation": {"type": "string", "minLength": 1},
+        "minority_preserved": {"const": true},
+        "gate_outcome": {"const": "UNCHANGED"},
+        "quant_outcome": {"const": "UNCHANGED"},
+        "execution_outcome": {"const": "UNCHANGED"}
       }
     }
   },
   "protocol": {
     "role_separation": {
-      "BOT1_LEAD": "Owns orchestration, scope, gate interpretation and synthesis. BOT1 cannot manufacture evidence or override a local gate.",
-      "BOT2_QUANT": "Owns quantitative/analytical challenge, calculations, assumptions and statistical objections. BOT2 cannot promote a state by calculation alone.",
-      "BOT3_EXECUTION": "Owns implementation/execution feasibility, operational safety, resource/OOM constraints and deployment evidence. BOT3 cannot alter forensic truth to make deployment green."
+      "BOT1_LEAD": "Owns orchestration, scope, gate interpretation and synthesis; may not manufacture evidence or override a local gate.",
+      "BOT2_QUANT": "Owns quantitative/analytical challenge; may not promote a forensic gate by calculation or consensus.",
+      "BOT3_EXECUTION": "Owns implementation/runtime challenge; may not alter forensic truth or create a gate outcome."
     },
-    "exchange_order": [
-      "1_PROPOSE",
-      "2_INDEPENDENT_REVIEW",
-      "3_CHALLENGE",
-      "4_REPLY_WITH_EVIDENCE",
-      "5_REBUTTAL_OR_ACCEPTANCE",
-      "6_SYNTHESIS",
-      "7_LOCAL_GATE_CHECK",
-      "8_STATE_TRANSITION_OR_HOLD",
-      "9_PERSIST_ACTION_LOG",
-      "10_ASSIGN_NEXT_ACTION"
-    ],
-    "mandatory_challenge": true,
-    "independent_review_before_synthesis": true,
-    "bot_cannot_approve_own_unreviewed_claim": true,
-    "agreement_is_not_evidence": true,
-    "majority_vote_is_not_evidence": true,
-    "consensus_is_not_a_gate": true,
-    "proposal_is_not_evidence": true,
-    "unknown_is_not_pass": true,
-    "unknown_is_not_agree": true,
-    "missing_evidence_requires_hold_or_deny": true,
+    "capability_boundary_is_independent_of_deliberation_role": true,
+    "minimum_lifecycle": ["PROPOSAL", "CHALLENGE", "REBUTTAL", "ARBITRATION"],
+    "arbitration_requires_prior_challenge": true,
+    "deliberation_is_historical_only": true,
+    "deliberation_outcome_is_not_gate_outcome": true,
+    "deliberation_outcome_is_not_quant_outcome": true,
+    "deliberation_outcome_is_not_execution_outcome": true,
+    "evidence_refs_must_resolve_to_persistent_records": true,
     "minority_position_must_be_preserved": true,
-    "blocking_objection_must_be_resolved_or_recorded": true,
-    "historical_decisions_are_immutable": true,
-    "new_evidence_creates_new_action_record": true,
-    "state_transition_requires_local_gate_evidence": true,
+    "dissent_is_immutable_after_round_close": true,
+    "rounds_are_append_only": true,
+    "revision_requires_new_record": true,
+    "successor_bots_must_not_inherit_truth_from_consensus": true,
+    "successor_bots_inherit_rationale_not_truth": true,
+    "doctrine_can_define_required_evidence_but_cannot_prove_reality": true,
     "bots_may_parallelize_only_safe_independent_work": true,
-    "bots_must_not_mutate_canonical_source_truth": true,
-    "chat_is_interface_not_authority": true,
-    "repository_and_persistent_evidence_are_authority": true,
-    "credential_secrets_are_forbidden_in_deliberation_records": true,
-    "forensic_hashes_are_allowed_but_raw_secrets_are_not": true,
-    "escalation_conditions": [
-      "conflicting evidence",
-      "unresolved blocking objection",
-      "unknown critical dependency",
-      "requested state promotion without local gate evidence",
-      "security boundary ambiguity",
-      "source truth conflict"
-    ],
-    "escalation_outcome": "ESCALATE or HOLD; never silently choose PASS"
+    "state_transition_requires_local_gate_evidence_outside_deliberation": true,
+    "credentials_and_raw_secrets_forbidden": true
   },
-  "invariants": {
-    "forensic_admission_chain": [
-      "EXISTENCE",
-      "BINDING",
-      "TLS_ADMISSION",
-      "ROUND_TRIP_EVIDENCE",
-      "PROMOTION"
-    ],
-    "gate_states_do_not_inherit_automatically": true,
-    "db_exists_does_not_imply_db_bound": true,
-    "db_bound_tls_does_not_imply_round_trip": true,
-    "round_trip_does_not_erase_historical_denials": true,
-    "layer_1_locked_until_foundation_gate_pass": true,
-    "staircase_locked_until_foundation_gate_pass": true
-  }
+  "forbidden_patterns": [
+    "decision.outcome = PASS",
+    "decision.outcome = DENY",
+    "deliberation_authorizes_promotion",
+    "deliberation_modifies_canonical_truth",
+    "consensus_inherits_gate_status",
+    "minority_overwritten",
+    "arbitration_before_challenge",
+    "closed_round_rewritten"
+  ]
 }
