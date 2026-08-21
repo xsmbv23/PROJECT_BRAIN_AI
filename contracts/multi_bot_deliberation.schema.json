@@ -1,0 +1,31 @@
+{
+  "contract_id": "MULTI_BOT_DELIBERATION_V1",
+  "required": [
+    "deliberation_id",
+    "proposer",
+    "reviewers",
+    "e2e_segment",
+    "blocker",
+    "proposal",
+    "evidence_refs",
+    "assumptions",
+    "positions",
+    "objections_and_replies",
+    "synthesized_decision",
+    "chosen_owner",
+    "safe_parallel_work",
+    "unresolved_questions",
+    "next_action"
+  ],
+  "allowed_bots": ["BOT1_LEAD", "BOT2_QUANT", "BOT3_EXECUTION"],
+  "allowed_positions": ["AGREE", "CHALLENGE", "CONDITIONAL", "UNKNOWN"],
+  "rules": {
+    "chat_is_not_authority": true,
+    "agreement_is_not_pass": true,
+    "proposal_is_not_evidence": true,
+    "minority_position_is_preserved": true,
+    "historical_decisions_are_immutable": true,
+    "unknown_is_not_agree": true,
+    "promotion_requires_gate_local_evidence": true
+  }
+}
