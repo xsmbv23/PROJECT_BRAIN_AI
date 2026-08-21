@@ -107,9 +107,10 @@ def gate_chain_is_valid(
     A recorded chain is not trusted merely because its gate IDs and hashes are
     unique. Every recorded result must belong to one cycle, remain within the
     same freshness window used for live admission, and be recorded in temporal
-    order. Dependency semantics are checked by ``check_gate_invariant`` when
-    the next gate is evaluated because this function intentionally receives
-    results, not gate definitions.
+    order. Once a gate is FAIL/UNKNOWN/UNREACHED, no later gate may claim PASS;
+    the later gates must remain UNREACHED. Dependency semantics are checked by
+    ``check_gate_invariant`` when the next gate is evaluated because this
+    function intentionally receives results, not gate definitions.
     """
     items = list(history)
     if not items:
@@ -122,6 +123,7 @@ def gate_chain_is_valid(
     hashes: set[str] = set()
     cycle_id = items[0].cycle_id
     previous_created_at: float | None = None
+    blocked_seen = False
     for item in items:
         if item.gate_id in seen:
             return False, f"DUPLICATE_GATE:{item.gate_id}"
@@ -138,6 +140,12 @@ def gate_chain_is_valid(
         age = now_value - item.created_at
         if age < 0 or age > ttl_seconds:
             return False, f"STALE_EVIDENCE:{item.gate_id}"
+
+        if blocked_seen and item.status == "PASS":
+            return False, f"PASS_AFTER_BLOCK:{item.gate_id}"
+        if item.status != "PASS":
+            blocked_seen = True
+
         seen.add(item.gate_id)
         hashes.add(item.evidence_hash)
         previous_created_at = item.created_at
