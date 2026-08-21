@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Headless supervisor: observes canonical allocation and all declared workers."""
+"""Headless supervisor: observes active workers, preserves paused workers, never promotes."""
 from __future__ import annotations
 import hashlib,json,os,time,urllib.request,threading
 from datetime import datetime,timezone
@@ -22,22 +22,28 @@ def probe(url,path):
    if i<RETRIES:time.sleep(DELAY*i)
  return last
 def alloc():
- r=raw('coordination/worker_allocation_v2.json'); o=json.loads(r); return (json.loads(o['content']) if isinstance(o.get('content'),str) else o),hashlib.sha256(r.encode()).hexdigest()
+ r=raw('coordination/worker_allocation_v2.json'); o=json.loads(r); a=(json.loads(o['content']) if isinstance(o.get('content'),str) else o)
+ active=a.get('active_workers') or [w for w,v in a.get('workers',{}).items() if v.get('enabled',True)]
+ return a,active,hashlib.sha256(r.encode()).hexdigest()
 def prior():
  try:return json.loads(raw('coordination/worker_runtime_receipt.json'))
  except Exception:return {}
 def tick():
  global LAST,RECEIPT
- a,ash=alloc(); obs={}
- for wid in a.get('workers',{}):obs[wid]={'health':probe(BOT_URLS.get(wid),'/health'),'result':probe(BOT_URLS.get(wid),'/result')}
- configured=all(BOT_URLS.get(wid) for wid in a.get('workers',{}))
- health_ok=configured and all(x['health'].get('status')=='ALLOCATION_OBSERVED' for x in obs.values())
- result_ok=configured and all(x['result'].get('result')=='PASS' for x in obs.values())
- identity_ok=configured and all(x['result'].get('allocation_id')==a.get('allocation_id') and x['result'].get('cycle_id')==a.get('cycle_id') for x in obs.values())
+ a,active,ash=alloc(); obs={}
+ for wid in a.get('workers',{}):
+  if wid not in active:
+   obs[wid]={'status':'PAUSED','execution_required':False}
+   continue
+  obs[wid]={'health':probe(BOT_URLS.get(wid),'/health'),'result':probe(BOT_URLS.get(wid),'/result')}
+ configured=all(BOT_URLS.get(wid) for wid in active)
+ health_ok=configured and all(obs[wid]['health'].get('status')=='ALLOCATION_OBSERVED' for wid in active)
+ result_ok=configured and all(obs[wid]['result'].get('result')=='PASS' for wid in active)
+ identity_ok=configured and all(obs[wid]['result'].get('allocation_id')==a.get('allocation_id') and obs[wid]['result'].get('cycle_id')==a.get('cycle_id') for wid in active)
  p=prior(); prior_ok=p.get('result')=='PASS' and p.get('allocation_id')==a.get('allocation_id') and p.get('cycle_id')==a.get('cycle_id') and bool(p.get('receipt_sha256'))
  overall='PASS' if health_ok and result_ok and identity_ok and prior_ok else 'HOLD'; now=datetime.now(timezone.utc).isoformat()
- r={'schema':'headless-reconciliation-receipt/v4','receipt_type':'WORKER_RECONCILIATION','issued_at':now,'allocation_id':a.get('allocation_id'),'cycle_id':a.get('cycle_id'),'allocation_sha256':ash,'workers':obs,'checks':{'declared_workers_configured':configured,'health':health_ok,'results':result_ok,'allocation_identity':identity_ok,'prior_receipt_anchor':prior_ok},'result':overall,'next_action':'BOT1_RECONCILE_AND_ALLOCATE_NEXT' if overall=='PASS' else 'HOLD_AND_DIAGNOSE_WORKER_PATH','canonical_mutation':'BOT1_ONLY','promotion':'DENY','chat_session_execution':'CLOSED','execution_authority':'HEADLESS_WORKER'}
- r['receipt_sha256']=hashlib.sha256(json.dumps(r,sort_keys=True,separators=(',',':')).encode()).hexdigest(); RECEIPT=r; LAST={'schema':'headless-orchestrator/v5','observed_at':now,'allocation_id':a.get('allocation_id'),'cycle_id':a.get('cycle_id'),'workers':obs,'health_status':'PASS' if health_ok else 'HOLD','result_status':overall,'next_action':r['next_action'],'promotion':'DENY'}; print(json.dumps(LAST,sort_keys=True),flush=True)
+ r={'schema':'headless-reconciliation-receipt/v5','receipt_type':'WORKER_RECONCILIATION','issued_at':now,'allocation_id':a.get('allocation_id'),'cycle_id':a.get('cycle_id'),'active_workers':active,'workers':obs,'checks':{'active_workers_configured':configured,'health':health_ok,'results':result_ok,'allocation_identity':identity_ok,'prior_receipt_anchor':prior_ok},'result':overall,'next_action':'BOT1_RECONCILE_AND_ALLOCATE_NEXT' if overall=='PASS' else 'HOLD_AND_DIAGNOSE_WORKER_PATH','canonical_mutation':'BOT1_ONLY','promotion':'DENY','chat_session_execution':'CLOSED','execution_authority':'HEADLESS_WORKER'}
+ r['receipt_sha256']=hashlib.sha256(json.dumps(r,sort_keys=True,separators=(',',':')).encode()).hexdigest(); RECEIPT=r; LAST={'schema':'headless-orchestrator/v6','observed_at':now,'allocation_id':a.get('allocation_id'),'cycle_id':a.get('cycle_id'),'active_workers':active,'workers':obs,'health_status':'PASS' if health_ok else 'HOLD','result_status':overall,'next_action':r['next_action'],'promotion':'DENY'}; print(json.dumps(LAST,sort_keys=True),flush=True)
 class H(BaseHTTPRequestHandler):
  def do_GET(self):
   if self.path in ('/health','/receipt'):
