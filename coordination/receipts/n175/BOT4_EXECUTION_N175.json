@@ -3,7 +3,7 @@
   "worker": "BOT4_EXECUTION",
   "allocation_id": "ALLOC-S1-VERIFIER-001",
   "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
-  "observed_at": "2026-08-21T15:50:13.653015+00:00",
+  "observed_at": "2026-08-21T16:11:29.841436+00:00",
   "result": "PASS",
   "promotion": "DENY",
   "canonical_mutation": "FORBIDDEN",
