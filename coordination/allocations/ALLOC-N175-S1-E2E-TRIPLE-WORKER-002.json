@@ -1,0 +1,39 @@
+{
+  "schema":"bot-worker-allocation/v2",
+  "allocation_id":"ALLOC-N175-S1-E2E-TRIPLE-WORKER-002",
+  "cycle_id":"BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+  "phase":"DATA_ADMISSION",
+  "issued_by":"BOT1_LEAD",
+  "authority":"BOT1_ONLY",
+  "objective":"Close S1 evidence gaps and independently verify E2E execution without forensic promotion.",
+  "parallel":true,
+  "shared_mutation":"FORBIDDEN",
+  "canonical_state_mutation":"BOT1_ONLY",
+  "promotion":"DENY",
+  "source_of_truth":"state/next_action.json",
+  "workers":{
+    "BOT2_QUANT":{
+      "department":"Quant/Data/Adversarial",
+      "action":"Independently audit S1 raw capture coverage, date completeness, quantitative consistency, raw-byte versus semantic hash semantics, and unresolved conflict evidence. Identify the smallest admissible evidence needed to close each quantitative predicate.",
+      "deliverable":"persistent worker result with evidence_refs, predicate-by-predicate status, minority/challenge notes, and recommended next execution step",
+      "write_scope":"coordination/inbox/BOT2_QUANT_N175_S1_E2E_002.json",
+      "forbidden":["canonical state mutation","forensic promotion","synthetic production data"]
+    },
+    "BOT3_REALITY":{
+      "department":"Independent Reality/Source/Provenance",
+      "action":"Independently verify source provenance and acquisition-channel evidence for S1. Search persistent repo evidence for lawful acquisition reference, authorized/manual capture, durable archive/export, timestamps, provenance and reproducibility. If absent, return explicit evidence-gap/HOLD rather than inference.",
+      "deliverable":"persistent worker result with source/provenance evidence_refs, predicate-by-predicate status, conflicts/minority notes, and safe next action",
+      "write_scope":"coordination/inbox/BOT3_REALITY_N175_S1_E2E_002.json",
+      "forbidden":["canonical state mutation","forensic promotion","inventing authorization"]
+    },
+    "BOT4_EXECUTION":{
+      "department":"Independent Execution/Deployment/Operations",
+      "action":"Independently verify current worker/deployment/runtime execution path, receipt freshness, allocation/lease identity, deployment binding and replay/stale protection. Attempt runtime evidence where authorized; if infrastructure context is unavailable, record the exact blocker and evidence gap.",
+      "deliverable":"persistent worker result with runtime/deployment evidence_refs, execution status, receipt lineage and safe next action",
+      "write_scope":"coordination/inbox/BOT4_EXECUTION_N175_S1_E2E_002.json",
+      "forbidden":["canonical state mutation","forensic promotion","guessing runtime state"]
+    }
+  },
+  "completion_rule":"All three workers must return persistent results bound to this allocation_id/cycle_id before reconciliation. Missing, stale or conflicting results cause HOLD/ESCALATE. Worker PASS is local only and cannot promote S1.",
+  "next_reconciliation":"BOT1_LEAD reconciles freshness, identity, evidence completeness, conflicts and authority boundaries, then reads canonical next_action.json before continuation."
+}
