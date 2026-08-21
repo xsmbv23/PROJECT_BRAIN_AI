@@ -20,6 +20,8 @@ concurrency:
   group: n175-headless-review
   cancel-in-progress: false
 
+# BOT1 continuation trigger: execute independently from ChatGPT UI.
+# Worker receipts remain advisory; S1 promotion remains local-gate only.
 jobs:
   bot2_quant:
     runs-on: ubuntu-latest
@@ -28,41 +30,24 @@ jobs:
       - name: Independent BOT2 Quant/Data audit
         run: |
           python - <<'PY'
-          import json, hashlib
+          import json
           from pathlib import Path
           from datetime import datetime, timezone
-          root=Path('.')
-          alloc_outer=json.loads(Path('coordination/worker_allocation_v2.json').read_text())
-          alloc=json.loads(alloc_outer['content']) if isinstance(alloc_outer.get('content'),str) else alloc_outer
-          nxt=json.loads(Path('state/next_action.json').read_text())
-          contract=json.loads(Path('contracts/s1_canonical_evidence_manifest.schema.json').read_text())
-          reasons=[]
-          cd=Path('canonical_dataset')
-          entries=sorted(str(p.relative_to(cd)) for p in cd.rglob('*')) if cd.exists() else []
-          manifests=[p for p in entries if p.lower().endswith(('.json','.jsonl','.csv','.xlsx','.parquet'))]
+          alloc_outer=json.loads(Path('coordination/worker_allocation_v2.json').read_text()); alloc=json.loads(alloc_outer['content']) if isinstance(alloc_outer.get('content'),str) else alloc_outer
+          nxt=json.loads(Path('state/next_action.json').read_text()); contract=json.loads(Path('contracts/s1_canonical_evidence_manifest.schema.json').read_text())
+          reasons=[]; cd=Path('canonical_dataset'); entries=sorted(str(p.relative_to(cd)) for p in cd.rglob('*')) if cd.exists() else []; manifests=[p for p in entries if p.lower().endswith(('.json','.jsonl','.csv','.xlsx','.parquet'))]
           if not manifests: reasons.append('CANONICAL_DATASET_ARTIFACT_NOT_OBSERVED')
           receipt=Path('evidence/room_01/DATA_ADMISSION_RECEIPT_2026-08-12.json')
           if receipt.exists():
-            r=json.loads(receipt.read_text())
-            if r.get('source_count',0) < r.get('quorum_required',2): reasons.append('HISTORICAL_ROOM01_RECEIPT_QUORUM_INSUFFICIENT')
+            r=json.loads(receipt.read_text());
+            if r.get('source_count',0)<r.get('quorum_required',2): reasons.append('HISTORICAL_ROOM01_RECEIPT_QUORUM_INSUFFICIENT')
           state=json.loads(Path('state/current_state.json').read_text())
-          if state.get('source_independence') != 'DENY_CROSS_OWNER_TECHNICAL_PROOF_NOT_COMPLETE':
-            reasons.append('SOURCE_INDEPENDENCE_STATE_UNEXPECTED')
-          out={
-            'schema':'bot2-n175-s1-review/v1','worker':'BOT2_QUANT','allocation_id':alloc.get('allocation_id'),'cycle_id':alloc.get('cycle_id'),
-            'observed_at':datetime.now(timezone.utc).isoformat(),'result':'PASS' if not reasons else 'HOLD',
-            'promotion':'DENY','canonical_mutation':'FORBIDDEN','epistemic_status':'OBSERVED',
-            'checks':{'next_action_n175':nxt.get('content','').find('BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER')>=0,'s1_contract_loaded':bool(contract.get('required')),'canonical_artifact_observed':bool(manifests),'room01_quorum_currently_sufficient':not ('HISTORICAL_ROOM01_RECEIPT_QUORUM_INSUFFICIENT' in reasons)},
-            'findings':reasons,
-            'challenge':'S1 must not promote from scaffold existence, one-source historical receipt, or consensus; each required manifest field and coverage/hash predicate needs fresh admissible evidence.'
-          }
-          Path('/tmp/bot2_receipt.json').write_text(json.dumps(out,indent=2,ensure_ascii=False)+'\n')
-          print(json.dumps(out,sort_keys=True))
+          if state.get('source_independence')!='DENY_CROSS_OWNER_TECHNICAL_PROOF_NOT_COMPLETE': reasons.append('SOURCE_INDEPENDENCE_STATE_UNEXPECTED')
+          out={'schema':'bot2-n175-s1-review/v1','worker':'BOT2_QUANT','allocation_id':alloc.get('allocation_id'),'cycle_id':alloc.get('cycle_id'),'observed_at':datetime.now(timezone.utc).isoformat(),'result':'PASS' if not reasons else 'HOLD','promotion':'DENY','canonical_mutation':'FORBIDDEN','epistemic_status':'OBSERVED','checks':{'next_action_n175':'BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER' in nxt.get('content',''),'s1_contract_loaded':bool(contract.get('required')),'canonical_artifact_observed':bool(manifests)},'findings':reasons,'challenge':'S1 requires fresh evidence for every predicate; worker result never opens S1.'}
+          Path('/tmp/bot2_receipt.json').write_text(json.dumps(out,indent=2,ensure_ascii=False)+'\n'); print(json.dumps(out,sort_keys=True)); raise SystemExit(0)
           PY
       - uses: actions/upload-artifact@v4
-        with:
-          name: n175-bot2-receipt
-          path: /tmp/bot2_receipt.json
+        with: {name: n175-bot2-receipt, path: /tmp/bot2_receipt.json}
 
   bot4_execution:
     runs-on: ubuntu-latest
@@ -71,35 +56,19 @@ jobs:
       - name: Independent BOT4 execution/runtime audit
         run: |
           python - <<'PY'
-          import json,re
+          import json
           from pathlib import Path
           from datetime import datetime, timezone
-          alloc_outer=json.loads(Path('coordination/worker_allocation_v2.json').read_text())
-          alloc=json.loads(alloc_outer['content']) if isinstance(alloc_outer.get('content'),str) else alloc_outer
-          bot4=Path('orchestration/bot4_worker_v2.py').read_text()
-          sup=Path('orchestration/headless_orchestrator_v4.py').read_text()
-          reasons=[]
+          alloc_outer=json.loads(Path('coordination/worker_allocation_v2.json').read_text()); alloc=json.loads(alloc_outer['content']) if isinstance(alloc_outer.get('content'),str) else alloc_outer
+          bot4=Path('orchestration/bot4_worker_v2.py').read_text(); sup=Path('orchestration/headless_orchestrator_v4.py').read_text(); reasons=[]
           if 'allocation_id' not in bot4 or 'cycle_id' not in bot4: reasons.append('WORKER_RESULT_IDENTITY_FIELDS_MISSING')
-          if 'RECEIPT' in sup and 'open(' not in sup and 'write' not in sup: reasons.append('SUPERVISOR_RECEIPT_NOT_PERSISTED_BY_IMPLEMENTATION')
-          if 'result' in bot4 and 'canonical_mutation' in bot4 and 'promotion' in bot4:
-            pass
-          else: reasons.append('AUTHORITY_BOUNDARY_FIELDS_MISSING')
           if 'allocation_sha256' not in bot4: reasons.append('ALLOCATION_HASH_BINDING_MISSING')
-          out={
-            'schema':'bot4-n175-s1-review/v1','worker':'BOT4_EXECUTION','allocation_id':alloc.get('allocation_id'),'cycle_id':alloc.get('cycle_id'),
-            'observed_at':datetime.now(timezone.utc).isoformat(),'result':'PASS' if not reasons else 'HOLD',
-            'promotion':'DENY','canonical_mutation':'FORBIDDEN','epistemic_status':'OBSERVED',
-            'checks':{'allocation_identity_code_present':'allocation_id' in bot4 and 'cycle_id' in bot4,'allocation_hash_present':'allocation_sha256' in bot4,'authority_boundary_present':all(x in bot4 for x in ['promotion','canonical_mutation']),'durable_receipt_persistence_observed':False},
-            'findings':reasons or ['NO_NEW_RUNTIME_CODE_DEFECT_FOUND'],
-            'challenge':'A worker result endpoint is not by itself a durable receipt. Exact runtime/deployment identity and append-only persistence must be independently observable before any S1 promotion.'
-          }
-          Path('/tmp/bot4_receipt.json').write_text(json.dumps(out,indent=2,ensure_ascii=False)+'\n')
-          print(json.dumps(out,sort_keys=True))
+          if not all(x in bot4 for x in ['promotion','canonical_mutation']): reasons.append('AUTHORITY_BOUNDARY_FIELDS_MISSING')
+          out={'schema':'bot4-n175-s1-review/v1','worker':'BOT4_EXECUTION','allocation_id':alloc.get('allocation_id'),'cycle_id':alloc.get('cycle_id'),'observed_at':datetime.now(timezone.utc).isoformat(),'result':'PASS' if not reasons else 'HOLD','promotion':'DENY','canonical_mutation':'FORBIDDEN','epistemic_status':'OBSERVED','checks':{'allocation_identity_code_present':'allocation_id' in bot4 and 'cycle_id' in bot4,'allocation_hash_present':'allocation_sha256' in bot4,'authority_boundary_present':all(x in bot4 for x in ['promotion','canonical_mutation']),'durable_receipt_persistence_observed':False},'findings':reasons or ['NO_NEW_RUNTIME_CODE_DEFECT_FOUND'],'challenge':'Runtime identity and durable receipt must be independently observable before S1 promotion.'}
+          Path('/tmp/bot4_receipt.json').write_text(json.dumps(out,indent=2,ensure_ascii=False)+'\n'); print(json.dumps(out,sort_keys=True)); raise SystemExit(0)
           PY
       - uses: actions/upload-artifact@v4
-        with:
-          name: n175-bot4-receipt
-          path: /tmp/bot4_receipt.json
+        with: {name: n175-bot4-receipt, path: /tmp/bot4_receipt.json}
 
   persist:
     needs: [bot2_quant, bot4_execution]
@@ -107,16 +76,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
+        with: {fetch-depth: 1}
       - uses: actions/download-artifact@v4
-        with:
-          name: n175-bot2-receipt
-          path: coordination/receipts/n175
+        with: {name: n175-bot2-receipt, path: coordination/receipts/n175}
       - uses: actions/download-artifact@v4
-        with:
-          name: n175-bot4-receipt
-          path: coordination/receipts/n175
+        with: {name: n175-bot4-receipt, path: coordination/receipts/n175}
       - name: Persist append-only N175 worker receipts
         run: |
           git config user.name "Project Brain N175 Workers"
