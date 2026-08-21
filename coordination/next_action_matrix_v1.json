@@ -1,0 +1,19 @@
+{
+  "schema":"bot-next-action-matrix/v1",
+  "cycle_id":"CYCLE-BOOTSTRAP-001",
+  "phase":"CROSS_REVIEW_BEFORE_ALLOCATION",
+  "rule":"BOT1 allocates implementation only after persistent cross-review is reconciled; no Bot may self-assign canonical work outside its owner_scope.",
+  "departments":{
+    "BOT2_QUANT":{"next_action":"challenge BOT3 freshness/lineage and identify quantitative/data loopholes; persist reply"},
+    "BOT3_EXECUTION":{"next_action":"challenge BOT2 admission-receipt design and identify implementation/runtime loopholes; persist reply"},
+    "BOT4_EXECUTION":{"next_action":"challenge receipt replay protection using exact run/deployment/runtime identity and concurrency; persist only new findings"}
+  },
+  "BOT1_LEAD":{"next_action":"wait for persistent BOT2/BOT3/BOT4 replies, reconcile conflicts/minority views, then issue department-level implementation assignments"},
+  "allocation_policy":{
+    "parallel":true,
+    "shared_mutation":"forbidden unless explicitly assigned",
+    "state_next_action_write":"BOT1-controlled canonical write",
+    "child_delegation":"allowed after parent assignment",
+    "promotion":"DENY"
+  }
+}
