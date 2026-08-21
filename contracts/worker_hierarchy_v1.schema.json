@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Project Brain AI Worker Hierarchy V1",
+  "type": "object",
+  "required": ["worker_id", "parent_worker_id", "department", "generation", "capabilities", "delegated_scope", "bootstrap_ref", "status"],
+  "properties": {
+    "worker_id": {"type": "string", "minLength": 1},
+    "parent_worker_id": {"type": ["string", "null"]},
+    "department": {"type": "string", "minLength": 1},
+    "generation": {"type": "integer", "minimum": 0},
+    "capabilities": {"type": "array", "items": {"type": "string"}},
+    "delegated_scope": {"type": "array", "items": {"type": "string"}},
+    "allocation_id": {"type": ["string", "null"]},
+    "lease": {"type": ["string", "null"]},
+    "bootstrap_ref": {"type": "string", "minLength": 1},
+    "receipt_path": {"type": ["string", "null"]},
+    "runtime_identity": {"type": ["string", "null"]},
+    "status": {"type": "string", "enum": ["ACTIVE", "IDLE", "STALE", "RETIRED", "RECOVERING"]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"generation": {"const": 0}}},
+      "then": {"properties": {"parent_worker_id": {"const": null}}}
+    }
+  ],
+  "x-authority-invariants": [
+    "child authority must be a subset of parent delegated authority",
+    "worker hierarchy cannot mutate canonical forensic state",
+    "worker hierarchy cannot perform forensic promotion",
+    "replacement workers require fresh execution evidence",
+    "child workers cannot delegate authority they do not possess"
+  ]
+}
