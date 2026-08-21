@@ -1,0 +1,35 @@
+{
+  "contract_id": "S1_CANONICAL_EVIDENCE_V1",
+  "purpose": "admit only real evidence-backed canonical data into S2",
+  "required": [
+    "source_provenance",
+    "raw_byte_sha256",
+    "date_start",
+    "date_end",
+    "expected_consecutive_days",
+    "observed_consecutive_days",
+    "coverage_ratio",
+    "unresolved_conflicts",
+    "admission_receipt",
+    "frozen_canonical_sha256"
+  ],
+  "admission_conditions": {
+    "source_provenance": "REAL_AND_TRACEABLE",
+    "raw_byte_sha256": "PRESENT_AND_VERIFIABLE",
+    "coverage_ratio": 1.0,
+    "unresolved_conflicts": 0,
+    "admission_receipt": "REAL_OBSERVABLE_RECEIPT",
+    "frozen_canonical_sha256": "PRESENT_AND_VERIFIABLE",
+    "synthetic_data": false
+  },
+  "failure_policy": "DEFAULT_DENY",
+  "unknown_policy": "NOT_PASS",
+  "pass_inheritance": false,
+  "correction_policy": "NEW_VERSION_NEW_HASH_NEW_ADMISSION_EVENT",
+  "downstream": {
+    "s1_real_data": "REQUIRED",
+    "s2_valid_research": "LOCKED_UNTIL_S1_PASS",
+    "s3_valid_backtest": "LOCKED_UNTIL_S2_PASS"
+  },
+  "credential_policy": "NO_CREDENTIALS_IN_MANIFEST"
+}
