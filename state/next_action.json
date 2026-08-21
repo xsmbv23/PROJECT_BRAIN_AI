@@ -1,16 +1,1 @@
-{
-  "action_id":"BRAIN-N167_FRESH-APP-LOG-AND-CURRENT-COMMIT-VERIFICATION",
-  "title":"Obtain fresh exact-current application/workflow evidence and close the runtime-to-S1 bridge safely",
-  "status":"READY",
-  "phase":"DATA_ADMISSION",
-  "mode":"DATA_ADMISSION",
-  "action_space":1,
-  "promotion":"PASS_TO_ROOM_01_ONLY;CANONICAL_QUORUM_DENY",
-  "layer_1":"ROOM_01_DATA_ADMISSION",
-  "staircase":"LOCKED",
-  "previous":"BRAIN-N166_CURRENT-RUNTIME-FRESH-EVIDENCE-AND-S1-BRIDGE",
-  "scope":["obtain fresh observable application logs or workflow receipts for exact current Quant Engine commit eefed3c11077d6ee759c7be8b22bd88eaf0dff0c","verify current-commit foundation/access/security/database/S1-contract checks","record exact evidence identities and timestamps","retain the measured 26,886,144-byte memory observation against the 320 MiB guard","continue S1 canonical evidence admission from real durable provenance","prepare S2/S3 contracts without opening downstream gates"],
-  "completion_gate":"Fresh exact-current application/workflow evidence is independently observable and reconciled, while S1 remains blocked unless the full canonical evidence manifest and quorum are proven.",
-  "constraints":["ONE_FORENSIC_FSM","PASS_IS_LOCAL","PASS_IS_PREREQUISITE_ONLY","NO_PASS_INHERITANCE","UNKNOWN_IS_NOT_PASS","DEFAULT_DENY","OWN_GATE_EVIDENCE_REQUIRED","FRESH_EVIDENCE_REQUIRED_FOR_PROMOTION","FORENSIC_IMMUTABILITY","NO_SYNTHETIC_PRODUCTION_DATA","320MB_RENDER_GUARD","CHAT_IS_INTERFACE_ONLY","BRAIN_IS_GOVERNANCE_CONTROL_PLANE","LAYER_1_ROOM_01_ONLY","ROOM_02_LOCKED","STAIRCASE_LOCKED","RAW_HASH_AND_SEMANTIC_HASH_HAVE_DISTINCT_MEANINGS"],
-  "successor_instruction":"Use only fresh exact-current logs/workflow receipts and real durable data provenance. Deploy liveness and memory metrics do not by themselves prove runtime PASS or S1 admission."
-}
+{"action_id":"BRAIN-N168_RUNTIME-RECONCILIATION-AFTER-INVARIANT-REPAIR","title":"Reconcile the actual live Render runtime after invariant repair and capture fresh evidence","status":"READY","phase":"DATA_ADMISSION","mode":"DATA_ADMISSION","action_space":1,"promotion":"PASS_TO_ROOM_01_ONLY;CANONICAL_QUORUM_DENY","layer_1":"ROOM_01_DATA_ADMISSION","staircase":"LOCKED","previous":"BRAIN-N167_FRESH-APP-LOG-AND-CURRENT-COMMIT-VERIFICATION","scope":["observe the actual live Render deployment, not a stale repository projection","reconcile current_state with the live deployment identity","capture fresh application evidence from the actual live commit","verify foundation/access/security/database/S1-contract checks on that exact runtime","retain S1 NOT_PROVEN until real canonical evidence exists","record memory evidence against the 320MiB guard"],"completion_gate":"Actual live Render deployment identity and fresh runtime evidence are reconciled; no stale commit is treated as current; S1 remains blocked and downstream gates remain locked.","constraints":["ONE_FORENSIC_FSM","PASS_IS_LOCAL","PASS_IS_PREREQUISITE_ONLY","NO_PASS_INHERITANCE","UNKNOWN_IS_NOT_PASS","DEFAULT_DENY","OWN_GATE_EVIDENCE_REQUIRED","FRESH_EVIDENCE_REQUIRED_FOR_PROMOTION","FORENSIC_IMMUTABILITY","NO_SYNTHETIC_PRODUCTION_DATA","320MB_RENDER_GUARD","CHAT_IS_INTERFACE_ONLY","BRAIN_IS_GOVERNANCE_CONTROL_PLANE","LAYER_1_ROOM_01_ONLY","ROOM_02_LOCKED","STAIRCASE_LOCKED","RAW_HASH_AND_SEMANTIC_HASH_HAVE_DISTINCT_MEANINGS"],"successor_instruction":"Render deploy liveness alone is not PASS. First reconcile the actual live commit/deploy, then obtain fresh runtime logs. Never inherit evidence from eefed3c or any older runtime."}
