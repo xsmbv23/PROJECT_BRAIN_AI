@@ -10,18 +10,13 @@ from __future__ import annotations
 from typing import Any
 
 
-REQUIRED_PROVENANCE = {
-    "source_identity",
-    "observation_timestamp",
-    "observation_origin",
-}
+REQUIRED_PROVENANCE = {"source_identity", "observation_timestamp", "observation_origin"}
 FOR_DERIVED = {"upstream_evidence_ids", "derivation_contract"}
 FOR_RUNTIME = {"runtime_identity", "gate_evidence_id"}
 FOR_CANONICAL = {"canonical_payload_sha256"}
 
 
 def _canonical_or_legacy(evidence: dict[str, Any], canonical: str, legacy: str) -> tuple[str | None, bool]:
-    """Return the canonical value, or a legacy value only for explicit fixtures."""
     if evidence.get(canonical):
         return evidence[canonical], False
     if evidence.get(legacy) and evidence.get("legacy_fixture") is True:
@@ -30,7 +25,6 @@ def _canonical_or_legacy(evidence: dict[str, Any], canonical: str, legacy: str) 
 
 
 def validate_evidence(evidence: dict[str, Any]) -> dict[str, Any]:
-    """Return PASS/DENY without mutating the supplied evidence."""
     missing = sorted(k for k in REQUIRED_PROVENANCE if not evidence.get(k))
     if missing:
         return {"status": "DENY", "reason": "REQUIRED_PROVENANCE_MISSING", "missing": missing}
@@ -50,18 +44,19 @@ def validate_evidence(evidence: dict[str, Any]) -> dict[str, Any]:
     if evidence.get("semantic_quorum", False) and not semantic_fp:
         return {"status": "DENY", "reason": "SEMANTIC_FINGERPRINT_MISSING"}
 
-    # Semantic fingerprints are meaningful only after the source result has
-    # been validated against the canonical domain. This prevents arbitrary
-    # page numbers, advertising, navigation, or other numeric page content
-    # from being treated as semantic truth merely because it was hashed.
-    if semantic_fp and not evidence.get("validated_canonical_domain", False):
+    # Detect raw/semantic identity conflation before any downstream semantic
+    # admission check. This gives the most specific forensic failure reason.
+    if raw_sha and semantic_fp and raw_sha == semantic_fp and evidence.get("hashes_explicitly_distinct") is not True:
+        return {"status": "DENY", "reason": "RAW_AND_SEMANTIC_HASH_CONFLATED"}
+
+    # A semantic fingerprint may exist as a lineage artifact without asserting
+    # canonical truth. Domain validation is required only when the evidence
+    # explicitly asserts semantic truth/admission.
+    if semantic_fp and evidence.get("semantic_truth_asserted", False) and not evidence.get("validated_canonical_domain", False):
         return {"status": "DENY", "reason": "SEMANTIC_HASH_REQUIRES_VALIDATED_DOMAIN"}
 
     if (raw_legacy or semantic_legacy) and evidence.get("legacy_fixture") is not True:
         return {"status": "DENY", "reason": "LEGACY_ALIAS_REQUIRES_EXPLICIT_FIXTURE"}
-
-    if raw_sha and semantic_fp and raw_sha == semantic_fp and evidence.get("hashes_explicitly_distinct") is not True:
-        return {"status": "DENY", "reason": "RAW_AND_SEMANTIC_HASH_CONFLATED"}
 
     if evidence.get("derived", False):
         missing_derived = sorted(k for k in FOR_DERIVED if not evidence.get(k))
