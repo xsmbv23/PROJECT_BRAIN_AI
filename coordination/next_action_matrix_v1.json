@@ -1,13 +1,13 @@
 {
   "schema":"bot-next-action-matrix/v2",
-  "cycle_id":"BRAIN-N173_FRESH-PROBE-RECEIPT-AND-S1-BRIDGE",
-  "phase":"WORKER_ALLOCATION",
+  "cycle_id":"BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+  "phase":"S1_REAL_DATA_VERIFICATION",
   "rule":"BOT1 allocates implementation only from the exact canonical next action; no worker may self-assign canonical work outside its owner scope.",
   "departments":{
-    "BOT2_QUANT":{"next_action":"verify fresh S1 probe receipt, cross-owner independence, acquisition provenance, and quantitative/data-integrity loopholes; persist one result"},
-    "BOT4_EXECUTION":{"next_action":"verify exact-current deployment/runtime identity, lawful acquisition path, lease/replay/stale protections, and execution loopholes; persist one result"}
+    "BOT2_QUANT":{"next_action":"independently audit S1 provenance, acquisition lineage, date coverage, coverage_ratio, raw/semantic hash semantics, unresolved conflicts and source-independence; persist one challenge/result"},
+    "BOT4_EXECUTION":{"next_action":"independently audit S1 verifier execution path, exact runtime/deployment identity, receipt freshness, replay/stale protections, persistence and source-admission runtime binding; persist one challenge/result"}
   },
-  "BOT1_LEAD":{"next_action":"reconcile BOT2/BOT4 persistent results, preserve conflicts/minority views, then issue the next department allocation"},
+  "BOT1_LEAD":{"next_action":"reconcile N175 persistent BOT2/BOT4 results with the local S1 verifier; preserve conflicts/minority views; choose the next evidence-valid action"},
   "allocation_policy":{
     "parallel":true,
     "shared_mutation":"forbidden unless explicitly assigned",
