@@ -1,0 +1,25 @@
+{
+  "schema":"bot3-reactivation/v1",
+  "action_id":"BRAIN-N174-BOT3-REACTIVATION",
+  "owner":"BOT1_LEAD",
+  "target":"BOT3_EXECUTION",
+  "status":"READY",
+  "objective":"Reintegrate Bot3 without reopening Bot2/Bot4 execution loops.",
+  "gates":{
+    "bot2":"HANDOFF_COMPLETE_DO_NOT_REACTIVATE",
+    "bot4":"HANDOFF_COMPLETE_DO_NOT_REACTIVATE",
+    "bot3":"REACTIVATION_REQUIRED"
+  },
+  "steps":[
+    "read persistent coordination state and existing Bot3 doctrine/receipts",
+    "detect whether Bot3 has a persistent headless worker or only a ChatGPT session",
+    "if headless path exists, health-check it and issue one Bot3 allocation",
+    "if no headless path exists, prepare a minimal bootstrap/handoff packet for the next Bot3 session",
+    "preserve Bot3 minority/reasoning role and forbid forensic promotion authority",
+    "record exactly one reactivation receipt",
+    "reconcile Bot3 result at BOT1",
+    "advance next_action only after Bot3 receipt is observed"
+  ],
+  "loop_breaker":"BOT2/BOT4 are terminal for this coordination cycle once HANDOFF_READY receipts are present; no reallocation, wake, or repeated health work is permitted unless a new failure receipt exists.",
+  "promotion":"DENY"
+}
