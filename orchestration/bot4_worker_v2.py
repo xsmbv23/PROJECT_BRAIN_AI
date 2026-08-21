@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Headless Bot4 V2 worker bound to allocation V2."""
+"""Headless Bot4 V2 worker: compact-context-first Execution/Runtime reviewer."""
 from __future__ import annotations
 import hashlib,json,os,time,urllib.request,threading
 from datetime import datetime,timezone
@@ -10,13 +10,14 @@ def get(path):
 def poll():
  global LAST,RESULT
  try:
+  ctx_raw=get('coordination/BOT_OPERATING_CONTEXT_V1.json'); ctx=json.loads(ctx_raw)
   raw=get('coordination/worker_allocation_v2.json'); sha=hashlib.sha256(raw.encode()).hexdigest(); outer=json.loads(raw); alloc=json.loads(outer['content']) if isinstance(outer.get('content'),str) else outer; task=alloc.get('workers',{}).get('BOT4_EXECUTION',{}); nxt=json.loads(get('state/next_action.json'))
-  LAST={"status":"ALLOCATION_OBSERVED","worker":"BOT4_EXECUTION","allocation_id":alloc.get('allocation_id'),"cycle_id":alloc.get('cycle_id'),"task":task.get('action'),"allocation_sha256":sha,"authority":"BOT1_ONLY","promotion":"DENY","canonical_mutation":"FORBIDDEN","observed_at":datetime.now(timezone.utc).isoformat()}
-  checks={"allocation_present":bool(alloc.get('allocation_id')),"task_present":bool(task.get('action')),"cycle_present":bool(alloc.get('cycle_id')),"canonical_next_action_present":bool(nxt)}
-  RESULT={"schema":"headless-worker-result/v2","result_type":"EXECUTION_RECEIPT","worker":"BOT4_EXECUTION","allocation_id":alloc.get('allocation_id'),"cycle_id":alloc.get('cycle_id'),"allocation_sha256":sha,"checks":checks,"result":"PASS" if all(checks.values()) else "HOLD","promotion":"DENY","canonical_mutation":"FORBIDDEN","observed_at":datetime.now(timezone.utc).isoformat()}
+  LAST={"status":"ALLOCATION_OBSERVED","worker":"BOT4_EXECUTION","context":"COMPACT_CONTEXT_V1","allocation_id":alloc.get('allocation_id'),"cycle_id":alloc.get('cycle_id'),"task":task.get('action'),"allocation_sha256":sha,"authority":"BOT1_ONLY","promotion":"DENY","canonical_mutation":"FORBIDDEN","observed_at":datetime.now(timezone.utc).isoformat()}
+  checks={"context_present":bool(ctx.get('schema')),"allocation_present":bool(alloc.get('allocation_id')),"task_present":bool(task.get('action')),"cycle_present":bool(alloc.get('cycle_id')),"canonical_next_action_present":bool(nxt),"context_role_match":ctx.get('roles',{}).get('BOT4_EXECUTION','').startswith('Head Independent Reality/Execution')}
+  RESULT={"schema":"headless-worker-result/v3","result_type":"EXECUTION_SYSTEM_AUDIT_RECEIPT","worker":"BOT4_EXECUTION","allocation_id":alloc.get('allocation_id'),"cycle_id":alloc.get('cycle_id'),"allocation_sha256":sha,"checks":checks,"result":"PASS" if all(checks.values()) else "HOLD","promotion":"DENY","canonical_mutation":"FORBIDDEN","context_ref":"coordination/BOT_OPERATING_CONTEXT_V1.json","observed_at":datetime.now(timezone.utc).isoformat()}
   print(json.dumps(RESULT,sort_keys=True),flush=True)
  except Exception as e:
-  RESULT={"schema":"headless-worker-result/v2","result_type":"EXECUTION_RECEIPT","worker":"BOT4_EXECUTION","result":"HOLD","error":type(e).__name__,"promotion":"DENY","canonical_mutation":"FORBIDDEN","observed_at":datetime.now(timezone.utc).isoformat()}; print(json.dumps(RESULT,sort_keys=True),flush=True)
+  RESULT={"schema":"headless-worker-result/v3","result_type":"EXECUTION_SYSTEM_AUDIT_RECEIPT","worker":"BOT4_EXECUTION","result":"HOLD","error":type(e).__name__,"promotion":"DENY","canonical_mutation":"FORBIDDEN","observed_at":datetime.now(timezone.utc).isoformat()}; print(json.dumps(RESULT,sort_keys=True),flush=True)
 class H(BaseHTTPRequestHandler):
  def do_GET(self):
   if self.path in ('/health','/healthz','/') or self.path=='/result':
