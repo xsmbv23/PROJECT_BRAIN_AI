@@ -13,6 +13,9 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "contracts" / "s1_canonical_evidence_manifest.schema.json"
 REQUIRED = {
     "source_provenance",
+    "acquisition_channel",
+    "acquisition_reference",
+    "acquisition_timestamp_utc",
     "artifact_path",
     "raw_artifact_sha256",
     "raw_byte_sha256",
@@ -36,6 +39,11 @@ def verify() -> dict[str, object]:
     assert conditions["coverage_ratio"] == 1.0
     assert conditions["unresolved_conflicts"] == 0
     assert conditions["synthetic_data"] is False
+    assert "AUTOMATED_SOURCE_WITH_EXPLICIT_PERMISSION" in conditions["acquisition_channel"]
+    assert "MANUAL_AUTHORIZED_CAPTURE" in conditions["acquisition_channel"]
+    assert "DURABLE_ARCHIVE_EXPORT" in conditions["acquisition_channel"]
+    assert conditions["acquisition_reference"] == "PRESENT_AND_VERIFIABLE_FOR_CHANNEL"
+    assert conditions["acquisition_timestamp_utc"] == "PRESENT_AND_VERIFIABLE"
     assert data["failure_policy"] == "DEFAULT_DENY"
     assert data["unknown_policy"] == "NOT_PASS"
     assert data["pass_inheritance"] is False
