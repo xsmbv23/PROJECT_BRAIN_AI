@@ -1,0 +1,28 @@
+{
+  "schema":"s1-raw-acquisition-observation/v1",
+  "action_id":"BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+  "observed_at":"2026-08-21T16:00:00+07:00",
+  "source_repository":"xsmbv23/Quant_Engine",
+  "source_status":"OBSERVED_ONLY",
+  "source_id":"ketqua16.net",
+  "observed_business_dates":["2026-08-17","2026-08-18","2026-08-19","2026-08-20","2026-08-21"],
+  "raw_capture_records_observed":7,
+  "http_status_observed":200,
+  "raw_byte_sha256_present":true,
+  "collector_behavior":"captures exact response bytes and hashes before interpretation",
+  "collector_source":"collectors/ketqua16_raw.py",
+  "observed_capture_status":"PARTIAL",
+  "s1_admission":"DENY",
+  "promotion":"DENY",
+  "canonical_mutation":"FORBIDDEN",
+  "evidence_gaps":[
+    "explicit lawful acquisition permission/reference for automated channel is not present in the observed receipt schema",
+    "complete required consecutive-date range is not established",
+    "coverage_ratio=1.0 is not established",
+    "zero unresolved conflicts is not established",
+    "fresh admission receipt is not established",
+    "frozen canonical SHA-256 is not established",
+    "canonical_dataset artifact is not admitted"
+  ],
+  "next_action":"Continue S1 acquisition/evidence closure; do not promote from raw capture existence alone."
+}
