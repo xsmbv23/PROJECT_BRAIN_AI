@@ -1,0 +1,22 @@
+{
+  "schema": "bot2-n175-s1-review/v1",
+  "worker": "BOT2_QUANT",
+  "allocation_id": "ALLOC-S1-VERIFIER-001",
+  "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+  "observed_at": "2026-08-21T15:50:13.417824+00:00",
+  "result": "HOLD",
+  "promotion": "DENY",
+  "canonical_mutation": "FORBIDDEN",
+  "epistemic_status": "OBSERVED",
+  "checks": {
+    "next_action_n175": true,
+    "s1_contract_loaded": true,
+    "canonical_artifact_observed": false,
+    "room01_quorum_currently_sufficient": false
+  },
+  "findings": [
+    "CANONICAL_DATASET_ARTIFACT_NOT_OBSERVED",
+    "HISTORICAL_ROOM01_RECEIPT_QUORUM_INSUFFICIENT"
+  ],
+  "challenge": "S1 must not promote from scaffold existence, one-source historical receipt, or consensus; each required manifest field and coverage/hash predicate needs fresh admissible evidence."
+}
