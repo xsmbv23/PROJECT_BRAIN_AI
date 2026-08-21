@@ -1,0 +1,13 @@
+{
+  "schema":"forensic-worker-task/v2",
+  "allocation_id":"ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
+  "cycle_id":"BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+  "task_id":"TASK-N175-BOT2-S1-INDEPENDENT-REVIEW-001",
+  "worker_id":"BOT2_QUANT",
+  "role":"Quant/Data",
+  "task":"Independently challenge S1 provenance, acquisition lineage, consecutive coverage, coverage_ratio_1.0, raw-byte SHA-256/hash semantics, conflicts and source-independence. Preserve minority/blocking findings. Produce a fresh persistent challenge/result receipt only; do not promote.",
+  "deliverable":"fresh persistent S1 challenge/result receipt",
+  "write_scope":"coordination/inbox/BOT2_QUANT.jsonl",
+  "authority":{"forensic_gate":"NONE","promotion":"DENY","canonical_state_mutation":"FORBIDDEN"},
+  "lease":{"state":"PENDING","attempt":1}
+}
