@@ -99,10 +99,11 @@ def gate_chain_is_valid(
     """Validate a recorded chain without inventing missing evidence.
 
     A recorded chain is not trusted merely because its gate IDs and hashes are
-    unique. Every recorded result must belong to one cycle and remain within
-    the same freshness window used for live admission. Dependency semantics are
-    checked by ``check_gate_invariant`` when the next gate is evaluated because
-    this function intentionally receives results, not gate definitions.
+    unique. Every recorded result must belong to one cycle, remain within the
+    same freshness window used for live admission, and be recorded in temporal
+    order. Dependency semantics are checked by ``check_gate_invariant`` when
+    the next gate is evaluated because this function intentionally receives
+    results, not gate definitions.
     """
     items = list(history)
     if not items:
@@ -114,6 +115,7 @@ def gate_chain_is_valid(
     seen: set[str] = set()
     hashes: set[str] = set()
     cycle_id = items[0].cycle_id
+    previous_created_at: float | None = None
     for item in items:
         if item.gate_id in seen:
             return False, f"DUPLICATE_GATE:{item.gate_id}"
@@ -125,9 +127,12 @@ def gate_chain_is_valid(
             return False, f"INVALID_STATUS:{item.gate_id}"
         if item.cycle_id != cycle_id:
             return False, f"CYCLE_MISMATCH:{item.gate_id}"
+        if previous_created_at is not None and item.created_at < previous_created_at:
+            return False, f"OUT_OF_ORDER_EVIDENCE:{item.gate_id}"
         age = now_value - item.created_at
         if age < 0 or age > ttl_seconds:
             return False, f"STALE_EVIDENCE:{item.gate_id}"
         seen.add(item.gate_id)
         hashes.add(item.evidence_hash)
+        previous_created_at = item.created_at
     return True, "CHAIN_RECORD_VALID"
