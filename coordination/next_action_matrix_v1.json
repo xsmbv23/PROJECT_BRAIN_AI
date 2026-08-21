@@ -1,14 +1,13 @@
 {
-  "schema":"bot-next-action-matrix/v1",
-  "cycle_id":"CYCLE-BOOTSTRAP-001",
-  "phase":"CROSS_REVIEW_BEFORE_ALLOCATION",
-  "rule":"BOT1 allocates implementation only after persistent cross-review is reconciled; no Bot may self-assign canonical work outside its owner_scope.",
+  "schema":"bot-next-action-matrix/v2",
+  "cycle_id":"BRAIN-N173_FRESH-PROBE-RECEIPT-AND-S1-BRIDGE",
+  "phase":"WORKER_ALLOCATION",
+  "rule":"BOT1 allocates implementation only from the exact canonical next action; no worker may self-assign canonical work outside its owner scope.",
   "departments":{
-    "BOT2_QUANT":{"next_action":"challenge BOT3 freshness/lineage and identify quantitative/data loopholes; persist reply"},
-    "BOT3_EXECUTION":{"next_action":"challenge BOT2 admission-receipt design and identify implementation/runtime loopholes; persist reply"},
-    "BOT4_EXECUTION":{"next_action":"challenge receipt replay protection using exact run/deployment/runtime identity and concurrency; persist only new findings"}
+    "BOT2_QUANT":{"next_action":"verify fresh S1 probe receipt, cross-owner independence, acquisition provenance, and quantitative/data-integrity loopholes; persist one result"},
+    "BOT4_EXECUTION":{"next_action":"verify exact-current deployment/runtime identity, lawful acquisition path, lease/replay/stale protections, and execution loopholes; persist one result"}
   },
-  "BOT1_LEAD":{"next_action":"wait for persistent BOT2/BOT3/BOT4 replies, reconcile conflicts/minority views, then issue department-level implementation assignments"},
+  "BOT1_LEAD":{"next_action":"reconcile BOT2/BOT4 persistent results, preserve conflicts/minority views, then issue the next department allocation"},
   "allocation_policy":{
     "parallel":true,
     "shared_mutation":"forbidden unless explicitly assigned",
