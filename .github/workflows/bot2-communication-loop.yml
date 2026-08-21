@@ -2,6 +2,9 @@ name: Bot 2 Communication Loop
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/bot2-communication-loop.yml"
   schedule:
     - cron: "*/5 * * * *"
 
