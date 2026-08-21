@@ -1,12 +1,12 @@
 {
-  "schema":"bot-worker-allocation/v2",
-  "allocation_id":"ALLOC-BRAIN-N173-V2",
+  "schema":"bot-worker-allocation/v3",
+  "allocation_id":"ALLOC-BRAIN-N173-V3-ARCHIVE",
   "cycle_id":"BRAIN-N173_FRESH-PROBE-RECEIPT-AND-S1-BRIDGE",
   "phase":"WORKER_ALLOCATION",
   "issued_by":"BOT1_LEAD",
   "authority":"BOT1_ONLY",
   "workers":{
-    "BOT2_QUANT":{"enabled":true,"department":"Quant/Data","action":"audit fresh S1 probe receipt, cross-owner independence, provenance, hash/semantic integrity and quantitative loopholes; persist one result","deliverable":"persistent result + evidence refs","write_scope":"coordination/inbox/BOT2_QUANT.jsonl"},
+    "BOT2_QUANT":{"enabled":true,"department":"Quant/Data","action":"audit fresh S1 probe receipt, cross-owner independence, provenance, hash/semantic integrity and quantitative loopholes; then archive immutable worker/reconciliation receipts with lineage metadata for transmission to future Bot generations; persist one result","deliverable":"persistent result + evidence refs + lineage/archive receipt","write_scope":"coordination/inbox/BOT2_QUANT.jsonl"},
     "BOT3_REALITY":{"enabled":false,"status":"PAUSED","department":"Independent Reality Review","action":"reserved for future activation; no execution required in this cycle","deliverable":"none while paused","write_scope":"coordination/inbox/BOT3_REALITY.jsonl"},
     "BOT4_EXECUTION":{"enabled":true,"department":"Execution/Runtime","action":"verify exact-current deployment/runtime identity, lawful acquisition path, lease/replay/stale protections and execution integrity; persist one result","deliverable":"persistent result + evidence refs","write_scope":"coordination/inbox/BOT4_EXECUTION.jsonl"}
   },
