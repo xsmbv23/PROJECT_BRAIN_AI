@@ -1,17 +1,19 @@
 {
   "schema":"bot-worker-allocation/v1",
-  "allocation_id":"ALLOC-CYCLE-BOOTSTRAP-001-V1",
-  "cycle_id":"CYCLE-BOOTSTRAP-001",
+  "allocation_id":"ALLOC-BRAIN-N173-V1",
+  "cycle_id":"BRAIN-N173_FRESH-PROBE-RECEIPT-AND-S1-BRIDGE",
   "phase":"WORKER_ALLOCATION",
   "issued_by":"BOT1_LEAD",
   "authority":"BOT1_ONLY",
   "workers":{
-    "BOT2_QUANT":{"department":"Quant/Data","action":"verify worker task/result lifecycle and identify quantitative/data integrity loopholes","deliverable":"persistent result + evidence refs","write_scope":"coordination/inbox/BOT2_QUANT.jsonl"},
-    "BOT4_EXECUTION":{"department":"Independent Reality/Execution","action":"verify worker replay/stale/lease/runtime identity protections and identify execution loopholes","deliverable":"persistent result + evidence refs","write_scope":"coordination/inbox/BOT4_EXECUTION.jsonl"}
+    "BOT2_QUANT":{"department":"Quant/Data","action":"audit the fresh S1 probe receipt and cross-owner comparison for source-independence, provenance, hash/semantic integrity, and quantitative/data loopholes; return one persistent result","deliverable":"persistent result + evidence refs","write_scope":"coordination/inbox/BOT2_QUANT.jsonl"},
+    "BOT4_EXECUTION":{"department":"Independent Reality/Execution","action":"verify the exact-current deployment/runtime acquisition path, lawful provenance, receipt freshness, replay/stale/lease identity and execution integrity; return one persistent result","deliverable":"persistent result + evidence refs","write_scope":"coordination/inbox/BOT4_EXECUTION.jsonl"}
   },
   "parallel":true,
   "shared_mutation":"FORBIDDEN",
   "canonical_state_mutation":"BOT1_ONLY",
   "promotion":"DENY",
-  "completion_rule":"Each worker must return one persistent result before a new allocation is issued."
+  "source_of_truth":"state/next_action.json",
+  "source_action_id":"BRAIN-N173_FRESH-PROBE-RECEIPT-AND-S1-BRIDGE",
+  "completion_rule":"Each worker must return one persistent result before a new allocation is issued; missing/conflicting results cause HOLD or ESCALATE."
 }
