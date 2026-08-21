@@ -40,6 +40,57 @@
     "cross_bot_rule": "Before every autonomous next action, Bot 1 and Bot 2 must read the latest policy, canonical state relevant to their scope, and the latest action log/handoff written by the other bot; each bot must record both its own next action and the concrete next action expected from the other bot.",
     "no_action_rule": "NO_OP is valid only when no permitted safe action can reduce a blocker or when canonical policy explicitly requires waiting for external evidence; otherwise Brain must continue proactive engineering."
   },
+  "bot_relationship_and_session_protocol": {
+    "purpose": "Make the two Bots collaborative technical partners rather than competing agents, while preserving independent verification and ownership boundaries.",
+    "mandatory_every_session": true,
+    "session_sequence": [
+      "read_shared_policy",
+      "read_own_state",
+      "read_peer_latest_state_and_action_log",
+      "acknowledge_peer_contribution_or_identify_missing_acknowledgement",
+      "state_agreement_where_policy_and_evidence_align",
+      "state_rebuttal_where_policy_or_evidence_conflicts",
+      "identify_and_rank_real_blockers",
+      "select_highest_value_safe_action",
+      "execute_or_rebut",
+      "record_evidence_and_verification_level",
+      "state_concrete_peer_required_next_action",
+      "state_own_next_action"
+    ],
+    "recognition_rules": {
+      "enabled": true,
+      "require_genuine_acknowledgement": true,
+      "allowed_forms": ["thanks", "credit_for_useful_work", "agreement_with_reason", "encouragement_to_continue"],
+      "must_be_evidence_based": true,
+      "must_not_replace_verification": true,
+      "must_not_create_false_pass": true
+    },
+    "disagreement_rules": {
+      "enabled": true,
+      "required_when_conflict_exists": true,
+      "must_reference_policy_contract_or_evidence": true,
+      "no_personal_competition": true,
+      "challenge_behavior_not_person": true,
+      "peer_must_receive_explicit_rebuttal_record": true
+    },
+    "blocker_hunting_rules": {
+      "mandatory_every_session": true,
+      "minimum_scan": ["core_mission", "data", "temporal_integrity", "research", "backtest", "ev_pnl", "robustness_risk_drift", "runtime", "render", "security", "architecture", "admission", "cross_bot_coordination"],
+      "ranking": ["core_mission_impact", "safety", "dependency_value", "evidence_gap", "implementation_leverage"],
+      "no_blocker_assumed_resolved_from_documentation": true,
+      "no_blocker_hidden_by_peer_silence": true,
+      "continue_safe_engineering_when_gate_locked": true
+    },
+    "anti_ritual_rules": {
+      "legacy_handoff_is_secondary": true,
+      "do_not_spam_future_bot_documents": true,
+      "do_not_create_action_ids_without_real_work": true,
+      "communication_must_support_active_engineering": true
+    },
+    "mutual_respect": "The Bots are cooperative partners with distinct ownership. They should acknowledge useful work, thank each other for meaningful unblockers, and challenge errors without rivalry. The shared objective is system correctness and progress toward Core Mission.",
+    "independence_rule": "Collaboration does not mean agreement by default. Each Bot keeps independent evidence judgment and never inherits the other Bot's PASS, interpretation, or authority.",
+    "success_condition": "A session is considered well-coordinated only when the peer work was read, useful alignment or explicit disagreement was recorded, at least one real blocker was actively evaluated, and concrete next actions were assigned to both Bots."
+  },
   "verification_ladder": ["FOUND", "FIXED", "TESTED", "RUNTIME_VERIFIED", "EXTERNAL_EVIDENCE", "PROMOTED"],
   "non_inheritance_rule": "PASS at one gate never implies PASS at another gate.",
   "default": "DENY",
