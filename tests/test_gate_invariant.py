@@ -59,6 +59,33 @@ class GateInvariantTests(unittest.TestCase):
         self.assertFalse(ok)
         self.assertEqual(reason, "DUPLICATE_GATE:DB_EXISTENCE")
 
+    def test_chain_rejects_stale_evidence(self):
+        history = [self.prev]
+        ok, reason = gate_chain_is_valid(history, now=self.now + 301)
+        self.assertFalse(ok)
+        self.assertEqual(reason, "STALE_EVIDENCE:DB_EXISTENCE")
+
+    def test_chain_rejects_future_evidence(self):
+        history = [GateResult("DB_EXISTENCE", "PASS", "hash-a", self.now + 1, "cycle-1")]
+        ok, reason = gate_chain_is_valid(history, now=self.now)
+        self.assertFalse(ok)
+        self.assertEqual(reason, "STALE_EVIDENCE:DB_EXISTENCE")
+
+    def test_chain_rejects_cycle_mismatch(self):
+        history = [
+            self.prev,
+            GateResult("DB_BINDING", "PASS", "hash-b", self.now, "cycle-2"),
+        ]
+        ok, reason = gate_chain_is_valid(history, now=self.now)
+        self.assertFalse(ok)
+        self.assertEqual(reason, "CYCLE_MISMATCH:DB_BINDING")
+
+    def test_chain_rejects_missing_evidence_identity(self):
+        history = [GateResult("DB_EXISTENCE", "PASS", "", self.now, "cycle-1")]
+        ok, reason = gate_chain_is_valid(history, now=self.now)
+        self.assertFalse(ok)
+        self.assertEqual(reason, "EVIDENCE_IDENTITY_MISSING:DB_EXISTENCE")
+
 
 if __name__ == "__main__":
     unittest.main()
