@@ -4,7 +4,7 @@ from __future__ import annotations
 import hashlib,json,os,time,urllib.request,threading
 from datetime import datetime,timezone
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
-REPO=os.getenv('COORDINATION_REPO','xsmbv23/Project_Brain_AI'); BRANCH=os.getenv('COORDINATION_BRANCH','main'); BOT2=os.getenv('BOT2_URL','https://bot2-headless-worker.onrender.com'); BOT4=os.getenv('BOT4_URL','https://brain-bot4-worker.onrender.com'); POLL=int(os.getenv('POLL_SECONDS','60')); HEALTH_RETRIES=int(os.getenv('HEALTH_RETRIES','4')); RETRY_DELAY=float(os.getenv('HEALTH_RETRY_DELAY','2')); LAST={"status":"STARTING"}; RECEIPT={}
+REPO=os.getenv('COORDINATION_REPO','xsmbv23/Project_Brain_AI'); BRANCH=os.getenv('COORDINATION_BRANCH','main'); BOT2=os.getenv('BOT2_URL','https://bot2-headless-worker.onrender.com'); BOT4=os.getenv('BOT4_URL','https://brain-bot4-worker.onrender.com'); POLL=int(os.getenv('POLL_SECONDS','60')); HEALTH_RETRIES=int(os.getenv('HEALTH_RETRIES','4')); RETRY_DELAY=float(os.getenv('HEALTH_RETRY_DELAY','2')); PORT=int(os.getenv('PORT','10000')); LAST={"status":"STARTING"}; RECEIPT={}
 def get_json(url,path):
  r=urllib.request.Request(url.rstrip('/')+path,headers={'User-Agent':'brain-headless-orchestrator'}); return json.loads(urllib.request.urlopen(r,timeout=15).read().decode())
 def get_raw(path):
@@ -36,4 +36,12 @@ class H(BaseHTTPRequestHandler):
   self.send_response(404); self.end_headers()
  def log_message(self,*a):pass
 if __name__=='__main__':
- s=ThreadingHTTPServer(('0.0.0.0',PORT),H); t=threading.Thread(target=lambda:[tick() or time.sleep(POLL) for _ in iter(int,1)],daemon=True); t.start(); print(json.dumps({"status":"HTTP_READY","component":"HEADLESS_SUPERVISOR","port":PORT}),flush=True); s.serve_forever()
+ s=ThreadingHTTPServer(('0.0.0.0',PORT),H)
+ def loop():
+  global LAST
+  while True:
+   try: tick()
+   except Exception as e:
+    LAST={"status":"SUPERVISOR_ERROR","error":type(e).__name__}; print(json.dumps(LAST,sort_keys=True),flush=True)
+   time.sleep(POLL)
+ threading.Thread(target=loop,daemon=True).start(); print(json.dumps({"status":"HTTP_READY","component":"HEADLESS_SUPERVISOR","port":PORT}),flush=True); s.serve_forever()
