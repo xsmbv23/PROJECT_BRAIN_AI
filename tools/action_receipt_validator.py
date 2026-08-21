@@ -1,8 +1,10 @@
-"""Validate that durable action receipts actually support repository state.
+"""Validate durable action receipts without granting them FSM authority.
 
-This module is intentionally non-authoritative: it NEVER advances the FSM,
-rewrites state, creates a receipt, or treats chat intent as evidence.
-It only validates evidence already emitted by runtime/processes.
+A receipt always belongs to the runtime boundary that emitted it. A fresh
+runtime may verify a prior receipt, but must never require the prior receipt's
+commit or deployment identity to equal its own. This is the restart-boundary
+rule that prevents self-manufactured evidence while preserving immutable
+runtime provenance.
 """
 from __future__ import annotations
 
@@ -34,9 +36,13 @@ def _expected_execution_nonce(receipt: dict[str, Any]) -> str | None:
     return hashlib.sha256(seed.encode("utf-8")).hexdigest()
 
 
-def validate_action_receipt(receipt: dict[str, Any], state: dict[str, Any], runtime: dict[str, Any]) -> dict[str, Any]:
-    # Canonical state schema uses *_id. Legacy aliases are deliberately rejected
-    # here so a stale schema cannot silently satisfy a production evidence gate.
+def validate_action_receipt(
+    receipt: dict[str, Any],
+    state: dict[str, Any],
+    runtime: dict[str, Any],
+    *,
+    prior_runtime: bool = False,
+) -> dict[str, Any]:
     action_id = state.get("last_action_id")
     next_action = state.get("next_action_id")
     if not action_id or not next_action:
@@ -49,9 +55,11 @@ def validate_action_receipt(receipt: dict[str, Any], state: dict[str, Any], runt
     if not supplied_sha or supplied_sha != expected_receipt_sha(receipt):
         return {"status": "DENY", "reason": "RECEIPT_SHA_MISMATCH"}
 
-    runtime_commit = runtime.get("commit_sha")
     receipt_commit = receipt.get("commit_sha")
-    if not runtime_commit or not receipt_commit or runtime_commit != receipt_commit:
+    runtime_commit = runtime.get("commit_sha")
+    if not receipt_commit:
+        return {"status": "DENY", "reason": "RECEIPT_COMMIT_MISSING"}
+    if not prior_runtime and (not runtime_commit or runtime_commit != receipt_commit):
         return {"status": "DENY", "reason": "RUNTIME_COMMIT_MISMATCH"}
 
     issued_at = receipt.get("issued_at")
@@ -72,10 +80,12 @@ def validate_action_receipt(receipt: dict[str, Any], state: dict[str, Any], runt
 
     return {
         "status": "PASS",
-        "reason": "ACTION_RECEIPT_SUPPORTS_STATE",
+        "reason": "PRIOR_RUNTIME_ACTION_RECEIPT_VALID" if prior_runtime else "ACTION_RECEIPT_SUPPORTS_STATE",
         "action_id": action_id,
         "next_action": next_action,
-        "commit_sha": runtime_commit,
+        "receipt_commit_sha": receipt_commit,
+        "runtime_commit_sha": runtime_commit or "UNKNOWN",
+        "prior_runtime": prior_runtime,
     }
 
 
