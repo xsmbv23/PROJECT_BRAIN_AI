@@ -2,14 +2,14 @@
   "schema": "n175-triple-runtime-probe-bundle/v1",
   "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
   "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
-  "observed_at": "2026-08-21T16:44:44.184790+00:00",
+  "observed_at": "2026-08-21T16:45:39.762300+00:00",
   "workers": [
     {
       "schema": "n175-triple-runtime-probe/v1",
       "worker": "BOT2_QUANT",
       "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
       "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
-      "observed_at": "2026-08-21T16:44:42.009930+00:00",
+      "observed_at": "2026-08-21T16:45:36.885930+00:00",
       "endpoint": "https://brain-bot2-worker-v2.onrender.com",
       "promotion": "DENY",
       "canonical_mutation": "FORBIDDEN",
@@ -26,7 +26,7 @@
           "authority": "BOT1_ONLY",
           "promotion": "DENY",
           "canonical_mutation": "FORBIDDEN",
-          "observed_at": "2026-08-21T16:44:22.426263+00:00"
+          "observed_at": "2026-08-21T16:45:22.466243+00:00"
         }
       },
       "result": {
@@ -50,7 +50,7 @@
           "promotion": "DENY",
           "canonical_mutation": "FORBIDDEN",
           "context_ref": "coordination/BOT_OPERATING_CONTEXT_V1.json",
-          "observed_at": "2026-08-21T16:44:22.426279+00:00"
+          "observed_at": "2026-08-21T16:45:22.466272+00:00"
         }
       },
       "identity_match": true,
@@ -62,7 +62,7 @@
       "worker": "BOT3_REALITY",
       "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
       "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
-      "observed_at": "2026-08-21T16:44:42.702195+00:00",
+      "observed_at": "2026-08-21T16:45:38.004210+00:00",
       "endpoint": "https://brain-bot3-worker.onrender.com",
       "promotion": "DENY",
       "canonical_mutation": "FORBIDDEN",
@@ -78,7 +78,7 @@
           "authority": "BOT1_ONLY",
           "promotion": "DENY",
           "canonical_mutation": "FORBIDDEN",
-          "observed_at": "2026-08-21T16:44:36.951774+00:00"
+          "observed_at": "2026-08-21T16:45:36.979379+00:00"
         }
       },
       "result": {
@@ -100,7 +100,7 @@
           "challenge_status": "ACTIVE",
           "promotion": "DENY",
           "canonical_mutation": "FORBIDDEN",
-          "observed_at": "2026-08-21T16:44:36.951789+00:00"
+          "observed_at": "2026-08-21T16:45:36.979402+00:00"
         }
       },
       "identity_match": true,
@@ -112,7 +112,7 @@
       "worker": "BOT4_EXECUTION",
       "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
       "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
-      "observed_at": "2026-08-21T16:44:43.506424+00:00",
+      "observed_at": "2026-08-21T16:45:39.164460+00:00",
       "endpoint": "https://brain-bot4-worker-v2.onrender.com",
       "promotion": "DENY",
       "canonical_mutation": "FORBIDDEN",
@@ -129,7 +129,7 @@
           "authority": "BOT1_ONLY",
           "promotion": "DENY",
           "canonical_mutation": "FORBIDDEN",
-          "observed_at": "2026-08-21T16:43:59.591878+00:00"
+          "observed_at": "2026-08-21T16:44:59.632862+00:00"
         }
       },
       "result": {
@@ -153,7 +153,7 @@
           "promotion": "DENY",
           "canonical_mutation": "FORBIDDEN",
           "context_ref": "coordination/BOT_OPERATING_CONTEXT_V1.json",
-          "observed_at": "2026-08-21T16:43:59.591898+00:00"
+          "observed_at": "2026-08-21T16:44:59.632879+00:00"
         }
       },
       "identity_match": true,
