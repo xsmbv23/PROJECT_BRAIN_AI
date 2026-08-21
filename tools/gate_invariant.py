@@ -96,19 +96,38 @@ def assert_gate_admitted(
 def gate_chain_is_valid(
     history: Iterable[GateResult], *, now: float | None = None, ttl_seconds: float = 300.0
 ) -> tuple[bool, str]:
-    """Validate a recorded chain without inventing missing evidence."""
+    """Validate a recorded chain without inventing missing evidence.
+
+    A recorded chain is not trusted merely because its gate IDs and hashes are
+    unique. Every recorded result must belong to one cycle and remain within
+    the same freshness window used for live admission. Dependency semantics are
+    checked by ``check_gate_invariant`` when the next gate is evaluated because
+    this function intentionally receives results, not gate definitions.
+    """
     items = list(history)
     if not items:
         return False, "EMPTY_HISTORY"
+    now_value = datetime.now(timezone.utc).timestamp() if now is None else now
+    if ttl_seconds <= 0:
+        return False, "TTL_INVALID"
+
     seen: set[str] = set()
     hashes: set[str] = set()
+    cycle_id = items[0].cycle_id
     for item in items:
         if item.gate_id in seen:
             return False, f"DUPLICATE_GATE:{item.gate_id}"
         if item.evidence_hash in hashes:
             return False, f"EVIDENCE_REUSE:{item.gate_id}"
-        seen.add(item.gate_id)
-        hashes.add(item.evidence_hash)
+        if not item.evidence_hash or not item.cycle_id:
+            return False, f"EVIDENCE_IDENTITY_MISSING:{item.gate_id}"
         if not _valid_status(item.status):
             return False, f"INVALID_STATUS:{item.gate_id}"
+        if item.cycle_id != cycle_id:
+            return False, f"CYCLE_MISMATCH:{item.gate_id}"
+        age = now_value - item.created_at
+        if age < 0 or age > ttl_seconds:
+            return False, f"STALE_EVIDENCE:{item.gate_id}"
+        seen.add(item.gate_id)
+        hashes.add(item.evidence_hash)
     return True, "CHAIN_RECORD_VALID"
