@@ -1,5 +1,8 @@
 name: N175 Triple Worker Probe
 
+# E2E EXECUTION VERIFICATION — BOT1 autonomous continuation marker.
+# A push to this workflow path intentionally triggers the observable probe.
+
 on:
   push:
     branches: [main]
