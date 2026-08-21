@@ -22,7 +22,10 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Dispatch pending worker tasks
+      - name: Validate dispatcher
+        run: python -m compileall -q orchestration/dispatch_workers.py
+
+      - name: Dry-run state parsing
         run: python orchestration/dispatch_workers.py
 
       - name: Persist generated task envelopes
