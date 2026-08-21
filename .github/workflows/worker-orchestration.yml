@@ -22,25 +22,18 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Validate worker runtime
-        run: python -m compileall -q orchestration/dispatch_workers.py orchestration/worker_runtime.py
+      - name: Validate orchestration runtime
+        run: python -m compileall -q orchestration/dispatch_workers.py orchestration/worker_runtime.py orchestration/worker_reconcile.py
 
       - name: Generate pending task envelopes
         run: python orchestration/dispatch_workers.py
 
-      - name: Run BOT2 worker runtime
+      - name: Claim, execute and reconcile BOT2/BOT4
         env:
-          WORKER_ID: BOT2_QUANT
-          RUN_ONCE: "1"
-        run: python orchestration/worker_runtime.py
+          WORKERS: BOT2_QUANT,BOT4_EXECUTION
+        run: python orchestration/worker_reconcile.py
 
-      - name: Run BOT4 worker runtime
-        env:
-          WORKER_ID: BOT4_EXECUTION
-          RUN_ONCE: "1"
-        run: python orchestration/worker_runtime.py
-
-      - name: Persist orchestration results
+      - name: Persist orchestration receipts
         run: |
           if git diff --quiet -- coordination/worker_outbox coordination/worker_results; then
             echo "No orchestration changes."
@@ -49,5 +42,5 @@ jobs:
           git config user.name "Project Brain Worker Orchestrator"
           git config user.email "actions@users.noreply.github.com"
           git add coordination/worker_outbox coordination/worker_results
-          git commit -m "orchestration: execute worker runtime v1"
+          git commit -m "orchestration: reconcile worker leases and results"
           git push
