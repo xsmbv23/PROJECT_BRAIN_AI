@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "CHAT_TO_DELIBERATION_V1",
+  "title": "Chat-to-Deliberation Bridge V1",
+  "description": "Turns user-relayed Bot messages into structured deliberation inputs without treating chat as evidence or authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["bridge_id", "message_id", "source", "target_bots", "relayed_at", "content_sha256", "content", "interpretation", "next_action_status"],
+  "properties": {
+    "bridge_id": {"const": "CHAT_TO_DELIBERATION_V1"},
+    "message_id": {"type": "string", "minLength": 1},
+    "source": {"const": "USER_RELAY"},
+    "target_bots": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["BOT1_LEAD", "BOT2_QUANT", "BOT3_EXECUTION"]}},
+    "relayed_at": {"type": "string", "format": "date-time"},
+    "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "content": {"type": "string", "minLength": 1},
+    "interpretation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claims", "proposals", "challenges", "requested_actions", "evidence_refs", "epistemic_status"],
+      "properties": {
+        "claims": {"type": "array", "items": {"type": "string"}},
+        "proposals": {"type": "array", "items": {"type": "string"}},
+        "challenges": {"type": "array", "items": {"type": "string"}},
+        "requested_actions": {"type": "array", "items": {"type": "string"}},
+        "evidence_refs": {"type": "array", "items": {"type": "string"}},
+        "epistemic_status": {"enum": ["REPORTED", "INFERRED", "VERIFIED", "UNKNOWN"]}
+      }
+    },
+    "next_action_status": {"enum": ["NOT_STARTED", "ACKNOWLEDGED", "IN_DELIBERATION", "ACTION_QUEUED", "CLOSED"]}
+  },
+  "protocol": {
+    "chat_is_interface_not_authority": true,
+    "user_relay_is_input_not_evidence": true,
+    "content_hash_prevents_silent_rewrite": true,
+    "same_message_may_be_read_by_multiple_bots": true,
+    "each_bot_must_record_independent_interpretation": true,
+    "disagreement_must_be_preserved": true,
+    "user_relay_cannot_change_canonical_state_directly": true,
+    "user_relay_cannot_create_gate_pass": true,
+    "evidence_refs_must_resolve_outside_chat": true,
+    "replayed_message_id_must_not_create_duplicate_action_without_revision": true,
+    "recommended_flow": [
+      "INGEST_USER_RELAY",
+      "HASH_AND_IDENTIFY",
+      "BOT_ACKNOWLEDGEMENT",
+      "INDEPENDENT_INTERPRETATIONS",
+      "CHALLENGE_AND_REPLY",
+      "SYNTHESIZE_DELIBERATION",
+      "ASSIGN_NEXT_ACTION",
+      "PERSIST_ACTION_RECORD",
+      "OPTIONALLY_EMIT_GATE_EVALUATION_OUTSIDE_CHAT"
+    ]
+  }
+}
