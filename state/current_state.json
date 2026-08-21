@@ -20,8 +20,9 @@
   "historical_log_role":"IMMUTABLE_HISTORY_ONLY",
   "render_safe_guard_bytes":335544320,
   "runtime_authority":"EXACT_CURRENT_RUNTIME_EVIDENCE",
-  "current_runtime_commit":"e23a5baa645753306a1a829a2ffcf72015a8f07c",
-  "current_runtime_deploy":"dep-da38hngu01pc73854hh00",
+  "current_runtime_commit":"8f00ef5b0604802af215c53790dc364aa5f6dbc7",
+  "current_runtime_deploy":"dep-da3qultckfvc738213lg",
+  "current_runtime_liveness":"VERIFIED_FROM_RENDER_APP_LOGS",
   "current_runtime_tests":209,
   "current_runtime_tests_status":"PASS",
   "current_runtime_foundation":"PASS",
@@ -49,8 +50,8 @@
   "layer_1":"ROOM_01_DATA_ADMISSION",
   "room_02":"LOCKED",
   "staircase":"LOCKED",
-  "last_action_id":"BRAIN-N159_STATE_AUTHORITY_HARDENING",
-  "next_action_id":"BRAIN-N125_WAIT_EXTERNAL",
+  "last_action_id":"BRAIN-N160_E2E_RUNTIME-S2-S3_CHAIN",
+  "next_action_id":"BRAIN-N160_S2_EVIDENCE_WAIT_S3_PREP",
   "parallel_safe_engineering":"QUANT-N010_WORKFLOW_EVIDENCE_HARDENING",
   "parallel_safe_engineering_status":"ALLOWED_LOCAL_PREREQUISITE_ONLY",
   "quant_source_registry_count":5,
@@ -60,6 +61,7 @@
   "quant_raw_durability":"LOCAL_EPHEMERAL_NOT_DURABLE",
   "e2e_current_segment":"S2_VALID_RESEARCH",
   "e2e_blocked_segments":["S3_VALID_BACKTEST","S4_EDGE","S5_EV_PNL_ROI","S6_ROBUSTNESS_RISK_DRIFT","S7_CONTROLLED_ACTION"],
+  "e2e_runtime_boundary":"QUANT_ENGINE_RENDER_LIVE; NO_DATA_AT_BOOT; NO_COMPUTATION_ENDPOINT_EXPOSED",
   "state_authority_doc":"docs/architecture/CURRENT_STATE_AUTHORITY.md",
-  "state_integrity_note":"N159 strengthened successor state authority without changing gate reachability, external wait, action_space, promotion, Layer 1, Room 02, or staircase. Historical architecture snapshots remain immutable history; current state pointers remain authoritative."
+  "state_integrity_note":"N160 verified current Quant Engine Render liveness from Render app logs and reconciled current runtime commit/deploy. This does not satisfy S2 research evidence and does not unlock any downstream segment."
 }
