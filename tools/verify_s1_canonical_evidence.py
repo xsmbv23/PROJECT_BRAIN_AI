@@ -1,13 +1,9 @@
 """Machine-checkable S1 canonical evidence admission.
 
-This verifier is intentionally fail-closed. It validates a real evidence
-manifest and, when present, the referenced artifact bytes and receipt. It never
-creates evidence, hashes missing data, or promotes an unproven dataset.
-
-Usage:
-    python tools/verify_s1_canonical_evidence.py path/to/manifest.json
-
-Exit 0 only when every S1 condition is independently proven.
+Fail-closed verifier for real evidence-backed canonical data. Acquisition may
+arrive through an explicitly permitted automated source, an authorized manual
+capture, or a durable archive export. The verifier never creates evidence,
+never rewrites raw artifacts, and never promotes unproven data.
 """
 from __future__ import annotations
 
@@ -21,6 +17,9 @@ from pathlib import Path
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 REQUIRED = {
     "source_provenance",
+    "acquisition_channel",
+    "acquisition_reference",
+    "acquisition_timestamp_utc",
     "artifact_path",
     "raw_artifact_sha256",
     "raw_byte_sha256",
@@ -34,10 +33,19 @@ REQUIRED = {
     "frozen_canonical_sha256",
     "synthetic_data",
 }
+CHANNELS = {
+    "AUTOMATED_SOURCE_WITH_EXPLICIT_PERMISSION",
+    "MANUAL_AUTHORIZED_CAPTURE",
+    "DURABLE_ARCHIVE_EXPORT",
+}
 
 
 def _parse_date(value: str) -> date:
     return date.fromisoformat(value)
+
+
+def _is_nonempty_string(value: object) -> bool:
+    return isinstance(value, str) and bool(value.strip())
 
 
 def _is_real_receipt(value: object) -> bool:
@@ -46,7 +54,7 @@ def _is_real_receipt(value: object) -> bool:
     required = {"receipt_id", "source", "observed_at", "event_type"}
     if not required.issubset(value):
         return False
-    if not all(isinstance(value[k], str) and value[k].strip() for k in required):
+    if not all(_is_nonempty_string(value[k]) for k in required):
         return False
     if value.get("synthetic") is True:
         return False
@@ -59,6 +67,51 @@ def _sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _verify_acquisition_channel(manifest: dict[str, object], reasons: list[str]) -> None:
+    channel = manifest.get("acquisition_channel")
+    reference = manifest.get("acquisition_reference")
+    timestamp = manifest.get("acquisition_timestamp_utc")
+
+    if channel not in CHANNELS:
+        reasons.append("ACQUISITION_CHANNEL_INVALID")
+        return
+    if not _is_nonempty_string(reference):
+        reasons.append("ACQUISITION_REFERENCE_MISSING")
+    if not _is_nonempty_string(timestamp):
+        reasons.append("ACQUISITION_TIMESTAMP_MISSING")
+        return
+
+    try:
+        captured_at = datetime.fromisoformat(str(timestamp).replace("Z", "+00:00"))
+    except ValueError:
+        reasons.append("ACQUISITION_TIMESTAMP_INVALID")
+        return
+    if captured_at.tzinfo is None:
+        reasons.append("ACQUISITION_TIMESTAMP_NOT_TIMEZONE_AWARE")
+    elif captured_at > datetime.now(timezone.utc) + timedelta(minutes=5):
+        reasons.append("ACQUISITION_TIMESTAMP_IN_FUTURE")
+
+    provenance = manifest.get("source_provenance")
+    if not isinstance(provenance, dict):
+        return
+
+    if channel == "AUTOMATED_SOURCE_WITH_EXPLICIT_PERMISSION":
+        if not _is_nonempty_string(provenance.get("permission_reference")):
+            reasons.append("AUTOMATED_PERMISSION_REFERENCE_MISSING")
+        if not _is_nonempty_string(provenance.get("source_identity")):
+            reasons.append("AUTOMATED_SOURCE_IDENTITY_MISSING")
+    elif channel == "MANUAL_AUTHORIZED_CAPTURE":
+        if not _is_nonempty_string(provenance.get("operator_identity")):
+            reasons.append("MANUAL_OPERATOR_IDENTITY_MISSING")
+        if not _is_nonempty_string(provenance.get("authorization_reference")):
+            reasons.append("MANUAL_AUTHORIZATION_REFERENCE_MISSING")
+    elif channel == "DURABLE_ARCHIVE_EXPORT":
+        if not _is_nonempty_string(provenance.get("archive_identity")):
+            reasons.append("ARCHIVE_IDENTITY_MISSING")
+        if not _is_nonempty_string(provenance.get("archive_provenance")):
+            reasons.append("ARCHIVE_PROVENANCE_MISSING")
 
 
 def verify_manifest(manifest_path: str | Path) -> dict[str, object]:
@@ -95,6 +148,8 @@ def verify_manifest(manifest_path: str | Path) -> dict[str, object]:
     provenance = manifest.get("source_provenance")
     if not isinstance(provenance, dict) or provenance.get("classification") != "REAL_AND_TRACEABLE":
         reasons.append("SOURCE_PROVENANCE_NOT_REAL_AND_TRACEABLE")
+
+    _verify_acquisition_channel(manifest, reasons)
 
     for field in ("raw_artifact_sha256", "raw_byte_sha256", "frozen_canonical_sha256"):
         value = manifest.get(field)
