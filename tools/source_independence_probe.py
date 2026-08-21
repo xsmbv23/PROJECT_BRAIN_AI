@@ -2,10 +2,9 @@
 
 No credentials, no application actions, no bulk content. IPs are hashed.
 Network ownership is queried through bounded RDAP metadata; absence of an
-explicit owner signal is DENY. The candidate is intentionally the Northern
-Lottery Council's public result site, which is a different observed network
-owner from the primary source. This proves only the infrastructure leg; fresh
-result comparison remains a separate gate.
+explicit owner signal is DENY. The candidate is the canonical first-party
+issuer candidate selected by the current Forensic state. This proves only the
+infrastructure leg; fresh result comparison remains a separate gate.
 """
 from __future__ import annotations
 
@@ -20,7 +19,7 @@ from urllib.request import Request, urlopen
 
 PRIMARY_SOURCE = "https://ketqua16.net"
 IDENTITY_SOURCE_B = "https://xsmb.com.vn"
-CANDIDATE_SOURCE_C = "https://xosomb.com.vn"
+CANDIDATE_SOURCE_C = "https://xosothudo.com.vn"
 DECLARED_SOURCES = (PRIMARY_SOURCE, IDENTITY_SOURCE_B, CANDIDATE_SOURCE_C)
 RDAP_MAX_BYTES = 16_384
 
@@ -57,7 +56,7 @@ def _flatten_name(value) -> str | None:
 
 
 def _rdap_owner(ip: str, timeout: float = 5.0) -> str | None:
-    req = Request(f"https://rdap.org/ip/{ip}", headers={"User-Agent": "XSMB-Forensic-IndependenceProbe/1.2", "Accept": "application/rdap+json"})
+    req = Request(f"https://rdap.org/ip/{ip}", headers={"User-Agent": "XSMB-Forensic-IndependenceProbe/1.3", "Accept": "application/rdap+json"})
     with urlopen(req, timeout=timeout) as response:
         raw = response.read(RDAP_MAX_BYTES)
     doc = json.loads(raw.decode("utf-8", errors="ignore"))
@@ -151,7 +150,7 @@ def run_probe() -> dict[str, object]:
         "primary_source": PRIMARY_SOURCE,
         "identity_source_b": IDENTITY_SOURCE_B,
         "candidate_source_c": CANDIDATE_SOURCE_C,
-        "candidate_role": "OFFICIAL_NORTHERN_LOTTERY_COUNCIL_PUBLIC_RESULT_SITE",
+        "candidate_role": "OFFICIAL_ISSUER_VALIDATION_CANDIDATE",
         "receipts": receipts,
         "distinct_network_owners": len(set(owners.values())),
         "independent_pairs": independent_pairs,
