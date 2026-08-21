@@ -1,0 +1,11 @@
+{
+  "relay_id": "USER_RELAY_BOOTSTRAP_001",
+  "source": "USER_REPORTED",
+  "relayed_at": "2026-08-21T12:00:00+07:00",
+  "message_sha256": "USER_REPORTED_ONLY",
+  "claim": "User reports that BOT2_QUANT and BOT3_EXECUTION both acknowledged the bootstrap message in their respective chat sessions.",
+  "epistemic_status": "REPORTED",
+  "verification": "NOT_PERSISTED_IN_BOT_INBOXES",
+  "action": "REQUEST_PERSISTENT_ACK_AND_INDEPENDENT_PROPOSAL",
+  "authority": "NONE"
+}
