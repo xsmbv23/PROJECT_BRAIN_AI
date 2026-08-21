@@ -1,0 +1,37 @@
+{
+  "contract": "RESEARCH_DATASET_EVIDENCE_RESOLUTION_V1",
+  "purpose": "Define what independently resolved temporal evidence must contain before Brain may treat a research-dataset receipt as admitted.",
+  "authority": {
+    "dataset_truth": "xsmb-quant",
+    "research_execution": "Quant_Engine",
+    "governance": "Project_Brain_AI"
+  },
+  "required_evidence": [
+    "status",
+    "verifier_reference",
+    "resolved_manifest_sha256",
+    "resolved_manifest_reference",
+    "observed_at",
+    "verification_method",
+    "verifier_code_version"
+  ],
+  "hard_rules": [
+    "STATUS_VERIFIED_REQUIRES_RESOLVED_ARTIFACT",
+    "VERIFIER_REFERENCE_MUST_BE_TRACEABLE",
+    "RESOLVED_MANIFEST_REFERENCE_MUST_BE_TRACEABLE",
+    "RESOLVED_MANIFEST_SHA256_MUST_BIND_TO_RESOLVED_MANIFEST",
+    "RESOLVED_MANIFEST_SHA256_MUST_EQUAL_RECEIPT_DATE_MANIFEST_SHA256",
+    "VERIFICATION_METHOD_MUST_BE_EXPLICIT",
+    "VERIFIER_CODE_VERSION_MUST_BE_EXPLICIT",
+    "SELF_ASSERTED_RECEIPT_IS_NOT_INDEPENDENT_EVIDENCE",
+    "UNKNOWN_IS_NOT_PASS",
+    "PASS_IS_LOCAL",
+    "NO_PASS_INHERITANCE",
+    "RESEARCH_ADMISSION_IS_NOT_CANONICAL_PROMOTION"
+  ],
+  "status_semantics": {
+    "VERIFIED": "Independent resolver has produced traceable evidence bound to the exact manifest hash.",
+    "NOT_VERIFIED": "Resolver exists but did not establish the required binding.",
+    "UNKNOWN": "No independently observable resolution exists; no admission may be inferred."
+  }
+}
