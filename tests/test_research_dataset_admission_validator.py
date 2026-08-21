@@ -8,6 +8,7 @@ BASE = {
     "source_provenance_reference": "prov-1",
     "canonical_input_reference": "full27-1",
     "temporal_evidence_reference": "temporal-1",
+    "date_manifest_reference": "manifest-1",
     "date_manifest_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
     "start_date": "2026-01-01",
     "end_date": "2026-02-10",
