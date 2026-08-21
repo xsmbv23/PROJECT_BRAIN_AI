@@ -1,8 +1,10 @@
 {
-  "contract_id": "S1_CANONICAL_EVIDENCE_V1",
+  "contract_id": "S1_CANONICAL_EVIDENCE_V2",
   "purpose": "admit only real evidence-backed canonical data into S2",
   "required": [
     "source_provenance",
+    "artifact_path",
+    "raw_artifact_sha256",
     "raw_byte_sha256",
     "date_start",
     "date_end",
@@ -11,10 +13,13 @@
     "coverage_ratio",
     "unresolved_conflicts",
     "admission_receipt",
-    "frozen_canonical_sha256"
+    "frozen_canonical_sha256",
+    "synthetic_data"
   ],
   "admission_conditions": {
     "source_provenance": "REAL_AND_TRACEABLE",
+    "artifact_path": "MUST_RESOLVE_INSIDE_EVIDENCE_ROOT",
+    "raw_artifact_sha256": "PRESENT_AND_VERIFIABLE_AGAINST_BYTES",
     "raw_byte_sha256": "PRESENT_AND_VERIFIABLE",
     "coverage_ratio": 1.0,
     "unresolved_conflicts": 0,
