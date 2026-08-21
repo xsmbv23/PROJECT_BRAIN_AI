@@ -1,8 +1,10 @@
-"""Bounded infrastructure comparison for N103.
+"""Bounded infrastructure comparison for source independence admission.
 
 No credentials, no application actions, no bulk content. IPs are hashed.
 Network ownership is queried through bounded RDAP metadata; absence of an
-explicit owner signal is DENY.
+explicit owner signal is DENY. A third candidate may establish an independent
+pair with the primary source without weakening the requirement that the pair
+itself have distinct observed network owners.
 """
 from __future__ import annotations
 
@@ -15,7 +17,10 @@ from dataclasses import asdict, dataclass
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
-DECLARED_SOURCES = ("https://ketqua16.net", "https://xsmb.com.vn")
+PRIMARY_SOURCE = "https://ketqua16.net"
+IDENTITY_SOURCE_B = "https://xsmb.com.vn"
+CANDIDATE_SOURCE_C = "https://xoso.com.vn"
+DECLARED_SOURCES = (PRIMARY_SOURCE, IDENTITY_SOURCE_B, CANDIDATE_SOURCE_C)
 RDAP_MAX_BYTES = 16_384
 
 
@@ -51,7 +56,7 @@ def _flatten_name(value) -> str | None:
 
 
 def _rdap_owner(ip: str, timeout: float = 5.0) -> str | None:
-    req = Request(f"https://rdap.org/ip/{ip}", headers={"User-Agent": "XSMB-Forensic-IndependenceProbe/1.0", "Accept": "application/rdap+json"})
+    req = Request(f"https://rdap.org/ip/{ip}", headers={"User-Agent": "XSMB-Forensic-IndependenceProbe/1.1", "Accept": "application/rdap+json"})
     with urlopen(req, timeout=timeout) as response:
         raw = response.read(RDAP_MAX_BYTES)
     doc = json.loads(raw.decode("utf-8", errors="ignore"))
@@ -73,7 +78,6 @@ def probe_infrastructure(url: str, timeout: float = 8.0) -> InfrastructureReceip
     started = time.perf_counter()
     host = parsed.hostname or ""
     port = parsed.port or 443
-    ips: list[str] = []
     ips_hash: tuple[str, ...] = ()
     tls_version = None
     tls_cipher = None
@@ -127,19 +131,33 @@ def probe_infrastructure(url: str, timeout: float = 8.0) -> InfrastructureReceip
 
 def run_probe() -> dict[str, object]:
     receipts = [asdict(probe_infrastructure(url)) for url in DECLARED_SOURCES]
-    owners = [r["network_owner"] for r in receipts if r["network_owner_observed"]]
-    distinct_owners = len(set(owners))
-    independence = "PASS_LOCAL" if len(receipts) == 2 and all(r["network_owner_observed"] for r in receipts) and distinct_owners == 2 else "DENY"
+    by_host = {r["requested_host"]: r for r in receipts}
+    owners = {r["requested_host"]: r["network_owner"] for r in receipts if r["network_owner_observed"]}
+
+    independent_pairs: list[dict[str, str]] = []
+    primary_owner = owners.get(urlsplit(PRIMARY_SOURCE).hostname or "")
+    if primary_owner:
+        for url in DECLARED_SOURCES[1:]:
+            host = urlsplit(url).hostname or ""
+            owner = owners.get(host)
+            if owner and owner != primary_owner:
+                independent_pairs.append({"primary": PRIMARY_SOURCE, "independent": url, "primary_owner": primary_owner, "independent_owner": owner})
+
+    independence = "PASS_LOCAL" if independent_pairs else "DENY"
     return {
         "probe": "BRAIN-N103_SOURCE_INDEPENDENCE_PROOF",
         "mode": "DATA_ADMISSION",
         "source_count": len(receipts),
+        "primary_source": PRIMARY_SOURCE,
+        "identity_source_b": IDENTITY_SOURCE_B,
+        "candidate_source_c": CANDIDATE_SOURCE_C,
         "receipts": receipts,
-        "distinct_network_owners": distinct_owners,
+        "distinct_network_owners": len(set(owners.values())),
+        "independent_pairs": independent_pairs,
         "independence": independence,
         "canonical_quorum": "PASS_LOCAL" if independence == "PASS_LOCAL" else "DENY",
         "promotion": "DENY",
-        "policy": "HOSTNAME_DIFFERENCE_IS_NOT_INDEPENDENCE_PROOF;NETWORK_OWNER_REQUIRED",
+        "policy": "HOSTNAME_DIFFERENCE_IS_NOT_INDEPENDENCE_PROOF;PRIMARY_PLUS_CROSS_OWNER_REQUIRED",
     }
 
 
