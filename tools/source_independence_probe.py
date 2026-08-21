@@ -2,9 +2,10 @@
 
 No credentials, no application actions, no bulk content. IPs are hashed.
 Network ownership is queried through bounded RDAP metadata; absence of an
-explicit owner signal is DENY. A third candidate may establish an independent
-pair with the primary source without weakening the requirement that the pair
-itself have distinct observed network owners.
+explicit owner signal is DENY. The candidate is intentionally the Northern
+Lottery Council's public result site, which is a different observed network
+owner from the primary source. This proves only the infrastructure leg; fresh
+result comparison remains a separate gate.
 """
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ from urllib.request import Request, urlopen
 
 PRIMARY_SOURCE = "https://ketqua16.net"
 IDENTITY_SOURCE_B = "https://xsmb.com.vn"
-CANDIDATE_SOURCE_C = "https://xoso.com.vn"
+CANDIDATE_SOURCE_C = "https://xosomb.com.vn"
 DECLARED_SOURCES = (PRIMARY_SOURCE, IDENTITY_SOURCE_B, CANDIDATE_SOURCE_C)
 RDAP_MAX_BYTES = 16_384
 
@@ -56,7 +57,7 @@ def _flatten_name(value) -> str | None:
 
 
 def _rdap_owner(ip: str, timeout: float = 5.0) -> str | None:
-    req = Request(f"https://rdap.org/ip/{ip}", headers={"User-Agent": "XSMB-Forensic-IndependenceProbe/1.1", "Accept": "application/rdap+json"})
+    req = Request(f"https://rdap.org/ip/{ip}", headers={"User-Agent": "XSMB-Forensic-IndependenceProbe/1.2", "Accept": "application/rdap+json"})
     with urlopen(req, timeout=timeout) as response:
         raw = response.read(RDAP_MAX_BYTES)
     doc = json.loads(raw.decode("utf-8", errors="ignore"))
@@ -131,13 +132,12 @@ def probe_infrastructure(url: str, timeout: float = 8.0) -> InfrastructureReceip
 
 def run_probe() -> dict[str, object]:
     receipts = [asdict(probe_infrastructure(url)) for url in DECLARED_SOURCES]
-    by_host = {r["requested_host"]: r for r in receipts}
     owners = {r["requested_host"]: r["network_owner"] for r in receipts if r["network_owner_observed"]}
 
     independent_pairs: list[dict[str, str]] = []
     primary_owner = owners.get(urlsplit(PRIMARY_SOURCE).hostname or "")
     if primary_owner:
-        for url in DECLARED_SOURCES[1:]:
+        for url in (IDENTITY_SOURCE_B, CANDIDATE_SOURCE_C):
             host = urlsplit(url).hostname or ""
             owner = owners.get(host)
             if owner and owner != primary_owner:
@@ -151,13 +151,14 @@ def run_probe() -> dict[str, object]:
         "primary_source": PRIMARY_SOURCE,
         "identity_source_b": IDENTITY_SOURCE_B,
         "candidate_source_c": CANDIDATE_SOURCE_C,
+        "candidate_role": "OFFICIAL_NORTHERN_LOTTERY_COUNCIL_PUBLIC_RESULT_SITE",
         "receipts": receipts,
         "distinct_network_owners": len(set(owners.values())),
         "independent_pairs": independent_pairs,
         "independence": independence,
         "canonical_quorum": "PASS_LOCAL" if independence == "PASS_LOCAL" else "DENY",
         "promotion": "DENY",
-        "policy": "HOSTNAME_DIFFERENCE_IS_NOT_INDEPENDENCE_PROOF;PRIMARY_PLUS_CROSS_OWNER_REQUIRED",
+        "policy": "HOSTNAME_DIFFERENCE_IS_NOT_INDEPENDENCE_PROOF;PRIMARY_PLUS_CROSS_OWNER_REQUIRED;FRESH_RESULT_COMPARISON_REQUIRED",
     }
 
 
