@@ -1,0 +1,13 @@
+{
+  "schema": "headless-reconciliation-receipt/v1",
+  "receipt_type": "WORKER_RECONCILIATION",
+  "allocation_id": "ALLOC-BRAIN-N173-V1",
+  "cycle_id": "BRAIN-N173_FRESH-PROBE-RECEIPT-AND-S1-BRIDGE",
+  "receipt_sha256": "0db01bad0b0aa10f48d7ddcfd2fe1aaf47fc81f7f5b801bc61750543565669f1",
+  "result": "PASS",
+  "execution_authority": "HEADLESS_WORKER",
+  "chat_session_execution": "CLOSED",
+  "promotion": "DENY",
+  "source": "BOT1_RUNTIME_OBSERVATION",
+  "observed_at": "2026-08-21T12:44:37.554361+00:00"
+}
