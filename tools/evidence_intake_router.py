@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from enum import Enum
 
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -49,7 +49,7 @@ class EvidenceAdmission:
             raise ValueError("DENY_TIMESTAMP_INVALID") from exc
         if captured_at.tzinfo is None:
             raise ValueError("DENY_TIMESTAMP_NOT_TIMEZONE_AWARE")
-        if captured_at > datetime.now(timezone.utc) + __import__("datetime").timedelta(minutes=5):
+        if captured_at > datetime.now(timezone.utc) + timedelta(minutes=5):
             raise ValueError("DENY_TIMESTAMP_IN_FUTURE")
         if not SHA256_RE.fullmatch(self.raw_sha256):
             raise ValueError("DENY_RAW_SHA256_INVALID")
