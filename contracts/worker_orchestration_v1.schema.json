@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Forensic Worker Orchestration V1",
+  "type": "object",
+  "required": ["cycle_id", "task_id", "worker_id", "role", "lease", "authority", "input_refs", "completion"],
+  "properties": {
+    "cycle_id": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "worker_id": {"type": "string", "pattern": "^BOT[0-9]+(?:\\.[0-9]+)?$"},
+    "role": {"type": "string", "minLength": 1},
+    "lease": {
+      "type": "object",
+      "required": ["lease_id", "state", "attempt", "exclusive_write_scope"],
+      "properties": {
+        "lease_id": {"type": "string", "minLength": 1},
+        "state": {"enum": ["PENDING", "CLAIMED", "RUNNING", "SUCCEEDED", "FAILED", "EXPIRED", "CANCELLED"]},
+        "attempt": {"type": "integer", "minimum": 1},
+        "exclusive_write_scope": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "authority": {
+      "type": "object",
+      "required": ["forensic_gate", "promotion", "state_mutation"],
+      "properties": {
+        "forensic_gate": {"const": "NONE"},
+        "promotion": {"const": "DENY"},
+        "state_mutation": {"enum": ["NONE", "BRANCH_LOCAL", "CANONICAL_BY_BOT1_ONLY"]}
+      },
+      "additionalProperties": false
+    },
+    "input_refs": {"type": "array", "items": {"type": "string"}},
+    "completion": {
+      "type": "object",
+      "required": ["result", "evidence_refs", "next_action"],
+      "properties": {
+        "result": {"enum": ["PASS", "FAIL", "UNKNOWN", "HOLD", "CONFLICT"]},
+        "evidence_refs": {"type": "array", "items": {"type": "string"}},
+        "next_action": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
