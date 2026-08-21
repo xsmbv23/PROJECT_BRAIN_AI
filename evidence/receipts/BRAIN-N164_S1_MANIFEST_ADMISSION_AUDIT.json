@@ -1,0 +1,50 @@
+{
+  "action_id": "BRAIN-N164",
+  "title": "S1 manifest admission audit",
+  "status": "BLOCKED",
+  "e2e_segment": "S1_REAL_DATA",
+  "peer_observation": {
+    "repository": "xsmbv23/Quant_Engine",
+    "parallel_stream": "QUANT-N012_SOURCE_COLLECTOR_BOUNDARY_AUDIT",
+    "observed_completion": "N011 completed; N012 recorded as next safe work"
+  },
+  "findings": {
+    "brain_current_state": "S1_CANONICAL_EVIDENCE_BLOCKED",
+    "s1_contract_version": "S1_CANONICAL_EVIDENCE_V2",
+    "canonical_dataset_artifact": "NOT_OBSERVED",
+    "manifest_with_required_fields": "NOT_OBSERVED",
+    "historical_receipts_present": true,
+    "historical_receipts_are_sufficient_for_s1": false
+  },
+  "required_s1_evidence": [
+    "source_provenance",
+    "artifact_path_resolving_inside_evidence_root",
+    "raw_artifact_sha256_verifiable_against_bytes",
+    "raw_byte_sha256_verifiable",
+    "date_start",
+    "date_end",
+    "expected_consecutive_days",
+    "observed_consecutive_days",
+    "coverage_ratio == 1.0",
+    "unresolved_conflicts == 0",
+    "real_observable_admission_receipt",
+    "frozen_canonical_sha256_verifiable",
+    "synthetic_data == false"
+  ],
+  "decision": "DEFAULT_DENY",
+  "downstream": {
+    "S2": "LOCKED",
+    "S3": "UNREACHED",
+    "S4": "UNREACHED",
+    "S5": "UNREACHED",
+    "S6": "UNREACHED",
+    "S7": "UNREACHED"
+  },
+  "next_actions": {
+    "brain": "continue S1 evidence consumer/enforcement audit and peer handoff verification",
+    "quant": "continue QUANT-N012 source/collector boundary audit and produce local evidence only",
+    "data": "produce real durable canonical artifact + manifest + admission receipt"
+  },
+  "promotion": "DENY",
+  "synthetic_data": false
+}
