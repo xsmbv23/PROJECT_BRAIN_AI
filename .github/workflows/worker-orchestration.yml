@@ -40,18 +40,19 @@ jobs:
       - name: Generate pending task envelopes
         run: python orchestration/dispatch_workers.py
 
-      - name: Claim, execute and reconcile BOT2/BOT4
+      - name: Claim, execute and reconcile BOT2/BOT3/BOT4
         env:
-          WORKERS: BOT2_QUANT,BOT4_EXECUTION
+          WORKERS: BOT2_QUANT,BOT3_REALITY,BOT4_EXECUTION
         run: python orchestration/worker_reconcile.py
 
       - name: Verify background path
         run: python orchestration/v1_5a_verify.py
 
-      - name: Verify V1.5E headless continuity
+      - name: Verify V1.5E triple-worker headless continuity
         env:
-          BOT2_URL: https://bot2-headless-worker.onrender.com
-          BOT4_URL: https://brain-bot4-worker.onrender.com
+          BOT2_URL: https://brain-bot2-worker-v2.onrender.com
+          BOT3_URL: https://brain-bot3-worker.onrender.com
+          BOT4_URL: https://brain-bot4-worker-v2.onrender.com
         run: python orchestration/v1_5e_e2e.py
 
       - name: Persist orchestration receipts
@@ -64,5 +65,5 @@ jobs:
           git config user.name "Project Brain Worker Orchestrator"
           git config user.email "actions@users.noreply.github.com"
           git add coordination/worker_outbox coordination/worker_results coordination/reconciliation coordination/receipts
-          git commit -m "orchestration: persist worker cycle receipts"
+          git commit -m "orchestration: persist triple-worker cycle receipts"
           git push
