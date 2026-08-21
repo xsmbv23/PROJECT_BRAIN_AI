@@ -11,6 +11,7 @@
     "source_provenance_reference",
     "canonical_input_reference",
     "temporal_evidence_reference",
+    "date_manifest_reference",
     "date_manifest_sha256",
     "start_date",
     "end_date",
@@ -38,6 +39,7 @@
     "RESEARCH_ADMISSION_IS_NOT_EV_PROOF",
     "RESEARCH_ADMISSION_IS_NOT_ACTION_AUTHORIZATION",
     "TEMPORAL_CLAIMS_REQUIRE_DERIVATION_EVIDENCE",
+    "DATE_MANIFEST_MUST_BE_INDEPENDENTLY_REFERENCABLE",
     "DATE_MANIFEST_HASH_IS_NOT_RAW_BYTE_HASH"
   ],
   "minimum_current_room_02": {
