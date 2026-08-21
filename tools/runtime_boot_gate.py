@@ -1,11 +1,10 @@
 """Run lightweight foundation verifiers before Brain serves traffic.
 
 Boot/liveness and forensic admission are deliberately different gates.
-A missing historical action receipt must block promotion/transport, but must
-not make the HTTP service unavailable. The receipt issuer runs only after the
-full runtime boundary completes; the verifier on the next runtime reads that
-prior receipt. This preserves a restart boundary and prevents the verifier from
-self-manufacturing its own evidence.
+External source probes are never allowed to become a hidden availability
+requirement: they run only when explicitly enabled by the N173 admission
+execution path. This keeps remote-site latency/failure outside the Brain boot
+critical path and protects Render Free memory/availability.
 """
 from __future__ import annotations
 
@@ -133,9 +132,15 @@ def main() -> int:
                 return 1
 
     binding = database_binding_evidence()
-    origin = _run_json_tool(env, "tools/origin_metadata_probe.py", 24, "DENY_ORIGIN_METADATA")
-    canonical = _run_json_tool(env, "tools/canonical_identity_probe.py", 24, "DENY_CANONICAL_IDENTITY")
-    independence = _run_json_tool(env, "tools/source_independence_probe.py", 24, "DENY_INDEPENDENCE")
+    if env.get("FORENSIC_SOURCE_PROBES") == "1":
+        origin = _run_json_tool(env, "tools/origin_metadata_probe.py", 24, "DENY_ORIGIN_METADATA")
+        canonical = _run_json_tool(env, "tools/canonical_identity_probe.py", 24, "DENY_CANONICAL_IDENTITY")
+        independence = _run_json_tool(env, "tools/source_independence_probe.py", 24, "DENY_INDEPENDENCE")
+    else:
+        origin = {"status": "DISABLED_BOOT_PATH"}
+        canonical = {"status": "DISABLED_BOOT_PATH"}
+        independence = {"status": "DISABLED_BOOT_PATH"}
+
     results.extend([
         {"name": "database_binding_probe", "exit_code": 0, "evidence": binding},
         {"name": "origin_metadata_probe", "exit_code": int(origin.get("exit_code", 0)), "evidence": origin},
@@ -171,6 +176,7 @@ def main() -> int:
         "action_receipt_issuer": receipt_issue,
         "external_event_path": "ISOLATED; NO_SELF_MANUFACTURED_EVENT",
         "foundation_path": "ADVANCE_ALLOWED; EXTERNAL_STATE_UNCHANGED",
+        "source_probe_policy": "DISABLED_ON_BOOT; EXPLICIT_N173_EXECUTION_ONLY",
         "room_02": "LOCKED",
         "staircase": "LOCKED",
         "elapsed_seconds": round(time.time() - started, 4),
