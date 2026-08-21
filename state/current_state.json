@@ -49,7 +49,7 @@
   "layer_1":"ROOM_01_DATA_ADMISSION",
   "room_02":"LOCKED",
   "staircase":"LOCKED",
-  "last_action_id":"BRAIN-N150_GATE_CHAIN_TEST_COVERAGE",
+  "last_action_id":"BRAIN-N151_PARALLEL_FORENSIC_CHAIN",
   "next_action_id":"BRAIN-N125_WAIT_EXTERNAL",
   "parallel_safe_engineering":"QUANT-N010_WORKFLOW_EVIDENCE_HARDENING",
   "parallel_safe_engineering_status":"ALLOWED_LOCAL_PREREQUISITE_ONLY",
@@ -58,5 +58,5 @@
   "quant_primary_pair":"ketqua16 + xsmb",
   "quant_external_observation_20260809":"AGREEMENT_OBSERVED_NOT_RUNTIME_RECEIPT",
   "quant_raw_durability":"LOCAL_EPHEMERAL_NOT_DURABLE",
-  "state_integrity_note":"N150 extended recorded-chain freshness/cycle regression coverage without inheriting Quant workflow evidence into Brain. Quant repository-execution evidence remains scoped to Quant only; Brain exact-current external runtime truth and promotion remain unchanged. ACTION_SPACE remains 0; promotion remains DENY."
+  "state_integrity_note":"N151 canonized the single-Forensic-FSM database admission semantics as a safe parallel documentation action. It did not alter the mandatory external-observation wait, action_space, promotion, Layer 1, or staircase. Quant workflow evidence remains scoped to Quant only and cannot unlock Brain gates."
 }
