@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Multi Bot Handoff V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "owner",
+    "action_id",
+    "e2e_segment",
+    "blocker",
+    "action",
+    "evidence_refs",
+    "result",
+    "next_action",
+    "peer_impact",
+    "challenge_status"
+  ],
+  "properties": {
+    "owner": {"enum": ["BOT_1", "BOT_2", "BOT_3"]},
+    "action_id": {"type": "string", "minLength": 1},
+    "e2e_segment": {
+      "enum": [
+        "S1_REAL_DATA",
+        "S2_VALID_RESEARCH",
+        "S3_VALID_BACKTEST",
+        "S4_EDGE",
+        "S5_EV_PNL_ROI",
+        "S6_ROBUSTNESS_RISK_DRIFT",
+        "S7_CONTROLLED_ACTION"
+      ]
+    },
+    "blocker": {"type": "string"},
+    "action": {"type": "string", "minLength": 1},
+    "evidence_refs": {"type": "array", "items": {"type": "string"}},
+    "result": {"type": "string", "minLength": 1},
+    "next_action": {"type": "string", "minLength": 1},
+    "peer_impact": {"type": "string"},
+    "challenge_status": {
+      "enum": ["ACK", "AGREE", "CHALLENGE", "UNKNOWN", "BLOCKED"]
+    }
+  }
+}
