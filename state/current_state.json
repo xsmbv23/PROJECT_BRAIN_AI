@@ -49,7 +49,7 @@
   "layer_1":"ROOM_01_DATA_ADMISSION",
   "room_02":"LOCKED",
   "staircase":"LOCKED",
-  "last_action_id":"BRAIN-N158_E2E_SEGMENT_REACHABILITY_GUARD",
+  "last_action_id":"BRAIN-N159_STATE_AUTHORITY_HARDENING",
   "next_action_id":"BRAIN-N125_WAIT_EXTERNAL",
   "parallel_safe_engineering":"QUANT-N010_WORKFLOW_EVIDENCE_HARDENING",
   "parallel_safe_engineering_status":"ALLOWED_LOCAL_PREREQUISITE_ONLY",
@@ -60,5 +60,6 @@
   "quant_raw_durability":"LOCAL_EPHEMERAL_NOT_DURABLE",
   "e2e_current_segment":"S2_VALID_RESEARCH",
   "e2e_blocked_segments":["S3_VALID_BACKTEST","S4_EDGE","S5_EV_PNL_ROI","S6_ROBUSTNESS_RISK_DRIFT","S7_CONTROLLED_ACTION"],
-  "state_integrity_note":"N158 added a machine-checkable E2E segment reachability guard and regression tests. It does not alter external-observation wait, action_space, promotion, Layer 1, Room 02, or staircase. Downstream segments remain unreachable until their predecessor exit evidence is independently verified."
+  "state_authority_doc":"docs/architecture/CURRENT_STATE_AUTHORITY.md",
+  "state_integrity_note":"N159 strengthened successor state authority without changing gate reachability, external wait, action_space, promotion, Layer 1, Room 02, or staircase. Historical architecture snapshots remain immutable history; current state pointers remain authoritative."
 }
