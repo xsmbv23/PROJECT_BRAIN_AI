@@ -86,6 +86,15 @@ class GateInvariantTests(unittest.TestCase):
         self.assertFalse(ok)
         self.assertEqual(reason, "EVIDENCE_IDENTITY_MISSING:DB_EXISTENCE")
 
+    def test_chain_rejects_out_of_order_evidence(self):
+        history = [
+            GateResult("DB_EXISTENCE", "PASS", "hash-a", self.now + 10, "cycle-1"),
+            GateResult("DB_BINDING", "PASS", "hash-b", self.now + 5, "cycle-1"),
+        ]
+        ok, reason = gate_chain_is_valid(history, now=self.now + 10)
+        self.assertFalse(ok)
+        self.assertEqual(reason, "OUT_OF_ORDER_EVIDENCE:DB_BINDING")
+
 
 if __name__ == "__main__":
     unittest.main()
