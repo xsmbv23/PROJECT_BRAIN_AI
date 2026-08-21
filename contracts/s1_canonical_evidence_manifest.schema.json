@@ -3,6 +3,9 @@
   "purpose": "admit only real evidence-backed canonical data into S2",
   "required": [
     "source_provenance",
+    "acquisition_channel",
+    "acquisition_reference",
+    "acquisition_timestamp_utc",
     "artifact_path",
     "raw_artifact_sha256",
     "raw_byte_sha256",
@@ -18,6 +21,9 @@
   ],
   "admission_conditions": {
     "source_provenance": "REAL_AND_TRACEABLE",
+    "acquisition_channel": "AUTOMATED_SOURCE_WITH_EXPLICIT_PERMISSION|MANUAL_AUTHORIZED_CAPTURE|DURABLE_ARCHIVE_EXPORT",
+    "acquisition_reference": "PRESENT_AND_VERIFIABLE_FOR_CHANNEL",
+    "acquisition_timestamp_utc": "PRESENT_AND_VERIFIABLE",
     "artifact_path": "MUST_RESOLVE_INSIDE_EVIDENCE_ROOT",
     "raw_artifact_sha256": "PRESENT_AND_VERIFIABLE_AGAINST_BYTES",
     "raw_byte_sha256": "PRESENT_AND_VERIFIABLE",
@@ -26,6 +32,11 @@
     "admission_receipt": "REAL_OBSERVABLE_RECEIPT",
     "frozen_canonical_sha256": "PRESENT_AND_VERIFIABLE",
     "synthetic_data": false
+  },
+  "admission_channel_policy": {
+    "AUTOMATED_SOURCE_WITH_EXPLICIT_PERMISSION": "requires permission reference + source identity + retrieval timestamp",
+    "MANUAL_AUTHORIZED_CAPTURE": "requires operator identity + authorization reference + capture timestamp",
+    "DURABLE_ARCHIVE_EXPORT": "requires archive identity + export timestamp + archive provenance"
   },
   "failure_policy": "DEFAULT_DENY",
   "unknown_policy": "NOT_PASS",
@@ -36,5 +47,6 @@
     "s2_valid_research": "LOCKED_UNTIL_S1_PASS",
     "s3_valid_backtest": "LOCKED_UNTIL_S2_PASS"
   },
-  "credential_policy": "NO_CREDENTIALS_IN_MANIFEST"
+  "credential_policy": "NO_CREDENTIALS_IN_MANIFEST",
+  "independence_rule": "Source independence is corroboration evidence, not a mandatory automated scraping prerequisite when a lawful authorized or durable-archive channel satisfies this contract."
 }
