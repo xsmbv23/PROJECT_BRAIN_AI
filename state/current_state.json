@@ -38,7 +38,7 @@
   "n125_action":"BRAIN-N125",
   "n125_decision":"UNKNOWN",
   "n125_reason":"GitHub workflow-run observation returned zero observable workflow runs for the exact current validator commit; CI execution cannot be self-attested from repository structure.",
-  "n125_validator_commit":"5a5b7141f60bf80140c9b83db8905c5cc5cc5",
+  "n125_validator_commit":"5a5b7141f60bf80140c9b83db890a8c5c3205cc5",
   "n125_safe_fix":"canonical lineage fields now authoritative; unmarked legacy aliases deny; explicit legacy_fixture required for historical fixtures",
   "pass_inheritance":false,
   "unknown_is_not_pass":true,
