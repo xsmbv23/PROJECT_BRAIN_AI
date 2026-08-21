@@ -1,0 +1,20 @@
+{
+  "schema": "forensic-e2e-runtime-reconciliation/v1",
+  "recorded_at": "2026-08-21T17:00:10Z",
+  "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+  "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
+  "allocation_sha256": "a3ab69b6f11fbaaeb1eec2ec071fd9b508e7edb06026eab7d99db3d379fef7cd",
+  "workers_expected": ["BOT2_QUANT", "BOT3_REALITY", "BOT4_EXECUTION"],
+  "workers_observed": ["BOT2_QUANT", "BOT3_REALITY", "BOT4_EXECUTION"],
+  "results": {
+    "BOT2_QUANT": {"result": "PASS", "observed_at": "2026-08-21T16:59:25.131625+00:00", "schema": "headless-worker-result/v3", "canonical_mutation": "FORBIDDEN", "promotion": "DENY"},
+    "BOT3_REALITY": {"result": "PASS", "observed_at": "2026-08-21T16:59:37.365980+00:00", "schema": "headless-worker-result/v2", "canonical_mutation": "FORBIDDEN", "promotion": "DENY"},
+    "BOT4_EXECUTION": {"result": "PASS", "observed_at": "2026-08-21T17:00:00.485937+00:00", "schema": "headless-worker-result/v3", "canonical_mutation": "FORBIDDEN", "promotion": "DENY"}
+  },
+  "e2e_decision": "PASS_LOCAL",
+  "evidence_basis": "Render application logs from three distinct worker services, same allocation_id, same cycle_id and same allocation_sha256; all required worker checks passed.",
+  "forensic_promotion": "DENY",
+  "s1_status": "HOLD",
+  "s1_reason": "Worker E2E completion does not prove S1 canonical-data admission predicates.",
+  "missing_s1_predicates": ["lawful acquisition reference", "complete consecutive coverage", "zero-conflict proof", "fresh admission receipt", "frozen canonical hash", "admitted canonical artifact"]
+}
