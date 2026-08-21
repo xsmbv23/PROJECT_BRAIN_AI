@@ -1,10 +1,9 @@
 """Run lightweight foundation verifiers before Brain serves traffic.
 
 Boot/liveness and forensic admission are deliberately different gates.
-External source probes are never allowed to become a hidden availability
-requirement: they run only when explicitly enabled by the N173 admission
-execution path. This keeps remote-site latency/failure outside the Brain boot
-critical path and protects Render Free memory/availability.
+External source probes and durable receipt writes are explicit admission actions,
+never hidden boot dependencies. This keeps remote-site latency, database writes,
+and authorization events outside the Brain boot critical path.
 """
 from __future__ import annotations
 
@@ -61,42 +60,11 @@ def room01_runtime_evidence(env: dict[str, str]) -> dict[str, object]:
     return _run_json_tool(env, "tools/runtime_room01_verify.py", 45, "DENY")
 
 
-def deployment_identity(env: dict[str, str]) -> tuple[str, str]:
-    deploy_id = env.get("RENDER_DEPLOY_ID", "")
-    if deploy_id:
-        return deploy_id, "RENDER_DEPLOY_ID"
-    instance_id = env.get("RENDER_INSTANCE_ID", "")
-    if instance_id:
-        return instance_id, "RENDER_INSTANCE_ID"
-    return "", "NONE"
-
-
 def admission_summary(binding_status: str, network_status: str, round_trip_proven: bool = False) -> dict[str, object]:
     network_pass = network_status == "PASS"
     state = AdmissionState(existence=False, binding=binding_status == "BOUND_TLS", tls=binding_status == "BOUND_TLS", round_trip=round_trip_proven)
     evaluated = evaluate(state)
     return {"db_existence": "PREREQUISITE_EXTERNAL_EVIDENCE", "db_binding": binding_status, "db_tls_admission": "PASS" if binding_status == "BOUND_TLS" else "DENY", "network_origin_proof": "PASS" if network_pass else "NOT_PROVEN", "db_round_trip": "PASS" if round_trip_proven else "NOT_PROVEN", "promotion": "ALLOW" if (network_pass and evaluated["promotion"]) else "DENY", "rule": "PASS_IS_LOCAL_TO_GATE;PASS_IS_PREREQUISITE_ONLY;NO_PASS_INHERITANCE"}
-
-
-def issue_prior_runtime_receipt(env: dict[str, str], binding_status: str) -> dict[str, object]:
-    """Issue evidence only after the runtime boundary; never used to make this boot PASS."""
-    try:
-        state = json.loads((ROOT / "state" / "current_state.json").read_text(encoding="utf-8"))
-        action = state.get("last_action_id")
-    except Exception:
-        return {"status": "DENY", "reason": "ACTION_RECEIPT_STATE_UNREADABLE"}
-    commit = env.get("RENDER_GIT_COMMIT", "")
-    deployment, identity_type = deployment_identity(env)
-    if not action or not commit or not deployment:
-        return {"status": "DENY", "reason": "ACTION_RECEIPT_ISSUER_IDENTITY_MISSING", "deployment_identity_type": identity_type}
-    if binding_status != "BOUND_TLS":
-        return {"status": "DENY", "reason": "ACTION_RECEIPT_DB_NOT_BOUND_TLS", "deployment_identity_type": identity_type}
-    try:
-        from tools.action_receipt_store import issue_action_receipt
-        receipt = issue_action_receipt(action_id=action, commit_sha=commit, deployment_id=deployment)
-        return {"status": "ISSUED_FOR_NEXT_RUNTIME", "action_id": action, "receipt_sha256": receipt["receipt_sha256"], "evidence_sha": receipt["evidence_sha"], "deployment_id": deployment, "deployment_identity_type": identity_type, "pass_is_local": True, "promotes": False}
-    except Exception as exc:
-        return {"status": "DENY", "reason": f"ACTION_RECEIPT_ISSUE_FAILED:{type(exc).__name__}", "deployment_identity_type": identity_type}
 
 
 def main() -> int:
@@ -156,8 +124,8 @@ def main() -> int:
     reconciliation = evaluate_admission(runtime_commit=os.environ.get("RENDER_GIT_COMMIT"), deployment_id=os.environ.get("RENDER_DEPLOY_ID") or os.environ.get("RENDER_INSTANCE_ID"), quant_projection=None)
     results.append({"name": "state_reconciliation_admission", "exit_code": 0, "evidence": reconciliation})
 
-    receipt_issue = issue_prior_runtime_receipt(env, str(binding["status"]))
-    results.append({"name": "action_receipt_issuer", "exit_code": 0 if receipt_issue.get("status") == "ISSUED_FOR_NEXT_RUNTIME" else 1, "evidence": receipt_issue, "gate_role": "POST_BOUNDARY_ISSUER"})
+    receipt_issue = {"status": "DEFERRED", "reason": "DURABLE_RECEIPT_ISSUANCE_IS_EXPLICIT_ADMISSION_ACTION;NOT_BOOT_DEPENDENCY", "action_id": "N173_FRESH-PROBE-RECEIPT-AND-S1-BRIDGE", "promotes": False}
+    results.append({"name": "action_receipt_issuer", "exit_code": 0, "evidence": receipt_issue, "gate_role": "POST_BOUNDARY_DEFERRED_ISSUER"})
 
     admission_status = "DENY" if admission_denials else "PASS"
     print(json.dumps({
@@ -177,6 +145,7 @@ def main() -> int:
         "external_event_path": "ISOLATED; NO_SELF_MANUFACTURED_EVENT",
         "foundation_path": "ADVANCE_ALLOWED; EXTERNAL_STATE_UNCHANGED",
         "source_probe_policy": "DISABLED_ON_BOOT; EXPLICIT_N173_EXECUTION_ONLY",
+        "durable_receipt_policy": "DEFERRED_OFF_BOOT; EXPLICIT_N173_EXECUTION_ONLY",
         "room_02": "LOCKED",
         "staircase": "LOCKED",
         "elapsed_seconds": round(time.time() - started, 4),
