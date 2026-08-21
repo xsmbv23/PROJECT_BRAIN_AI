@@ -1,103 +1,26 @@
 #!/usr/bin/env python3
-"""Deterministic worker dispatcher for Project_Brain_AI.
-
-This process does not perform forensic promotion and does not run LLM reasoning.
-It converts the canonical next_action + department allocation policy into
-append-only worker task envelopes. A real background worker can consume these
-envelopes without a ChatGPT browser session.
-"""
-
+"""Deterministic BOT1 worker dispatcher."""
 from __future__ import annotations
-
-import hashlib
-import json
-from datetime import datetime, timezone
+import hashlib,json
+from datetime import datetime,timezone
 from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[1]
-STATE = ROOT / "state" / "current_state.json"
-NEXT = ROOT / "state" / "next_action.json"
-MATRIX = ROOT / "coordination" / "next_action_matrix_v1.json"
-OUTBOX = ROOT / "coordination" / "worker_outbox"
-
-
-def read_json(path: Path):
-    value = json.loads(path.read_text(encoding="utf-8"))
-    # The Brain state files use a durable wrapper with the canonical JSON stored
-    # in the string-valued `content` field. Accept both wrapped and plain JSON
-    # so the worker protocol is not coupled to one storage serializer.
-    if isinstance(value, dict) and isinstance(value.get("content"), str):
-        try:
-            return json.loads(value["content"])
-        except json.JSONDecodeError:
-            pass
-    return value
-
-
-def stable_id(*parts: str) -> str:
-    payload = "|".join(parts).encode("utf-8")
-    return hashlib.sha256(payload).hexdigest()[:20]
-
-
-def main() -> int:
-    state = read_json(STATE)
-    nxt = read_json(NEXT)
-    matrix = read_json(MATRIX)
-
-    cycle_id = matrix["cycle_id"]
-    phase = matrix["phase"]
-    now = datetime.now(timezone.utc).isoformat()
-
-    # Only department scopes declared by BOT1 may be dispatched.
-    departments = matrix["departments"]
-    for worker_id, allocation in departments.items():
-        action = allocation["next_action"]
-        task_id = f"TASK-{cycle_id}-{worker_id}-{stable_id(cycle_id, worker_id, action)}"
-        task_dir = OUTBOX / cycle_id
-        task_dir.mkdir(parents=True, exist_ok=True)
-        task_path = task_dir / f"{worker_id}.json"
-
-        if task_path.exists():
-            continue
-
-        envelope = {
-            "schema": "forensic-worker-task/v1",
-            "created_at": now,
-            "cycle_id": cycle_id,
-            "task_id": task_id,
-            "worker_id": worker_id,
-            "role": worker_id,
-            "phase": phase,
-            "canonical_state": state["state"],
-            "canonical_next_action": nxt["action_id"],
-            "task": action,
-            "lease": {
-                "lease_id": f"LEASE-{stable_id(task_id)}",
-                "state": "PENDING",
-                "attempt": 1,
-                "exclusive_write_scope": [f"coordination/inbox/{worker_id}.jsonl"]
-            },
-            "authority": {
-                "forensic_gate": "NONE",
-                "promotion": "DENY",
-                "state_mutation": "BRANCH_LOCAL"
-            },
-            "input_refs": [
-                "state/current_state.json",
-                "state/next_action.json",
-                "coordination/next_action_matrix_v1.json"
-            ],
-            "completion": {
-                "result": "UNKNOWN",
-                "evidence_refs": [],
-                "next_action": "Return a persistent result before any new allocation."
-            }
-        }
-        task_path.write_text(json.dumps(envelope, indent=2) + "\n", encoding="utf-8")
-        print(f"created {task_path}")
-
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+ROOT=Path(__file__).resolve().parents[1]
+STATE=ROOT/'state'/'current_state.json'; NEXT=ROOT/'state'/'next_action.json'
+MATRIX=ROOT/'coordination'/'worker_allocation_v1.json'; OUTBOX=ROOT/'coordination'/'worker_outbox'
+def read_json(p):
+ v=json.loads(p.read_text(encoding='utf-8'))
+ if isinstance(v,dict) and isinstance(v.get('content'),str):
+  try:return json.loads(v['content'])
+  except json.JSONDecodeError:pass
+ return v
+def sid(*p):return hashlib.sha256('|'.join(p).encode()).hexdigest()[:20]
+def main():
+ state=read_json(STATE); nxt=read_json(NEXT); m=read_json(MATRIX); cycle=m['cycle_id']
+ if m['issued_by']!='BOT1_LEAD' or m['authority']!='BOT1_ONLY': raise SystemExit('ALLOCATION_AUTHORITY_INVALID')
+ for wid,a in m['workers'].items():
+  d=OUTBOX/cycle; d.mkdir(parents=True,exist_ok=True); path=d/f'{wid}.json'
+  if path.exists(): continue
+  task=f'TASK-{cycle}-{wid}-{sid(cycle,wid,a["action"])}'
+  env={'schema':'forensic-worker-task/v1','created_at':datetime.now(timezone.utc).isoformat(),'allocation_id':m['allocation_id'],'cycle_id':cycle,'task_id':task,'worker_id':wid,'role':a['department'],'task':a['action'],'deliverable':a['deliverable'],'canonical_state':state['state'],'canonical_next_action':nxt['action_id'],'lease':{'lease_id':f'LEASE-{sid(task)}','state':'PENDING','attempt':1},'write_scope':a['write_scope'],'authority':{'forensic_gate':'NONE','promotion':'DENY','canonical_state_mutation':'FORBIDDEN'},'completion':{'result':'UNKNOWN','evidence_refs':[]}}
+  path.write_text(json.dumps(env,indent=2)+'\n',encoding='utf-8'); print('created',path)
+if __name__=='__main__':raise SystemExit(main())
