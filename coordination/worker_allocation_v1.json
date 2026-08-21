@@ -1,13 +1,13 @@
 {
-  "schema":"bot-worker-allocation/v1",
-  "allocation_id":"ALLOC-BRAIN-N173-V1",
+  "schema":"bot-worker-allocation/v2",
+  "allocation_id":"ALLOC-BRAIN-N173-V2-ARCHIVE",
   "cycle_id":"BRAIN-N173_FRESH-PROBE-RECEIPT-AND-S1-BRIDGE",
   "phase":"WORKER_ALLOCATION",
   "issued_by":"BOT1_LEAD",
   "authority":"BOT1_ONLY",
   "workers":{
-    "BOT2_QUANT":{"department":"Quant/Data","action":"audit the fresh S1 probe receipt and cross-owner comparison for source-independence, provenance, hash/semantic integrity, and quantitative/data loopholes; return one persistent result","deliverable":"persistent result + evidence refs","write_scope":"coordination/inbox/BOT2_QUANT.jsonl"},
-    "BOT4_EXECUTION":{"department":"Independent Reality/Execution","action":"verify the exact-current deployment/runtime acquisition path, lawful provenance, receipt freshness, replay/stale/lease identity and execution integrity; return one persistent result","deliverable":"persistent result + evidence refs","write_scope":"coordination/inbox/BOT4_EXECUTION.jsonl"}
+    "BOT2_QUANT":{"department":"Quant/Data","action":"audit fresh S1 evidence and archive immutable worker/reconciliation receipts with lineage metadata for transmission to future Bot generations; verify source-independence, provenance, hash/semantic integrity, and quantitative loopholes","deliverable":"persistent archival result + evidence refs + lineage receipt","write_scope":"coordination/inbox/BOT2_QUANT.jsonl"},
+    "BOT4_EXECUTION":{"department":"Independent Reality/Execution","action":"verify exact-current deployment/runtime acquisition path, lawful provenance, receipt freshness, replay/stale/lease identity and execution integrity","deliverable":"persistent result + evidence refs","write_scope":"coordination/inbox/BOT4_EXECUTION.jsonl"}
   },
   "parallel":true,
   "shared_mutation":"FORBIDDEN",
