@@ -8,7 +8,15 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+# Render starts this file as a script, so the repository root is not
+# guaranteed to be on sys.path. Add it explicitly before importing tools.*.
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from tools.source_independence_probe import run_probe
 
