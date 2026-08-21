@@ -13,29 +13,41 @@ permissions:
   contents: write
 
 jobs:
-  dispatch:
+  dispatch-and-run:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Checkout governance plane
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
-      - name: Validate dispatcher
-        run: python -m compileall -q orchestration/dispatch_workers.py
+      - name: Validate worker runtime
+        run: python -m compileall -q orchestration/dispatch_workers.py orchestration/worker_runtime.py
 
-      - name: Dry-run state parsing
+      - name: Generate pending task envelopes
         run: python orchestration/dispatch_workers.py
 
-      - name: Persist generated task envelopes
+      - name: Run BOT2 worker runtime
+        env:
+          WORKER_ID: BOT2_QUANT
+          RUN_ONCE: "1"
+        run: python orchestration/worker_runtime.py
+
+      - name: Run BOT4 worker runtime
+        env:
+          WORKER_ID: BOT4_EXECUTION
+          RUN_ONCE: "1"
+        run: python orchestration/worker_runtime.py
+
+      - name: Persist orchestration results
         run: |
-          if git diff --quiet -- coordination/worker_outbox; then
-            echo "No new worker envelopes."
+          if git diff --quiet -- coordination/worker_outbox coordination/worker_results; then
+            echo "No orchestration changes."
             exit 0
           fi
           git config user.name "Project Brain Worker Orchestrator"
           git config user.email "actions@users.noreply.github.com"
-          git add coordination/worker_outbox
-          git commit -m "orchestration: dispatch worker tasks"
+          git add coordination/worker_outbox coordination/worker_results
+          git commit -m "orchestration: execute worker runtime v1"
           git push
