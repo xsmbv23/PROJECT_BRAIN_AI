@@ -22,6 +22,9 @@ class S1AdmissionBridgeTests(unittest.TestCase):
             digest = sha256(artifact.read_bytes()).hexdigest()
             manifest = {
                 "source_provenance": {"classification": "REAL_AND_TRACEABLE", "source": "TEST_ONLY"},
+                "acquisition_channel": "MANUAL_AUTHORIZED_CAPTURE",
+                "acquisition_reference": "TEST_SUITE_AUTHORIZED_CAPTURE",
+                "acquisition_timestamp_utc": "2026-08-12T10:00:00+00:00",
                 "artifact_path": artifact.name,
                 "raw_artifact_sha256": digest,
                 "raw_byte_sha256": digest,
@@ -35,6 +38,7 @@ class S1AdmissionBridgeTests(unittest.TestCase):
                 "frozen_canonical_sha256": digest,
                 "synthetic_data": False,
             }
+            manifest["source_provenance"].update({"operator_identity": "TEST_SUITE", "authorization_reference": "TEST_SUITE_AUTHORIZED_CAPTURE"})
             mp = root / "manifest.json"
             mp.write_text(json.dumps(manifest), encoding="utf-8")
             result = evaluate_s1(mp)
