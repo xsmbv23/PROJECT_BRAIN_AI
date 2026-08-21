@@ -1,9 +1,10 @@
 """Run lightweight foundation verifiers before Brain serves traffic.
 
 Boot/liveness and forensic admission are deliberately different gates.
-External source probes and durable receipt writes are explicit admission actions,
-never hidden boot dependencies. This keeps remote-site latency, database writes,
-and authorization events outside the Brain boot critical path.
+External source probes, durable receipt writes, and prior-receipt database reads
+are explicit admission actions, never hidden boot dependencies. This keeps
+remote-site latency and database availability outside the Brain boot critical
+path while preserving DEFAULT_DENY for admission.
 """
 from __future__ import annotations
 
@@ -76,6 +77,9 @@ def main() -> int:
     admission_denials: list[str] = []
 
     for name, relpath in COMMANDS:
+        if name == "action_receipt" and env.get("FORENSIC_PRIOR_RECEIPT_VERIFY") != "1":
+            results.append({"name": name, "exit_code": 0, "evidence": {"status": "DISABLED_BOOT_PATH", "reason": "PRIOR_RECEIPT_DB_READ_IS_EXPLICIT_ADMISSION_ACTION"}})
+            continue
         proc = subprocess.run([sys.executable, str(ROOT / relpath)], cwd=ROOT, env=env, capture_output=True, text=True, timeout=120)
         result = {"name": name, "exit_code": proc.returncode, "stdout_tail": proc.stdout[-4000:], "stderr_tail": proc.stderr[-2000:]}
         results.append(result)
@@ -145,6 +149,7 @@ def main() -> int:
         "external_event_path": "ISOLATED; NO_SELF_MANUFACTURED_EVENT",
         "foundation_path": "ADVANCE_ALLOWED; EXTERNAL_STATE_UNCHANGED",
         "source_probe_policy": "DISABLED_ON_BOOT; EXPLICIT_N173_EXECUTION_ONLY",
+        "prior_receipt_policy": "DISABLED_ON_BOOT; EXPLICIT_N173_EXECUTION_ONLY",
         "durable_receipt_policy": "DEFERRED_OFF_BOOT; EXPLICIT_N173_EXECUTION_ONLY",
         "room_02": "LOCKED",
         "staircase": "LOCKED",
