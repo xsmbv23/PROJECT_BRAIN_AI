@@ -1,0 +1,165 @@
+{
+  "schema": "n175-triple-runtime-probe-bundle/v1",
+  "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
+  "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+  "observed_at": "2026-08-21T16:44:44.184790+00:00",
+  "workers": [
+    {
+      "schema": "n175-triple-runtime-probe/v1",
+      "worker": "BOT2_QUANT",
+      "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
+      "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+      "observed_at": "2026-08-21T16:44:42.009930+00:00",
+      "endpoint": "https://brain-bot2-worker-v2.onrender.com",
+      "promotion": "DENY",
+      "canonical_mutation": "FORBIDDEN",
+      "health": {
+        "http_exit": 0,
+        "body": {
+          "status": "ALLOCATION_OBSERVED",
+          "worker": "BOT2_QUANT",
+          "context": "COMPACT_CONTEXT_V1",
+          "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
+          "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+          "task": "independently audit S1 provenance, acquisition lineage, coverage, hashes, conflicts and source-independence; append one fresh result receipt",
+          "allocation_sha256": "a3ab69b6f11fbaaeb1eec2ec071fd9b508e7edb06026eab7d99db3d379fef7cd",
+          "authority": "BOT1_ONLY",
+          "promotion": "DENY",
+          "canonical_mutation": "FORBIDDEN",
+          "observed_at": "2026-08-21T16:44:22.426263+00:00"
+        }
+      },
+      "result": {
+        "http_exit": 0,
+        "body": {
+          "schema": "headless-worker-result/v3",
+          "result_type": "QUANT_SYSTEM_AUDIT_RECEIPT",
+          "worker": "BOT2_QUANT",
+          "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
+          "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+          "allocation_sha256": "a3ab69b6f11fbaaeb1eec2ec071fd9b508e7edb06026eab7d99db3d379fef7cd",
+          "checks": {
+            "context_present": false,
+            "allocation_present": true,
+            "task_present": true,
+            "cycle_present": true,
+            "canonical_next_action_present": true,
+            "context_role_match": false
+          },
+          "result": "HOLD",
+          "promotion": "DENY",
+          "canonical_mutation": "FORBIDDEN",
+          "context_ref": "coordination/BOT_OPERATING_CONTEXT_V1.json",
+          "observed_at": "2026-08-21T16:44:22.426279+00:00"
+        }
+      },
+      "identity_match": true,
+      "fresh_result_observed": true,
+      "status": "PASS"
+    },
+    {
+      "schema": "n175-triple-runtime-probe/v1",
+      "worker": "BOT3_REALITY",
+      "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
+      "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+      "observed_at": "2026-08-21T16:44:42.702195+00:00",
+      "endpoint": "https://brain-bot3-worker.onrender.com",
+      "promotion": "DENY",
+      "canonical_mutation": "FORBIDDEN",
+      "health": {
+        "http_exit": 0,
+        "body": {
+          "status": "ALLOCATION_OBSERVED",
+          "worker": "BOT3_REALITY",
+          "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
+          "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+          "task": "reactivate independently for N175; verify exact current worker runtime, allocation/cycle binding, fresh execution/result identity, receipt persistence and real-source/admission observations; append one fresh result receipt; do not promote",
+          "allocation_sha256": "a3ab69b6f11fbaaeb1eec2ec071fd9b508e7edb06026eab7d99db3d379fef7cd",
+          "authority": "BOT1_ONLY",
+          "promotion": "DENY",
+          "canonical_mutation": "FORBIDDEN",
+          "observed_at": "2026-08-21T16:44:36.951774+00:00"
+        }
+      },
+      "result": {
+        "http_exit": 0,
+        "body": {
+          "schema": "headless-worker-result/v2",
+          "result_type": "ADVERSARIAL_REALITY_REVIEW",
+          "worker": "BOT3_REALITY",
+          "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
+          "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+          "allocation_sha256": "a3ab69b6f11fbaaeb1eec2ec071fd9b508e7edb06026eab7d99db3d379fef7cd",
+          "checks": {
+            "allocation_present": true,
+            "task_present": true,
+            "cycle_present": true,
+            "canonical_next_action_present": true
+          },
+          "result": "PASS",
+          "challenge_status": "ACTIVE",
+          "promotion": "DENY",
+          "canonical_mutation": "FORBIDDEN",
+          "observed_at": "2026-08-21T16:44:36.951789+00:00"
+        }
+      },
+      "identity_match": true,
+      "fresh_result_observed": true,
+      "status": "PASS"
+    },
+    {
+      "schema": "n175-triple-runtime-probe/v1",
+      "worker": "BOT4_EXECUTION",
+      "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
+      "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+      "observed_at": "2026-08-21T16:44:43.506424+00:00",
+      "endpoint": "https://brain-bot4-worker-v2.onrender.com",
+      "promotion": "DENY",
+      "canonical_mutation": "FORBIDDEN",
+      "health": {
+        "http_exit": 0,
+        "body": {
+          "status": "ALLOCATION_OBSERVED",
+          "worker": "BOT4_EXECUTION",
+          "context": "COMPACT_CONTEXT_V1",
+          "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
+          "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+          "task": "independently audit exact runtime/deployment identity, freshness, replay/stale protections, persistence and source-admission runtime binding; append one fresh result receipt",
+          "allocation_sha256": "a3ab69b6f11fbaaeb1eec2ec071fd9b508e7edb06026eab7d99db3d379fef7cd",
+          "authority": "BOT1_ONLY",
+          "promotion": "DENY",
+          "canonical_mutation": "FORBIDDEN",
+          "observed_at": "2026-08-21T16:43:59.591878+00:00"
+        }
+      },
+      "result": {
+        "http_exit": 0,
+        "body": {
+          "schema": "headless-worker-result/v3",
+          "result_type": "EXECUTION_SYSTEM_AUDIT_RECEIPT",
+          "worker": "BOT4_EXECUTION",
+          "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
+          "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+          "allocation_sha256": "a3ab69b6f11fbaaeb1eec2ec071fd9b508e7edb06026eab7d99db3d379fef7cd",
+          "checks": {
+            "context_present": false,
+            "allocation_present": true,
+            "task_present": true,
+            "cycle_present": true,
+            "canonical_next_action_present": true,
+            "context_role_match": false
+          },
+          "result": "HOLD",
+          "promotion": "DENY",
+          "canonical_mutation": "FORBIDDEN",
+          "context_ref": "coordination/BOT_OPERATING_CONTEXT_V1.json",
+          "observed_at": "2026-08-21T16:43:59.591898+00:00"
+        }
+      },
+      "identity_match": true,
+      "fresh_result_observed": true,
+      "status": "PASS"
+    }
+  ],
+  "promotion": "DENY"
+}
