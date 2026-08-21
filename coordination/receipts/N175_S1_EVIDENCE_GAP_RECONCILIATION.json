@@ -1,0 +1,42 @@
+{
+  "schema":"s1-evidence-gap-reconciliation/v1",
+  "action_id":"BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+  "cycle_id":"BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+  "actor":"BOT1_LEAD",
+  "observed_at":"2026-08-21T16:25:00Z",
+  "result":"HOLD",
+  "promotion":"DENY",
+  "evidence_refs":[
+    "coordination/receipts/N175_S1_RAW_ACQUISITION_OBSERVATION.json",
+    "coordination/receipts/n175/BOT2_QUANT_N175.json",
+    "coordination/receipts/n175/BOT4_EXECUTION_N175.json",
+    "contracts/s1_canonical_evidence_manifest.schema.json"
+  ],
+  "verified_predicates":{
+    "raw_capture_exists":true,
+    "raw_byte_sha256_present":true,
+    "bot2_independent_review":true,
+    "bot4_independent_review":true
+  },
+  "unproven_predicates":[
+    "lawful_acquisition_reference",
+    "complete_consecutive_date_range",
+    "coverage_ratio_1.0",
+    "zero_unresolved_conflicts",
+    "real_observable_admission_receipt",
+    "frozen_canonical_sha256",
+    "admitted_canonical_artifact"
+  ],
+  "worker_reconciliation":{
+    "BOT2":"HOLD",
+    "BOT4":"PASS_ADVISORY_ONLY",
+    "BOT4_durable_receipt_observed":false,
+    "BOT3":"N174_COMPLETED; no N175 promotion authority"
+  },
+  "next_action":{
+    "owner":"BOT1_LEAD",
+    "action":"CLOSE_S1_EVIDENCE_GAPS_WITH_A_LAWFUL_ADMISSION_CHANNEL_OR_DURABLE_ARCHIVE_EXPORT",
+    "expected_evidence":"verifiable acquisition reference + timestamp + complete artifact bytes + raw/frozen hashes + 1.0 coverage + zero conflicts + real admission receipt",
+    "failure_redirect":"If no lawful channel or durable archive exists in persistent infrastructure, remain HOLD and require human-provided authorization/reference or authorized archive artifact; do not synthesize evidence."
+  }
+}
