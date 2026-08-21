@@ -1,0 +1,20 @@
+{
+  "schema":"bot-worker-allocation/v2",
+  "allocation_id":"ALLOC-BRAIN-N173-V2",
+  "cycle_id":"BRAIN-N173_FRESH-PROBE-RECEIPT-AND-S1-BRIDGE",
+  "phase":"WORKER_ALLOCATION",
+  "issued_by":"BOT1_LEAD",
+  "authority":"BOT1_ONLY",
+  "workers":{
+    "BOT2_QUANT":{"department":"Quant/Data","action":"audit fresh S1 probe receipt, cross-owner independence, provenance, hash/semantic integrity and quantitative loopholes; persist one result","deliverable":"persistent result + evidence refs","write_scope":"coordination/inbox/BOT2_QUANT.jsonl"},
+    "BOT3_REALITY":{"department":"Independent Reality Review","action":"perform an independent fresh review of source identity, acquisition legality, evidence freshness, external consistency and hidden assumptions; challenge both Quant and Execution conclusions; persist one result","deliverable":"persistent adversarial result + evidence refs","write_scope":"coordination/inbox/BOT3_REALITY.jsonl"},
+    "BOT4_EXECUTION":{"department":"Execution/Runtime","action":"verify exact-current deployment/runtime identity, lawful acquisition path, lease/replay/stale protections and execution integrity; persist one result","deliverable":"persistent result + evidence refs","write_scope":"coordination/inbox/BOT4_EXECUTION.jsonl"}
+  },
+  "parallel":true,
+  "shared_mutation":"FORBIDDEN",
+  "canonical_state_mutation":"BOT1_ONLY",
+  "promotion":"DENY",
+  "source_of_truth":"state/next_action.json",
+  "source_action_id":"BRAIN-N173_FRESH-PROBE-RECEIPT-AND-S1-BRIDGE",
+  "completion_rule":"All three workers must return one persistent result before BOT1 issues the next allocation; missing/conflicting results cause HOLD or ESCALATE."
+}
