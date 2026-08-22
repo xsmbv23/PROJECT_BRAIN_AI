@@ -1,7 +1,8 @@
 name: N175 Triple Worker Probe
 
-# E2E EXECUTION VERIFICATION — BOT1 autonomous continuation marker.
-# A push to this workflow path intentionally triggers the observable probe.
+# E2E EXECUTION VERIFICATION — reachability alone is never PASS.
+# PASS requires exact allocation/cycle identity and a runtime result carrying
+# task + worker lineage. Missing execution evidence remains HOLD.
 
 on:
   push:
@@ -32,19 +33,16 @@ jobs:
           BOT4_URL: https://brain-bot4-worker-v2.onrender.com
         run: |
           python - <<'PY'
-          import json, os, subprocess
+          import hashlib, json, os, subprocess
           from pathlib import Path
           from datetime import datetime, timezone
           outer=json.loads(Path('coordination/worker_allocation_v2.json').read_text())
           alloc=json.loads(outer['content']) if isinstance(outer.get('content'),str) else outer
-          workers={
-            'BOT2_QUANT':os.environ['BOT2_URL'],
-            'BOT3_REALITY':os.environ['BOT3_URL'],
-            'BOT4_EXECUTION':os.environ['BOT4_URL'],
-          }
+          workers={'BOT2_QUANT':os.environ['BOT2_URL'],'BOT3_REALITY':os.environ['BOT3_URL'],'BOT4_EXECUTION':os.environ['BOT4_URL']}
+          required=('allocation_id','cycle_id','task_id','task_type','worker_id','input_artifact','input_sha256','model_version')
           out=[]
           for wid,url in workers.items():
-            rec={'schema':'n175-triple-runtime-probe/v1','worker':wid,'allocation_id':alloc.get('allocation_id'),'cycle_id':alloc.get('cycle_id'),'observed_at':datetime.now(timezone.utc).isoformat(),'endpoint':url,'promotion':'DENY','canonical_mutation':'FORBIDDEN'}
+            rec={'schema':'n175-triple-runtime-probe/v2','worker':wid,'allocation_id':alloc.get('allocation_id'),'cycle_id':alloc.get('cycle_id'),'observed_at':datetime.now(timezone.utc).isoformat(),'endpoint':url,'promotion':'DENY','canonical_mutation':'FORBIDDEN'}
             for path in ('/health','/result'):
               p=subprocess.run(['curl','-fsS','--max-time','20',url.rstrip('/')+path],capture_output=True,text=True)
               key=path.strip('/')
@@ -54,11 +52,14 @@ jobs:
                 except Exception: rec[key]['body']={'raw':p.stdout[-4000:]}
               else: rec[key]['error']='UNREACHABLE'
             result=rec['result'].get('body') or {}
-            rec['identity_match']=result.get('allocation_id')==alloc.get('allocation_id') and result.get('cycle_id')==alloc.get('cycle_id')
-            rec['fresh_result_observed']=bool(result.get('observed_at') or result.get('issued_at'))
-            rec['status']='PASS' if rec['health']['http_exit']==0 and rec['result']['http_exit']==0 and rec['identity_match'] else 'HOLD'
+            lineage_present=all(result.get(k) for k in required)
+            rec['identity_match']=result.get('allocation_id')==alloc.get('allocation_id') and result.get('cycle_id')==alloc.get('cycle_id') and result.get('worker_id')==wid
+            rec['lineage_present']=lineage_present
+            rec['fresh_result_observed']=bool(result.get('execution_finished_at') or result.get('observed_at') or result.get('issued_at'))
+            rec['runtime_status']=result.get('status') or result.get('result')
+            rec['status']='PASS' if rec['health']['http_exit']==0 and rec['result']['http_exit']==0 and rec['identity_match'] and rec['lineage_present'] and rec['fresh_result_observed'] and rec['runtime_status']=='PASS' else 'HOLD'
             out.append(rec)
-          Path('coordination/receipts/N175_TRIPLE_RUNTIME_PROBE.json').write_text(json.dumps({'schema':'n175-triple-runtime-probe-bundle/v1','allocation_id':alloc.get('allocation_id'),'cycle_id':alloc.get('cycle_id'),'observed_at':datetime.now(timezone.utc).isoformat(),'workers':out,'promotion':'DENY'},indent=2,ensure_ascii=False)+'\n')
+          Path('coordination/receipts/N175_TRIPLE_RUNTIME_PROBE.json').write_text(json.dumps({'schema':'n175-triple-runtime-probe-bundle/v2','allocation_id':alloc.get('allocation_id'),'cycle_id':alloc.get('cycle_id'),'observed_at':datetime.now(timezone.utc).isoformat(),'workers':out,'promotion':'DENY'},indent=2,ensure_ascii=False)+'\n')
           print(json.dumps(out,indent=2,ensure_ascii=False))
           PY
       - name: Persist triple runtime probe
