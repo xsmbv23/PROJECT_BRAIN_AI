@@ -16,7 +16,6 @@ NEXT = ROOT / "state" / "next_action.json"
 OUTBOX = ROOT / "coordination" / "worker_outbox"
 RESULTS = ROOT / "coordination" / "worker_results"
 RECON = ROOT / "coordination" / "reconciliation"
-# Exact worker IDs are inherited from the canonical allocation.
 WORKERS = tuple(x.strip() for x in os.environ.get("WORKERS", "BOT2_QUANT,BOT3_REALITY,BOT4_EXECUTION").split(",") if x.strip())
 
 def now(): return datetime.now(timezone.utc).isoformat()
@@ -61,11 +60,15 @@ def reconcile(cycle, results):
     active=[r for r in results if r.get("status") not in {"STALE_REJECTED","DUPLICATE_IGNORED"}]
     workers_observed=sorted({r.get("worker_id") for r in active if r.get("worker_id")}); missing=sorted(set(WORKERS)-set(workers_observed)); statuses=[r.get("result",{}).get("status") for r in active]
     if any(r.get("status")=="STALE_REJECTED" for r in results): decision,reason="HOLD","stale task/result detected"
-    elif missing: decision,reason="HOLD",f"required worker result missing: {','.join(missing)}"
     elif any(s in {"FAIL","CONFLICT"} for s in statuses): decision,reason="HOLD","blocking worker failure/conflict preserved"
     elif any(s=="BLOCKED_PROVIDER_NOT_CONFIGURED" for s in statuses): decision,reason="HOLD","background reasoning provider unavailable"
-    else: decision,reason="REVIEW_REQUIRED","all three worker results exist; BOT1 forensic synthesis required"
-    return {"schema":"forensic-worker-reconciliation/v3","recorded_at":now(),"cycle_id":cycle,"worker_results":results,"workers_expected":list(WORKERS),"workers_observed":workers_observed,"missing_workers":missing,"decision":decision,"reason":reason,"minority_preserved":True,"canonical_next_action_mutation":"FORBIDDEN","promotion":"DENY"}
+    elif len(workers_observed) >= 3 and not missing:
+        decision,reason="REVIEW_REQUIRED","full three-worker reconciliation; BOT1 forensic synthesis required"
+    elif len(workers_observed) == 2:
+        decision,reason="PROVISIONAL","two-worker degraded reconciliation; missing worker recorded; S1 promotion remains denied"
+    else:
+        decision,reason="INSUFFICIENT_QUORUM","fewer than two worker results; operational deliberation quorum not met"
+    return {"schema":"forensic-worker-reconciliation/v4","recorded_at":now(),"cycle_id":cycle,"worker_results":results,"workers_expected":list(WORKERS),"workers_observed":workers_observed,"missing_workers":missing,"worker_count":len(workers_observed),"decision":decision,"reason":reason,"minority_preserved":True,"canonical_next_action_mutation":"FORBIDDEN","promotion":"DENY"}
 def main():
     current_state=load(STATE); current_next=load(NEXT); current_cycle=current_next.get("action_id","UNKNOWN-CYCLE")
     matrix_path=ROOT/"coordination"/"next_action_matrix_v1.json"
