@@ -23,6 +23,7 @@ REQUIRED = {
     "acquisition_reference",
     "acquisition_timestamp_utc",
     "artifact_path",
+    "canonical_artifact_path",
     "raw_artifact_sha256",
     "raw_byte_sha256",
     "date_start",
@@ -165,7 +166,7 @@ def verify(manifest_path: Path, evidence_root: Path) -> Result:
         errors.append(str(exc))
 
     try:
-        canonical = _resolve(evidence_root, manifest.get("canonical_artifact_path", manifest["artifact_path"]), "canonical_artifact_path")
+        canonical = _resolve(evidence_root, manifest["canonical_artifact_path"], "canonical_artifact_path")
         canonical_digest = _sha256(canonical)
         if canonical_digest != str(manifest["frozen_canonical_sha256"]).lower():
             errors.append("frozen_canonical_sha256: does not match canonical artifact bytes")
