@@ -1,0 +1,50 @@
+name: S1 Canonical Evidence Admission Verifier
+
+on:
+  workflow_dispatch:
+    inputs:
+      manifest:
+        description: "Path to the S1 canonical evidence manifest"
+        required: false
+        default: ""
+  push:
+    paths:
+      - "contracts/s1_canonical_evidence_manifest.schema.json"
+      - "core/s1_admission.py"
+      - "evidence/s1/**"
+      - ".github/workflows/s1-admission-verifier.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verifier-self-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run S1 verifier self-test
+        run: python3 core/test_s1_admission.py
+
+  verify-manifest:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.manifest != '' || github.event_name == 'push' && hashFiles('evidence/s1/*manifest*.json') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve manifest
+        id: manifest
+        env:
+          INPUT_MANIFEST: ${{ inputs.manifest }}
+        run: |
+          set -euo pipefail
+          if [ -n "$INPUT_MANIFEST" ]; then
+            manifest="$INPUT_MANIFEST"
+          else
+            manifest=$(find evidence/s1 -maxdepth 1 -type f -name '*manifest*.json' | sort | head -n 1)
+          fi
+          test -n "$manifest"
+          test -f "$manifest"
+          echo "path=$manifest" >> "$GITHUB_OUTPUT"
+      - name: Verify S1 admission
+        run: |
+          set -euo pipefail
+          python3 core/s1_admission.py "${{ steps.manifest.outputs.path }}" --evidence-root evidence
