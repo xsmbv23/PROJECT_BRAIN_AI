@@ -3,13 +3,13 @@
   "worker": "BOT2_QUANT",
   "allocation_id": "ALLOC-N175-S1-E2E-TRIPLE-WORKER-003",
   "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
-  "observed_at": "2026-08-22T13:39:25.154164+00:00",
+  "observed_at": "2026-08-22T17:01:07.345130+00:00",
   "result": "HOLD",
   "promotion": "DENY",
   "canonical_mutation": "FORBIDDEN",
   "epistemic_status": "OBSERVED",
   "checks": {
-    "next_action_n175": true,
+    "next_action_n175": false,
     "s1_contract_loaded": true,
     "canonical_artifact_observed": false
   },
