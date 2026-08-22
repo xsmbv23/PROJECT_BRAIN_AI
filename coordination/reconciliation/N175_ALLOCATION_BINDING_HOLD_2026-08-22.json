@@ -1,0 +1,13 @@
+{
+  "schema": "bot1-forensic-hold/v1",
+  "recorded_at": "2026-08-22T00:00:00Z",
+  "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
+  "expected_allocation_id": "ALLOC-N175-S1-E2E-TRIPLE-WORKER-003",
+  "observed_allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
+  "source_receipt": "coordination/reconciliation/N175_E2E_TRIPLE_WORKER_RUNTIME_2026-08-21T16-48Z.json",
+  "decision": "HOLD",
+  "reason": "Existing triple-worker runtime PASS is bound to a stale allocation and cannot satisfy current allocation-003 evidence.",
+  "promotion": "DENY",
+  "canonical_state_mutation": "FORBIDDEN",
+  "required_next_action": "Generate fresh BOT2/BOT3/BOT4 runtime receipts bound to ALLOC-N175-S1-E2E-TRIPLE-WORKER-003, then reconcile allocation identity before S1 admission review."
+}
