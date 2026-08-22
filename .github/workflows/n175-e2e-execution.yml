@@ -18,3 +18,4 @@ jobs:
           python-version: '3.12'
       - name: Run direct triple-worker E2E verification
         run: python orchestration/n175_e2e_runner.py
+      # Direct push-triggered execution verification; no Render dependency.
