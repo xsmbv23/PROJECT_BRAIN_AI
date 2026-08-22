@@ -1,12 +1,13 @@
 {
   "schema":"forensic-worker-task/v2",
-  "allocation_id":"ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
+  "allocation_id":"ALLOC-N175-S1-E2E-TRIPLE-WORKER-003",
   "cycle_id":"BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
-  "task_id":"TASK-N175-BOT3-S1-INDEPENDENT-REVIEW-001",
+  "task_id":"TASK-N175-ALLOCATION003-BOT3-REALITY-001",
   "worker_id":"BOT3_REALITY",
-  "role":"Independent Reality Review",
-  "task":"Independently verify exact current worker/runtime identity, allocation/cycle binding, freshness, receipt persistence and real-source/admission observations. Challenge BOT2-style assumptions where appropriate. Produce a fresh persistent result receipt; do not promote.",
-  "deliverable":"fresh persistent Bot3 N175 reality/execution receipt",
+  "role":"Independent Reality/Source/Provenance",
+  "status":"PENDING",
+  "task":"Independently verify source provenance, acquisition-channel evidence, exact current worker/runtime identity, timestamps, durable archive/export, reproducibility, allocation/cycle binding and fresh receipt persistence. Challenge assumptions and preserve blocking findings. Do not promote.",
+  "deliverable":"fresh persistent BOT3 reality/provenance receipt",
   "write_scope":"coordination/inbox/BOT3_EXECUTION.jsonl",
   "authority":{"forensic_gate":"NONE","promotion":"DENY","canonical_state_mutation":"FORBIDDEN"},
   "lease":{"state":"PENDING","attempt":1}
