@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 from pathlib import Path
 
-from s1_admission import CONTRACT_ID, verify
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from s1_admission import CONTRACT_ID, verify  # noqa: E402
 
 
 def _sha(path: Path) -> str:
