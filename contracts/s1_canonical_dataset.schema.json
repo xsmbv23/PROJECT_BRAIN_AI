@@ -1,0 +1,11 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"S1 Canonical Dataset",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["schema","days"],
+  "properties":{
+    "schema":{"const":"s1-canonical-dataset/v1"},
+    "days":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["business_date","result"],"properties":{"business_date":{"type":"string","format":"date"},"result":{"type":"object"}}}}
+  }
+}
