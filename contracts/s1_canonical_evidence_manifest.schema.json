@@ -7,6 +7,7 @@
     "acquisition_reference",
     "acquisition_timestamp_utc",
     "artifact_path",
+    "canonical_artifact_path",
     "raw_artifact_sha256",
     "raw_byte_sha256",
     "date_start",
@@ -25,12 +26,13 @@
     "acquisition_reference": "PRESENT_AND_VERIFIABLE_FOR_CHANNEL",
     "acquisition_timestamp_utc": "PRESENT_AND_VERIFIABLE",
     "artifact_path": "MUST_RESOLVE_INSIDE_EVIDENCE_ROOT",
+    "canonical_artifact_path": "MUST_RESOLVE_INSIDE_EVIDENCE_ROOT_AND_BE_EXPLICIT",
     "raw_artifact_sha256": "PRESENT_AND_VERIFIABLE_AGAINST_BYTES",
     "raw_byte_sha256": "PRESENT_AND_VERIFIABLE",
     "coverage_ratio": 1.0,
     "unresolved_conflicts": 0,
     "admission_receipt": "REAL_OBSERVABLE_RECEIPT",
-    "frozen_canonical_sha256": "PRESENT_AND_VERIFIABLE",
+    "frozen_canonical_sha256": "PRESENT_AND_VERIFIABLE_AGAINST_CANONICAL_BYTES",
     "synthetic_data": false
   },
   "admission_channel_policy": {
