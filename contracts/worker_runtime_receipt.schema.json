@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Worker Runtime Receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["receipt_type","allocation_id","cycle_id","task_id","worker_id","input_artifact","input_sha256","model_version","execution_started_at","execution_finished_at","status"],
+  "properties": {
+    "receipt_type": {"const": "WORKER_RUNTIME_RECEIPT"},
+    "allocation_id": {"type":"string","minLength":1},
+    "cycle_id": {"type":"string","minLength":1},
+    "task_id": {"type":"string","minLength":1},
+    "worker_id": {"type":"string","minLength":1},
+    "input_artifact": {"type":"string","minLength":1},
+    "input_sha256": {"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "model_version": {"type":"string","minLength":1},
+    "execution_started_at": {"type":"string","format":"date-time"},
+    "execution_finished_at": {"type":"string","format":"date-time"},
+    "status": {"enum":["PASS","FAIL","BLOCKED"]},
+    "output_artifact": {"type":"string","minLength":1},
+    "output_sha256": {"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "error_code": {"type":"string","minLength":1}
+  },
+  "allOf": [
+    {"if":{"properties":{"status":{"const":"PASS"}}},"then":{"required":["output_artifact","output_sha256"]}},
+    {"if":{"properties":{"status":{"const":"FAIL"}}},"then":{"required":["error_code"]}}
+  ]
+}
