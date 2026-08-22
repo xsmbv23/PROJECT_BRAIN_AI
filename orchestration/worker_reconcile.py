@@ -16,7 +16,13 @@ NEXT = ROOT / "state" / "next_action.json"
 OUTBOX = ROOT / "coordination" / "worker_outbox"
 RESULTS = ROOT / "coordination" / "worker_results"
 RECON = ROOT / "coordination" / "reconciliation"
-WORKERS = tuple(x.strip() for x in os.environ.get("WORKERS", "BOT2_QUANT,BOT3_REALITY,BOT4_EXECUTION").split(",") if x.strip())
+
+# Canonical quorum denominator. Runtime configuration may restrict which
+# workers are executed, but it must never redefine the worker population.
+CANONICAL_WORKERS = ("BOT2_QUANT", "BOT3_REALITY", "BOT4_EXECUTION")
+EXECUTION_WORKERS = tuple(x.strip() for x in os.environ.get("WORKERS", ",".join(CANONICAL_WORKERS)).split(",") if x.strip())
+WORKERS = tuple(x for x in EXECUTION_WORKERS if x in CANONICAL_WORKERS)
+
 
 def now(): return datetime.now(timezone.utc).isoformat()
 def unwrap(v):
@@ -58,20 +64,20 @@ def process(task_path, current_cycle):
     append_jsonl(result_path,record); return record
 def reconcile(cycle, results):
     active=[r for r in results if r.get("status") not in {"STALE_REJECTED","DUPLICATE_IGNORED"}]
-    workers_observed=sorted({r.get("worker_id") for r in active if r.get("worker_id")}); missing=sorted(set(WORKERS)-set(workers_observed)); statuses=[r.get("result",{}).get("status") for r in active]
+    workers_observed=sorted({r.get("worker_id") for r in active if r.get("worker_id")}); missing=sorted(set(CANONICAL_WORKERS)-set(workers_observed)); statuses=[r.get("result",{}).get("status") for r in active]
     if any(r.get("status")=="STALE_REJECTED" for r in results): decision,reason="HOLD","stale task/result detected"
     elif any(s in {"FAIL","CONFLICT"} for s in statuses): decision,reason="HOLD","blocking worker failure/conflict preserved"
     elif any(s=="BLOCKED_PROVIDER_NOT_CONFIGURED" for s in statuses): decision,reason="HOLD","background reasoning provider unavailable"
-    elif len(workers_observed) >= 3 and not missing:
-        decision,reason="REVIEW_REQUIRED","full three-worker reconciliation; BOT1 forensic synthesis required"
+    elif len(workers_observed) >= len(CANONICAL_WORKERS) and not missing:
+        decision,reason="REVIEW_REQUIRED","full canonical three-worker reconciliation; BOT1 forensic synthesis required"
     elif len(workers_observed) == 2:
         decision,reason="PROVISIONAL","two-worker degraded reconciliation; missing worker recorded; S1 promotion remains denied"
     else:
         decision,reason="INSUFFICIENT_QUORUM","fewer than two worker results; operational deliberation quorum not met"
-    return {"schema":"forensic-worker-reconciliation/v4","recorded_at":now(),"cycle_id":cycle,"worker_results":results,"workers_expected":list(WORKERS),"workers_observed":workers_observed,"missing_workers":missing,"worker_count":len(workers_observed),"decision":decision,"reason":reason,"minority_preserved":True,"canonical_next_action_mutation":"FORBIDDEN","promotion":"DENY"}
+    return {"schema":"forensic-worker-reconciliation/v5","recorded_at":now(),"cycle_id":cycle,"worker_results":results,"workers_expected":list(CANONICAL_WORKERS),"workers_observed":workers_observed,"missing_workers":missing,"worker_count":len(workers_observed),"execution_workers":list(WORKERS),"decision":decision,"reason":reason,"minority_preserved":True,"canonical_next_action_mutation":"FORBIDDEN","promotion":"DENY"}
 def main():
     current_state=load(STATE); current_next=load(NEXT); current_cycle=current_next.get("action_id","UNKNOWN-CYCLE")
-    matrix_path=ROOT/"coordination"/"next_action_matrix_v1.json"
+    matrix_path=ROOT/"coordination/next_action_matrix_v1.json"
     if matrix_path.exists(): current_cycle=load(matrix_path).get("cycle_id",current_cycle)
     produced=[]
     if OUTBOX.exists():
