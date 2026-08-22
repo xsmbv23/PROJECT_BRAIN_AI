@@ -9,7 +9,7 @@ on:
     - cron: "*/5 * * * *"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: bot2-communication-loop
@@ -19,6 +19,8 @@ jobs:
   communicate:
     runs-on: ubuntu-slim
     timeout-minutes: 5
+    permissions:
+      contents: write
     steps:
       - name: Checkout Brain
         uses: actions/checkout@v4
@@ -34,10 +36,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Install Quant Engine dependencies
-        working-directory: quant-engine
-        run: pip install -r requirements.txt
 
       - name: Execute Bot 2 one-shot cycle
         working-directory: quant-engine
@@ -108,5 +106,6 @@ jobs:
             echo "No new Bot 2 communication event."
             exit 0
           fi
+          git diff --cached --check
           git commit -m "bot2: persist communication-loop reply"
           git push origin HEAD:main
