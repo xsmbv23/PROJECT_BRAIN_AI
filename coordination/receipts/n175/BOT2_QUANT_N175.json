@@ -1,9 +1,9 @@
 {
   "schema": "bot2-n175-s1-review/v1",
   "worker": "BOT2_QUANT",
-  "allocation_id": "ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
+  "allocation_id": "ALLOC-N175-S1-E2E-TRIPLE-WORKER-003",
   "cycle_id": "BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
-  "observed_at": "2026-08-21T16:48:35.937705+00:00",
+  "observed_at": "2026-08-22T13:39:25.154164+00:00",
   "result": "HOLD",
   "promotion": "DENY",
   "canonical_mutation": "FORBIDDEN",
