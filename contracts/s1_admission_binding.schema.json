@@ -1,0 +1,18 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"S1 Admission Binding",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["schema","status","cycle_id","business_date_start","business_date_end","evidence_manifest_sha256","canonical_sha256","verifier_version","issued_at_utc"],
+  "properties":{
+    "schema":{"const":"s1-admission-binding/v1"},
+    "status":{"const":"PASS"},
+    "cycle_id":{"type":"string","minLength":1},
+    "business_date_start":{"type":"string","format":"date"},
+    "business_date_end":{"type":"string","format":"date"},
+    "evidence_manifest_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "canonical_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "verifier_version":{"type":"string","minLength":1},
+    "issued_at_utc":{"type":"string","format":"date-time"}
+  }
+}
