@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "WORKER_EXECUTION_INPUT_V1",
+  "title": "Exact worker execution input contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["allocation_id", "cycle_id", "task_id", "task_type", "worker_id", "input_artifact", "input_sha256", "model_version"],
+  "properties": {
+    "allocation_id": {"type": "string", "minLength": 1},
+    "cycle_id": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "task_type": {"type": "string", "minLength": 1},
+    "worker_id": {"type": "string", "minLength": 1},
+    "input_artifact": {"type": "string", "minLength": 1},
+    "input_sha256": {"type": "string", "pattern": "^[0-9a-fA-F]{64}$"},
+    "model_version": {"type": "string", "minLength": 1}
+  }
+}
