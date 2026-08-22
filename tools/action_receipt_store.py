@@ -74,7 +74,7 @@ def issue_action_receipt(*, action_id: str, commit_sha: str, deployment_id: str,
                     (receipt_sha256, action_id, commit_sha, deployment_id, execution_nonce, issued_at, evidence_sha, receipt_json)
                     VALUES (%s,%s,%s,%s,%s,%s,%s,%s::jsonb)
                     ON CONFLICT (receipt_sha256) DO NOTHING
-                """, (receipt_sha256, action_id, commit_sha, deployment_id, execution_id, issued_at, evidence_sha, json.dumps(receipt, sort_keys=True, separators=(",", ":"))))
+                """, (receipt_sha256, action_id, commit_sha, deployment_id, execution_nonce, issued_at, evidence_sha, json.dumps(receipt, sort_keys=True, separators=(",", ":"))))
             conn.commit()
     except Exception as exc:
         raise DurableEvidenceDeny(f"ACTION_RECEIPT_WRITE_FAILED:{type(exc).__name__}") from exc
