@@ -1,12 +1,13 @@
 {
   "schema":"forensic-worker-task/v2",
-  "allocation_id":"ALLOC-N175-TRIPLE-WORKER-REACTIVATION-001",
+  "allocation_id":"ALLOC-N175-S1-E2E-TRIPLE-WORKER-003",
   "cycle_id":"BRAIN-N175-S1-CANONICAL-EVIDENCE-VERIFIER",
-  "task_id":"TASK-N175-BOT4-S1-INDEPENDENT-REVIEW-001",
+  "task_id":"TASK-N175-ALLOCATION003-BOT4-EXECUTION-001",
   "worker_id":"BOT4_EXECUTION",
-  "role":"Execution/Runtime",
-  "task":"Independently challenge exact runtime/deployment identity, freshness, replay/stale protections, persistence and source-admission runtime binding. Preserve blocking objections. Produce a fresh persistent runtime/lineage result; do not promote.",
-  "deliverable":"fresh persistent S1 runtime/lineage result",
+  "role":"Independent Execution/Deployment/Operations",
+  "status":"PENDING",
+  "task":"Independently verify runtime execution, exact deployment identity, receipt freshness, allocation/cycle binding, replay/stale protection, durable persistence and source-admission runtime binding. Preserve blocking objections. Produce a fresh persistent runtime/lineage result; do not promote.",
+  "deliverable":"fresh persistent BOT4 runtime/lineage receipt",
   "write_scope":"coordination/inbox/BOT4_EXECUTION.jsonl",
   "authority":{"forensic_gate":"NONE","promotion":"DENY","canonical_state_mutation":"FORBIDDEN"},
   "lease":{"state":"PENDING","attempt":1}
