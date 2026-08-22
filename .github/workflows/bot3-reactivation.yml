@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: bot3-reactivation
@@ -19,6 +19,8 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: write
     steps:
       - name: Checkout exact governance state
         uses: actions/checkout@v4
@@ -85,5 +87,6 @@ jobs:
             echo "No receipt change."
             exit 0
           fi
+          git diff --cached --check
           git commit -m "forensic: persist Bot3 reactivation receipt"
           git push
