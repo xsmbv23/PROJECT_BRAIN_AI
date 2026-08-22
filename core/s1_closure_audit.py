@@ -1,10 +1,9 @@
 """S1 evidence-closure audit.
 
-Audits a local evidence root and produces a deterministic fail-closed report.
-It never fetches data, invents provenance, or promotes canonical state.
-A PASS requires complete consecutive coverage, valid receipts for every day,
-no unresolved conflicts, explicit acquisition metadata, and a canonical
-artifact whose bytes match the frozen SHA-256 in the manifest.
+Fail-closed local audit. It never fetches data, invents provenance, or promotes
+state. A PASS requires complete consecutive coverage, valid per-day receipts,
+explicit acquisition metadata, raw/canonical byte hashes, zero unresolved
+conflicts, and a real admission receipt reference.
 """
 from __future__ import annotations
 
@@ -13,7 +12,6 @@ import json
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
-
 
 REQUIRED_MANIFEST = {
     "source_provenance", "acquisition_channel", "acquisition_reference",
@@ -45,6 +43,19 @@ def _days(start: str, end: str) -> list[str]:
     return [(s + timedelta(days=i)).isoformat() for i in range((e - s).days + 1)]
 
 
+def _inside(root: Path, relative: str, errors: list[str], code: str) -> Path | None:
+    if not relative:
+        errors.append(code + "_missing")
+        return None
+    p = (root / relative).resolve()
+    try:
+        p.relative_to(root)
+    except ValueError:
+        errors.append(code + "_outside_evidence_root")
+        return None
+    return p
+
+
 def audit(manifest: dict[str, Any], evidence_root: str | Path) -> dict[str, Any]:
     root = Path(evidence_root).resolve()
     errors: list[str] = []
@@ -53,34 +64,43 @@ def audit(manifest: dict[str, Any], evidence_root: str | Path) -> dict[str, Any]
         errors.append("missing_manifest_fields:" + ",".join(missing))
     if manifest.get("synthetic_data") is not False:
         errors.append("synthetic_data_not_false")
+    if manifest.get("source_provenance") != "REAL_AND_TRACEABLE":
+        errors.append("source_provenance_not_real_and_traceable")
     if manifest.get("acquisition_channel") not in ALLOWED_CHANNELS:
         errors.append("invalid_acquisition_channel")
     if not str(manifest.get("acquisition_reference", "")).strip():
         errors.append("missing_acquisition_reference")
+    if not str(manifest.get("acquisition_timestamp_utc", "")).strip():
+        errors.append("missing_acquisition_timestamp")
     if manifest.get("unresolved_conflicts") != 0:
         errors.append("unresolved_conflicts_nonzero")
+    if not str(manifest.get("admission_receipt", "")).strip():
+        errors.append("missing_admission_receipt")
 
-    expected_days: list[str] = []
     try:
         expected_days = _days(manifest["date_start"], manifest["date_end"])
     except Exception:
+        expected_days = []
         errors.append("invalid_date_range")
 
     if manifest.get("expected_consecutive_days") != len(expected_days):
         errors.append("expected_day_count_mismatch")
 
-    observed_days = set()
-    artifact_rel = str(manifest.get("artifact_path", ""))
-    artifact = (root / artifact_rel).resolve() if artifact_rel else root / "__missing__"
-    try:
-        artifact.relative_to(root)
-    except ValueError:
-        errors.append("artifact_outside_evidence_root")
-    if not artifact.is_file():
+    artifact = _inside(root, str(manifest.get("artifact_path", "")), errors, "raw_artifact")
+    canonical = _inside(root, str(manifest.get("canonical_artifact_path", "")), errors, "canonical_artifact")
+    if artifact is not None and not artifact.is_file():
         errors.append("raw_artifact_missing")
+    if canonical is not None and not canonical.is_file():
+        errors.append("canonical_artifact_missing")
 
-    # Evidence roots may contain per-day receipt files. We accept only explicit
-    # JSON receipts whose business_date lies in the requested range.
+    if artifact is not None and artifact.is_file():
+        actual_raw = sha256_file(artifact)
+        if actual_raw != manifest.get("raw_artifact_sha256"):
+            errors.append("raw_artifact_sha256_mismatch")
+        if actual_raw != manifest.get("raw_byte_sha256"):
+            errors.append("raw_byte_sha256_mismatch")
+
+    observed_days: set[str] = set()
     for receipt_path in root.rglob("*.receipt.json"):
         try:
             rec = json.loads(receipt_path.read_text(encoding="utf-8"))
@@ -88,18 +108,23 @@ def audit(manifest: dict[str, Any], evidence_root: str | Path) -> dict[str, Any]
             errors.append(f"invalid_receipt_json:{receipt_path.relative_to(root)}")
             continue
         day = rec.get("business_date")
-        if day in expected_days:
-            observed_days.add(day)
-            if rec.get("source_provenance") == "SYNTHETIC":
-                errors.append(f"synthetic_receipt:{day}")
-            if not rec.get("raw_bytes_sha256"):
-                errors.append(f"missing_raw_hash:{day}")
-            if rec.get("truncated") is True:
-                errors.append(f"truncated_capture:{day}")
-            if not str(rec.get("acquisition_channel", "")).strip():
-                errors.append(f"missing_acquisition_channel:{day}")
-            if not str(rec.get("acquisition_reference", "")).strip():
-                errors.append(f"missing_acquisition_reference:{day}")
+        if day not in expected_days:
+            continue
+        observed_days.add(day)
+        if rec.get("source_provenance") != "REAL_AND_TRACEABLE":
+            errors.append(f"non_real_receipt:{day}")
+        if rec.get("synthetic_data") is True or rec.get("source_provenance") == "SYNTHETIC":
+            errors.append(f"synthetic_receipt:{day}")
+        if not str(rec.get("raw_bytes_sha256", "")).strip():
+            errors.append(f"missing_raw_hash:{day}")
+        if rec.get("truncated") is True:
+            errors.append(f"truncated_capture:{day}")
+        if rec.get("acquisition_channel") not in ALLOWED_CHANNELS:
+            errors.append(f"invalid_acquisition_channel:{day}")
+        if not str(rec.get("acquisition_reference", "")).strip():
+            errors.append(f"missing_acquisition_reference:{day}")
+        if not str(rec.get("acquisition_timestamp_utc", "")).strip():
+            errors.append(f"missing_acquisition_timestamp:{day}")
 
     missing_days = [d for d in expected_days if d not in observed_days]
     if missing_days:
@@ -109,21 +134,13 @@ def audit(manifest: dict[str, Any], evidence_root: str | Path) -> dict[str, Any]
     if manifest.get("coverage_ratio") != 1.0:
         errors.append("coverage_ratio_not_one")
 
-    canonical_rel = str(manifest.get("canonical_artifact_path", ""))
-    canonical = (root / canonical_rel).resolve() if canonical_rel else root / "__missing__"
-    try:
-        canonical.relative_to(root)
-    except ValueError:
-        errors.append("canonical_artifact_outside_evidence_root")
-    if not canonical.is_file():
-        errors.append("canonical_artifact_missing")
-    else:
-        actual = sha256_file(canonical)
-        if actual != manifest.get("frozen_canonical_sha256"):
+    if canonical is not None and canonical.is_file():
+        actual_canonical = sha256_file(canonical)
+        if actual_canonical != manifest.get("frozen_canonical_sha256"):
             errors.append("frozen_canonical_sha256_mismatch")
 
     return {
-        "schema": "s1-evidence-closure-audit/v1",
+        "schema": "s1-evidence-closure-audit/v2",
         "status": "PASS" if not errors else "DENY",
         "evidence_root": str(root),
         "expected_days": expected_days,
